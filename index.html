@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Реал Лайф РПГ v5.2</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0b0b0c;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 20px 40px 20px;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .tabs {
+            display: flex;
+            width: 100%;
+            max-width: 340px;
+            background: #1c1c1e;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
+        }
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #8e8e93;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 9px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tab-btn.active {
+            background: #2c2c2e;
+            color: #ffffff;
+        }
+        .screen { display: none; width: 100%; max-width: 340px; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+        .profile-card {
+            background: linear-gradient(145deg, #1e1e24, #121214);
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+            width: 100%;
+            text-align: center;
+            margin-bottom: 25px;
+            border: 1px solid #2a2a30;
+            box-sizing: border-box;
+        }
+        h1 { margin: 0; font-size: 32px; color: #ff9500; font-weight: 800; }
+        .progress-container { background-color: #2c2c2e; border-radius: 10px; height: 12px; width: 100%; margin: 20px 0 10px 0; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, #ff9500, #ffcc00); height: 100%; width: 0%; transition: width 0.2s ease; }
+        .stat-item { display: flex; justify-content: space-between; background: #1c1c1e; padding: 12px 20px; border-radius: 14px; margin-bottom: 8px; font-size: 17px; font-weight: 600; width: 100%; box-sizing: border-box; }
+        .btn {
+            background-color: #1c1c1e; color: white; border: none; padding: 15px; font-size: 15px; font-weight: 700; border-radius: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 100%; margin-bottom: 10px;
+            -webkit-tap-highlight-color: rgba(255,255,255,0.1);
+            touch-action: manipulation;
+        }
+        .btn:active { background-color: #2c2c2e; }
+        .btn-plus { color: #30d158; font-weight: bold; }
+        .timer-box { background: #141416; border: 1px solid #222226; border-radius: 12px; padding: 10px; width: 100%; text-align: center; font-size: 13px; color: #aeaeae; margin-bottom: 20px; box-sizing: border-box; }
+        .achieve-card { background: #141416; border: 1px solid #222226; border-radius: 20px; padding: 20px; margin-bottom: 15px; width: 100%; box-sizing: border-box; position: relative; }
+        .achieve-card.locked { opacity: 0.25; filter: grayscale(1); }
+        .achieve-badge { position: absolute; top: 12px; right: 15px; background: #222226; color: #8e8e93; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 8px; }
+        .reset-btn { background: none; border: none; color: #ff453a; font-size: 13px; margin-top: 15px; cursor: pointer; text-decoration: underline; -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('main-screen', this)">Прокачка</button>
+        <button class="tab-btn" onclick="switchTab('quests-screen', this)">Квесты</button>
+        <button class="tab-btn" onclick="switchTab('achieve-screen', this)">Достижения</button>
+    </div>
+
+    <!-- ЭКРАН 1 -->
+    <div id="main-screen" class="screen active">
+        <div class="profile-card">
+            <div>Ваш уровень</div>
+            <h1 id="level-display">1</h1>
+            <div class="progress-container"><div class="progress-bar" id="exp-bar"></div></div>
+            <div id="exp-display">0 / 250 XP</div>
+        </div>
+        <div style="width: 100%;">
+            <div class="stat-item"><span>💪 Сила</span><span id="str-val">0</span></div>
+            <div class="stat-item"><span>🏃‍♂️ Выносливость</span><span id="end-val">0</span></div>
+            <div class="stat-item"><span>🎯 Ловкость</span><span id="agi-val">0</span></div>
+            <div class="stat-item"><span>📚 Интеллект</span><span id="int-val">0</span></div>
+            <div class="stat-item"><span>🗣 Харизма</span><span id="cha-val">0</span></div>
+        </div>
+        <div style="width: 100%; margin-top:15px;">
+            <button class="btn" onclick="train('str')"><span>🏋️‍♂️ Зал</span><span class="btn-plus">+10 XP</span></button>
+            <button class="btn" onclick="train('end')"><span>🏃‍♂️ Бег</span><span class="btn-plus">+10 XP</span></button>
+            <button class="btn" onclick="train('agi')"><span>🎯 Реакция</span><span class="btn-plus">+10 XP</span></button>
+            <button class="btn" onclick="train('int')"><span>📖 Книга</span><span class="btn-plus">+10 XP</span></button>
+            <button class="btn" onclick="train('cha')"><span>🎤 Общение</span><span class="btn-plus">+10 XP</span></button>
+        </div>
+        <button class="reset-btn" onclick="resetProgress()">Сбросить прогресс</button>
+    </div>
+
+    <!-- ЭКРАН 2 -->
+    <div id="quests-screen" class="screen">
+        <div class="timer-box">Новые квесты через: <span style="color:#00bfff" id="daily-timer">23:59:59</span></div>
+        <button class="btn" id="q-water" onclick="quest(this, 'str')"><span>💧 Выпить 2л воды</span><span class="btn-plus">+15 XP</span></button>
+        <button class="btn" id="q-charge" onclick="quest(this, 'end')"><span>🤸‍♂️ Зарядка</span><span class="btn-plus">+15 XP</span></button>
+        <button class="btn" id="q-phone" onclick="quest(this, 'int')"><span>📵 Без телефона</span><span class="btn-plus">+15 XP</span></button>
+    </div>
+
+    <!-- ЭКРАН 3 -->
+    <div id="achieve-screen" class="screen">
+        <div class="achieve-card" id="ach-status"><div class="achieve-badge">3 УР</div><h3>Статус</h3><div>Доступно на 3 уровне</div></div>
+        <div class="achieve-card locked" id="ach-prof"><div class="achieve-badge">5 УР</div><h3>Профессия</h3><div>Доступно на 5 уровне</div></div>
+    </div>
+
+    <!-- Подключаем логику из соседнего файла -->
+    <script src="script.js"></script>
+</body>
+</html>
