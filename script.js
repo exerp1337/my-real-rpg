@@ -16,8 +16,15 @@ let lastTrainTime = 0;
 const EXP = 250;
 
 // ========================================
-//  БАЗЫ ДАННЫХ (НАЗВАНИЯ И Т.Д.)
+//  БАЗЫ ДАННЫХ
 // ========================================
+
+const RARITY_CONFIG = {
+    legendary: { label: '⭐ Легендарная', color: '#ff6b00', xp: 50, statBonus: 15 },
+    epic: { label: '🔮 Эпическая', color: '#bf5af2', xp: 30, statBonus: 10 },
+    common: { label: '📦 Обычная', color: '#0a84ff', xp: 15, statBonus: 5 },
+    easy: { label: '🌱 Легкая', color: '#30d158', xp: 5, statBonus: 2 }
+};
 
 const TITLES_DATABASE = [
     { lvl: 30, text: "👾 Высший разум" },
@@ -88,7 +95,8 @@ async function createUser(username, password, email = '') {
         completed_quests: [],
         current_quests: [],
         last_quest_date: '',
-        last_sleep_date: ''
+        last_sleep_date: '',
+        goals: []
     };
     const result = await supabaseRequest('POST', TABLE_NAME, newUser);
     return result && result.length > 0 ? result[0] : null;
@@ -191,11 +199,14 @@ async function loginUser() {
         }
         currentUsername = username;
         currentUserData = user;
+        if (!currentUserData.goals) currentUserData.goals = [];
         showGameScreen();
         document.getElementById('user-nick').textContent = username;
         await checkDailyRotation();
         updateUI();
         renderQuests();
+        renderGoals();
+        renderHotbar();
     } catch (e) {
         errorEl.textContent = '❌ Ошибка: ' + e.message;
     }
@@ -228,6 +239,8 @@ function switchTab(id, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     if (btn) btn.classList.add('active');
+    if (id === 'goals-screen') renderGoals();
+    if (id === 'main-screen') renderHotbar();
 }
 
 async function checkDailyRotation() {
@@ -296,7 +309,6 @@ function updateUI() {
         }
     });
 
-    // Weekly button
     const wBtn = document.getElementById('w1');
     if (wBtn) {
         if (currentUserData.completed_quests.includes('w1')) {
@@ -312,7 +324,6 @@ function updateUI() {
         }
     }
 
-    // Sleep button
     const sBtn = document.getElementById('sleep-action-btn');
     if (sBtn) {
         if (currentUserData.last_sleep_date === new Date().toDateString()) {
@@ -326,7 +337,6 @@ function updateUI() {
         }
     }
 
-    // Inventory
     const invList = document.getElementById('inventory-list');
     if (invList) {
         if (currentUserData.inventory?.length) {
@@ -335,6 +345,8 @@ function updateUI() {
             invList.innerHTML = `<span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>`;
         }
     }
+
+    renderHotbar();
 }
 
 async function saveUserData() {
@@ -346,7 +358,8 @@ async function saveUserData() {
             completed_quests: currentUserData.completed_quests,
             current_quests: currentUserData.current_quests,
             last_quest_date: currentUserData.last_quest_date,
-            last_sleep_date: currentUserData.last_sleep_date
+            last_sleep_date: currentUserData.last_sleep_date,
+            goals: currentUserData.goals
         });
         console.log('✅ Saved');
     } catch (e) {
@@ -440,11 +453,257 @@ async function resetProgress() {
     currentUserData.current_quests = [];
     currentUserData.last_quest_date = '';
     currentUserData.last_sleep_date = '';
+    currentUserData.goals = [];
     await saveUserData();
     await checkDailyRotation();
     updateUI();
     renderQuests();
+    renderGoals();
     alert('🗑️ Прогресс сброшен!');
+}
+
+// ========================================
+//  СИСТЕМА ЦЕЛЕЙ
+// ========================================
+
+function getRarityConfig(rarity) {
+    return RARITY_CONFIG[rarity] || RARITY_CONFIG.common;
+}
+
+function updateRewardPreview() {
+    const rarity = document.getElementById('goal-rarity').value;
+    const stat = document.getElementById('goal-stat').value;
+    const config = getRarityConfig(rarity);
+    const statLabels = {
+        str: '💪 Сила',
+        end: '🏃‍♂️ Выносливость',
+        agi: '🎯 Ловкость',
+        int: '📚 Интеллект',
+        cha: '🗣 Харизма',
+        per: '👁 Восприятие',
+        luck: '🍀 Удача'
+    };
+    document.getElementById('goal-reward-preview').innerHTML = `
+        🎁 Награда: <span style="color:#ffcc00;">+${config.xp} XP</span> + 
+        <span style="color:${config.color};">+${config.statBonus} ${statLabels[stat]}</span>
+        <span style="color:#8e8e93; font-size:11px; margin-left:8px;">(${config.label})</span>
+    `;
+}
+
+function showAddGoalModal() {
+    document.getElementById('goal-modal').classList.add('active');
+    document.getElementById('goal-title').value = '';
+    document.getElementById('goal-desc').value = '';
+    document.getElementById('goal-target').value = '';
+    document.getElementById('goal-unit').value = '';
+    document.getElementById('goal-rarity').value = 'common';
+    document.getElementById('goal-stat').value = 'str';
+    updateRewardPreview();
+}
+
+function closeGoalModal() {
+    document.getElementById('goal-modal').classList.remove('active');
+}
+
+async function addGoal() {
+    const title = document.getElementById('goal-title').value.trim();
+    const description = document.getElementById('goal-desc').value.trim();
+    const target = parseFloat(document.getElementById('goal-target').value);
+    const unit = document.getElementById('goal-unit').value.trim();
+    const rarity = document.getElementById('goal-rarity').value;
+    const stat = document.getElementById('goal-stat').value;
+    const config = getRarityConfig(rarity);
+
+    if (!title) {
+        alert('Введите название цели!');
+        return;
+    }
+    if (!target || target <= 0) {
+        alert('Введите целевое значение (число > 0)!');
+        return;
+    }
+
+    const newGoal = {
+        id: Date.now().toString(),
+        title,
+        description: description || '',
+        target,
+        current: 0,
+        unit: unit || '',
+        rarity: rarity,
+        stat: stat,
+        xpReward: config.xp,
+        statBonus: config.statBonus,
+        completed: false,
+        createdAt: new Date().toISOString()
+    };
+
+    if (!currentUserData.goals) currentUserData.goals = [];
+    currentUserData.goals.push(newGoal);
+    await saveUserData();
+    closeGoalModal();
+    renderGoals();
+    renderHotbar();
+    alert(`🎯 Цель "${title}" добавлена! (${config.label})`);
+}
+
+function renderHotbar() {
+    const container = document.getElementById('hotbar-goals');
+    if (!container) return;
+    if (!currentUserData?.goals?.length) {
+        container.innerHTML = '<div class="hotbar-empty">Нет активных целей. Добавьте!</div>';
+        return;
+    }
+    const activeGoals = currentUserData.goals.filter(g => !g.completed).slice(0, 3);
+    if (!activeGoals.length) {
+        container.innerHTML = '<div class="hotbar-empty">Все цели выполнены! 🎉</div>';
+        return;
+    }
+    container.innerHTML = activeGoals.map(g => {
+        const config = getRarityConfig(g.rarity);
+        const progress = g.target > 0 ? Math.min(100, (g.current || 0) / g.target * 100) : 0;
+        const isDone = progress >= 100;
+        return `
+            <div class="hotbar-goal" style="border-left-color: ${config.color};">
+                <div>
+                    <div class="title">${g.title}</div>
+                    <div class="progress">${g.current || 0} / ${g.target} ${g.unit || ''}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="rarity-badge" style="background:${config.color}; color:#fff;">${config.label}</span>
+                    ${isDone ? '<span class="done">✅</span>' : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderGoals() {
+    const container = document.getElementById('goals-container');
+    if (!container) return;
+    if (!currentUserData?.goals?.length) {
+        container.innerHTML = '<div style="color:#8e8e93; text-align:center; padding:20px;">У вас пока нет целей. Добавьте первую!</div>';
+        return;
+    }
+    container.innerHTML = currentUserData.goals.map((g, index) => {
+        const config = getRarityConfig(g.rarity);
+        const progress = g.target > 0 ? Math.min(100, (g.current || 0) / g.target * 100) : 0;
+        const isCompleted = g.completed || progress >= 100;
+        const statLabels = {
+            str: '💪 Сила',
+            end: '🏃‍♂️ Выносливость',
+            agi: '🎯 Ловкость',
+            int: '📚 Интеллект',
+            cha: '🗣 Харизма',
+            per: '👁 Восприятие',
+            luck: '🍀 Удача'
+        };
+        return `
+            <div class="goal-card ${isCompleted ? 'completed' : ''}" style="border-color: ${isCompleted ? '#30d158' : config.color};">
+                <div class="goal-header">
+                    <div class="goal-title" style="color: ${isCompleted ? '#30d158' : config.color};">${g.title}</div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="rarity-badge" style="background:${config.color}; color:#fff;">${config.label}</span>
+                        <div style="font-size:13px; color:#8e8e93;">${Math.round(progress)}%</div>
+                    </div>
+                </div>
+                ${g.description ? `<div class="goal-desc">${g.description}</div>` : ''}
+                <div class="goal-progress">
+                    <span style="font-size:13px; color:#8e8e93;">${g.current || 0}</span>
+                    <div class="goal-progress-bar">
+                        <div class="fill" style="width:${progress}%; background: ${config.color};"></div>
+                    </div>
+                    <span style="font-size:13px; color:#8e8e93;">${g.target} ${g.unit || ''}</span>
+                </div>
+                <div class="goal-reward">
+                    🎁 Награда: <span>+${config.xp} XP</span> + <span style="color:${config.color};">+${config.statBonus} ${statLabels[g.stat] || '💪 Сила'}</span>
+                </div>
+                <div class="goal-actions">
+                    ${!isCompleted ? `
+                        <button onclick="updateGoalProgress(${index}, 1)">➕ +1</button>
+                        <button onclick="updateGoalProgress(${index}, 5)">➕ +5</button>
+                        <button onclick="updateGoalProgress(${index}, 10)">➕ +10</button>
+                        <button onclick="setGoalComplete(${index})" class="done-btn">✅ Выполнено</button>
+                    ` : `
+                        <span style="color:#30d158; font-weight:600;">✅ Выполнено!</span>
+                    `}
+                    <button onclick="deleteGoal(${index})" class="delete-btn">🗑️</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function updateGoalProgress(index, amount) {
+    if (!currentUserData?.goals?.[index]) return;
+    const goal = currentUserData.goals[index];
+    if (goal.completed) return;
+    goal.current = (goal.current || 0) + amount;
+    if (goal.current >= goal.target) {
+        goal.current = goal.target;
+        goal.completed = true;
+        await claimGoalReward(index);
+        alert(`🎉 Цель "${goal.title}" выполнена! Молодец!`);
+    }
+    await saveUserData();
+    renderGoals();
+    renderHotbar();
+    updateUI();
+}
+
+async function setGoalComplete(index) {
+    if (!currentUserData?.goals?.[index]) return;
+    const goal = currentUserData.goals[index];
+    if (goal.completed) return;
+    if (!confirm(`Отметить "${goal.title}" как выполненную?`)) return;
+    goal.completed = true;
+    goal.current = goal.target;
+    await claimGoalReward(index);
+    await saveUserData();
+    renderGoals();
+    renderHotbar();
+    updateUI();
+    alert('✅ Цель отмечена как выполненная! Награда получена!');
+}
+
+async function claimGoalReward(index) {
+    if (!currentUserData?.goals?.[index]) return;
+    const goal = currentUserData.goals[index];
+    const config = getRarityConfig(goal.rarity);
+    
+    // Добавляем XP и бонус к статам
+    // XP идет в общий прогресс (сумма статов)
+    const statNames = ['str', 'end', 'agi', 'int', 'cha', 'per', 'luck'];
+    const total = statNames.reduce((sum, s) => sum + (currentUserData.stats[s] || 0), 0);
+    const lvlBefore = Math.floor(total / EXP) + 1;
+    
+    // Добавляем XP через бонус к случайной характеристике (для XP используем luck)
+    // На самом деле XP считается от суммы статов, поэтому даем бонус к статам
+    const targetStat = goal.stat || 'str';
+    currentUserData.stats[targetStat] = (currentUserData.stats[targetStat] || 0) + config.statBonus;
+    
+    // Дополнительный бонус к удаче как XP
+    currentUserData.stats.luck = (currentUserData.stats.luck || 0) + Math.floor(config.xp / 5);
+    
+    // Даем золото за выполнение
+    currentUserData.stats.gold = (currentUserData.stats.gold || 0) + config.xp * 2;
+    
+    const totalAfter = statNames.reduce((sum, s) => sum + (currentUserData.stats[s] || 0), 0);
+    const lvlAfter = Math.floor(totalAfter / EXP) + 1;
+    
+    if (lvlAfter > lvlBefore) {
+        alert(`⭐ Уровень повышен! Теперь ты ${lvlAfter} уровень!`);
+    }
+}
+
+async function deleteGoal(index) {
+    if (!currentUserData?.goals?.[index]) return;
+    const goal = currentUserData.goals[index];
+    if (!confirm(`Удалить цель "${goal.title}"?`)) return;
+    currentUserData.goals.splice(index, 1);
+    await saveUserData();
+    renderGoals();
+    renderHotbar();
 }
 
 // ========================================
@@ -465,6 +724,9 @@ setInterval(() => {
 // ========================================
 //  ЗАПУСК
 // ========================================
+
+document.getElementById('goal-rarity').addEventListener('change', updateRewardPreview);
+document.getElementById('goal-stat').addEventListener('change', updateRewardPreview);
 
 console.log('✅ Игра запущена!');
 showAuthScreen();
