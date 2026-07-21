@@ -393,7 +393,7 @@ async function checkSleepTime() {
     if (hours === 0 || hours >= 21) {
         currentUserData.stats.per += 10;
         currentUserData.stats.gold += 15;
-        alert('🏆 Отличный режим! +10 Восприятие / +15 🪙');
+        alert('🏆 Отличный режим! +10 Дисциплина / +15 🪙');
     } else {
         currentUserData.stats.per = Math.max(0, currentUserData.stats.per - 10);
         alert('⚠️ Режим нарушен! -10 Восприятие.');
