@@ -480,7 +480,7 @@ function updateRewardPreview() {
         agi: '🎯 Ловкость',
         int: '📚 Интеллект',
         cha: '🗣 Харизма',
-        per: '👁 Восприятие',
+        per: '👁 Дисциплина',
         luck: '🍀 Удача'
     };
     document.getElementById('goal-reward-preview').innerHTML = `
