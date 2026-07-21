@@ -36,11 +36,23 @@
         .logout-btn { background: none; border: none; color: #ff453a; font-size: 12px; cursor: pointer; text-decoration: underline; margin-left: 8px; opacity: 0.6; }
         .logout-btn:hover { opacity: 1; }
         
-        .tabs { display: flex; width: 100%; background: #1c1c1e; border-radius: 12px; padding: 4px; margin-bottom: 25px; box-sizing: border-box; }
-        .tab-btn { flex: 1; background: none; border: none; color: #8e8e93; padding: 10px; font-size: 14px; font-weight: 600; border-radius: 9px; cursor: pointer; }
+        .tabs { display: flex; width: 100%; background: #1c1c1e; border-radius: 12px; padding: 4px; margin-bottom: 15px; box-sizing: border-box; flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 60px; background: none; border: none; color: #8e8e93; padding: 10px 6px; font-size: 13px; font-weight: 600; border-radius: 9px; cursor: pointer; text-align: center; }
         .tab-btn.active { background: #2c2c2e; color: #ffffff; }
         .screen { display: none; width: 100%; max-width: 600px; flex-direction: column; align-items: center; }
         .screen.active { display: flex; }
+        
+        /* Хотбар целей */
+        .hotbar { width: 100%; background: #141417; border-radius: 16px; padding: 12px; margin-bottom: 15px; border: 1px solid #2a2a30; }
+        .hotbar-title { font-size: 13px; color: #8e8e93; font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .hotbar-goals { display: flex; gap: 8px; flex-wrap: wrap; }
+        .hotbar-goal { background: #1c1c1e; border-radius: 10px; padding: 8px 12px; flex: 1; min-width: 100px; border-left: 3px solid #ff9500; display: flex; justify-content: space-between; align-items: center; }
+        .hotbar-goal .title { font-size: 13px; font-weight: 600; color: #fff; }
+        .hotbar-goal .progress { font-size: 11px; color: #8e8e93; }
+        .hotbar-goal .done { color: #30d158; font-size: 16px; }
+        .hotbar-empty { color: #636366; font-size: 13px; padding: 6px 0; }
+        .hotbar-goal .rarity-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+        
         .profile-card { background: linear-gradient(145deg, #1e1e24, #121214); padding: 25px; border-radius: 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.5); width: 100%; text-align: center; margin-bottom: 25px; border: 1px solid #2a2a30; box-sizing: border-box; }
         h1 { margin: 0; font-size: 36px; color: #ff9500; font-weight: 800; }
         .title-display { font-size: 15px; font-weight: 700; color: #00bfff; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 10px rgba(0, 191, 255, 0.3); }
@@ -88,6 +100,46 @@
         .achieve-card { background: #141416; border: 1px solid #222226; border-radius: 20px; padding: 20px; margin-bottom: 15px; width: 100%; box-sizing: border-box; position: relative; }
         .achieve-card.locked { opacity: 0.25; filter: grayscale(1); }
         .achieve-badge { position: absolute; top: 12px; right: 15px; background: #222226; color: #8e8e93; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 8px; }
+
+        /* Стили для целей */
+        .goals-container { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+        .goal-card { background: #141417; border: 1px solid #2a2a30; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .goal-card .goal-header { display: flex; justify-content: space-between; align-items: center; }
+        .goal-card .goal-title { font-size: 16px; font-weight: 700; }
+        .goal-card .goal-desc { font-size: 13px; color: #aeaeae; }
+        .goal-card .goal-progress { display: flex; align-items: center; gap: 12px; }
+        .goal-card .goal-progress-bar { flex: 1; height: 6px; background: #2c2c2e; border-radius: 4px; overflow: hidden; }
+        .goal-card .goal-progress-bar .fill { height: 100%; background: linear-gradient(90deg, #ff9500, #ffcc00); transition: width 0.3s; }
+        .goal-card .goal-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+        .goal-card .goal-actions button { background: #2c2c2e; border: none; color: #fff; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; }
+        .goal-card .goal-actions button:hover { background: #3a3a3c; }
+        .goal-card .goal-actions .done-btn { background: #30d158; }
+        .goal-card .goal-actions .done-btn:hover { background: #24a142; }
+        .goal-card .goal-actions .delete-btn { background: #ff453a; color: #fff; }
+        .goal-card .goal-actions .delete-btn:hover { background: #d93a30; }
+        .goal-card.completed { opacity: 0.5; border-color: #30d158; }
+        .goal-card.completed .goal-title { text-decoration: line-through; }
+        .goal-card .rarity-badge { font-size: 11px; padding: 2px 10px; border-radius: 12px; font-weight: 700; display: inline-block; }
+        .add-goal-btn { background: #0a84ff; border: none; color: white; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; width: 100%; margin-top: 10px; }
+        .add-goal-btn:hover { background: #0066cc; }
+        .goal-reward { font-size: 12px; color: #8e8e93; margin-top: 4px; }
+        .goal-reward span { color: #ffcc00; }
+
+        /* Модалка */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #1c1c1e; border-radius: 24px; padding: 24px; max-width: 400px; width: 90%; border: 1px solid #2a2a30; max-height: 90vh; overflow-y: auto; }
+        .modal h2 { margin-top: 0; color: #ff9500; }
+        .modal input, .modal textarea, .modal select { width: 100%; background: #0b0b0c; border: 1px solid #2a2a30; border-radius: 10px; padding: 12px; color: #fff; font-size: 14px; margin-bottom: 12px; outline: none; }
+        .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: #ff9500; }
+        .modal select option { background: #1c1c1e; }
+        .modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal .modal-actions button { padding: 10px 20px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; }
+        .modal .modal-actions .cancel { background: #2c2c2e; color: #fff; }
+        .modal .modal-actions .submit { background: #ff9500; color: #fff; }
+        .modal .stat-select-row { display: flex; gap: 8px; align-items: center; }
+        .modal .stat-select-row label { color: #8e8e93; font-size: 13px; white-space: nowrap; }
+        .modal .stat-select-row select { flex: 1; margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -97,12 +149,10 @@
         <div class="logo-icon">🎮</div>
         <h1>Реал Лайф РПГ</h1>
         <div class="subtitle">Войдите в свой аккаунт</div>
-        
         <div class="auth-tabs">
             <div class="auth-tab active" id="login-tab" onclick="switchAuthTab('login')">🔑 Вход</div>
             <div class="auth-tab" id="register-tab" onclick="switchAuthTab('register')">📝 Регистрация</div>
         </div>
-
         <div class="auth-form active" id="login-form">
             <input type="text" id="login-username" placeholder="👤 Имя пользователя" autocomplete="username">
             <input type="password" id="login-password" placeholder="🔒 Пароль" autocomplete="current-password">
@@ -110,7 +160,6 @@
             <button class="auth-btn" onclick="loginUser()">🔓 Войти</button>
             <div class="auth-hint">Нет аккаунта? <span style="color:#0a84ff;cursor:pointer;" onclick="switchAuthTab('register')">Зарегистрируйтесь</span></div>
         </div>
-
         <div class="auth-form" id="register-form">
             <input type="text" id="reg-username" placeholder="👤 Имя пользователя" autocomplete="username">
             <input type="email" id="reg-email" placeholder="📧 Email (необязательно)" autocomplete="email">
@@ -140,12 +189,21 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('main-screen', this)">Прокачка</button>
             <button class="tab-btn" onclick="switchTab('quests-screen', this)">Квесты</button>
+            <button class="tab-btn" onclick="switchTab('goals-screen', this)">🎯 Цели</button>
             <button class="tab-btn" onclick="switchTab('shop-screen', this)">Магазин</button>
             <button class="tab-btn" onclick="switchTab('achieve-screen', this)">Ачивки</button>
         </div>
 
-        <!-- Main -->
+        <!-- MAIN SCREEN -->
         <div id="main-screen" class="screen active">
+            <div class="hotbar" id="hotbar">
+                <div class="hotbar-title">
+                    <span>🎯 Мои цели</span>
+                    <span style="font-size:12px; color:#0a84ff; cursor:pointer;" onclick="switchTab('goals-screen', document.querySelector('.tab-btn:nth-child(3)'))">Все →</span>
+                </div>
+                <div class="hotbar-goals" id="hotbar-goals"></div>
+            </div>
+
             <div class="profile-card">
                 <div style="color: #aeaeae; font-size: 12px; text-transform: uppercase;">Текущий Уровень</div>
                 <h1 id="level-display">1</h1>
@@ -190,7 +248,7 @@
             <button class="reset-btn" onclick="resetProgress()">Начать жизнь с нуля</button>
         </div>
 
-        <!-- Quests -->
+        <!-- QUESTS SCREEN -->
         <div id="quests-screen" class="screen">
             <div class="weekly-section-title">Еженедельный вызов</div>
             <div class="weekly-challenge-card">
@@ -200,13 +258,21 @@
                 <button class="weekly-btn" id="w1" onclick="completeWeeklyChallenge(this)">Выполнить</button>
             </div>
             <div class="timer-box" style="margin-bottom: 25px;">Новый вызов через: <span style="color:#ff9500; font-weight: bold;" id="weekly-timer">6д 23:51:57</span></div>
-
             <div style="font-size: 22px; color: #00bfff; font-weight: 800; margin-bottom: 15px; text-align: center; width: 100%; letter-spacing: 1px;">Ежедневные квесты</div>
             <div class="timer-box">Новые квесты через: <span style="color:#00bfff; font-weight: bold;" id="daily-timer">23:59:59</span></div>
             <div class="quests-grid" id="quests-container"></div>
         </div>
 
-        <!-- Shop -->
+        <!-- GOALS SCREEN -->
+        <div id="goals-screen" class="screen">
+            <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="color:#ff9500; margin:0;">🎯 Мои цели</h2>
+                <button class="add-goal-btn" style="width:auto; padding:8px 16px;" onclick="showAddGoalModal()">➕ Добавить</button>
+            </div>
+            <div class="goals-container" id="goals-container"></div>
+        </div>
+
+        <!-- SHOP SCREEN -->
         <div id="shop-screen" class="screen">
             <div class="shop-grid">
                 <div class="shop-card" style="border-color: #8e8e93;">
@@ -222,10 +288,48 @@
             </div>
         </div>
 
-        <!-- Achievements -->
+        <!-- ACHIEVEMENTS SCREEN -->
         <div id="achieve-screen" class="screen">
             <div class="achieve-card" id="ach-status"><div class="achieve-badge">3 УР</div><h3>Статус авторитета</h3><div>Разблокируется на 3 уровне</div></div>
             <div class="achieve-card locked" id="ach-prof"><div class="achieve-badge">5 УР</div><h3>Мировой Мастер</h3><div>Разблокируется на 5 уровне</div></div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ДОБАВЛЕНИЯ ЦЕЛИ -->
+    <div class="modal-overlay" id="goal-modal">
+        <div class="modal">
+            <h2>🎯 Новая цель</h2>
+            <input type="text" id="goal-title" placeholder="Название (например: Пожать 120 кг)" />
+            <textarea id="goal-desc" placeholder="Описание (необязательно)" rows="2"></textarea>
+            <input type="number" id="goal-target" placeholder="Целевое значение (например: 120)" />
+            <input type="text" id="goal-unit" placeholder="Единица измерения (кг, раз, мин...)" />
+            
+            <label style="color:#8e8e93; font-size:13px; margin-bottom:4px;">Редкость цели</label>
+            <select id="goal-rarity">
+                <option value="legendary">⭐ Легендарная</option>
+                <option value="epic" selected>🔮 Эпическая</option>
+                <option value="common">📦 Обычная</option>
+                <option value="easy">🌱 Легкая</option>
+            </select>
+            
+            <div class="stat-select-row">
+                <label>Награда: +</label>
+                <select id="goal-stat">
+                    <option value="str">💪 Сила</option>
+                    <option value="end">🏃‍♂️ Выносливость</option>
+                    <option value="agi">🎯 Ловкость</option>
+                    <option value="int">📚 Интеллект</option>
+                    <option value="cha">🗣 Харизма</option>
+                    <option value="per">👁 Восприятие</option>
+                    <option value="luck">🍀 Удача</option>
+                </select>
+            </div>
+            <div id="goal-reward-preview" style="font-size:13px; color:#8e8e93; margin-bottom:12px;"></div>
+            
+            <div class="modal-actions">
+                <button class="cancel" onclick="closeGoalModal()">Отмена</button>
+                <button class="submit" onclick="addGoal()">Добавить</button>
+            </div>
         </div>
     </div>
 
