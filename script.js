@@ -396,7 +396,7 @@ async function checkSleepTime() {
         alert('🏆 Отличный режим! +10 Дисциплина / +15 🪙');
     } else {
         currentUserData.stats.per = Math.max(0, currentUserData.stats.per - 10);
-        alert('⚠️ Режим нарушен! -10 Восприятие.');
+        alert('⚠️ Режим нарушен! -10 Дисциплина.');
     }
     currentUserData.last_sleep_date = today;
     await saveUserData();
