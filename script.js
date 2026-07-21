@@ -5,6 +5,7 @@
 const SUPABASE_URL = 'https://zjtudyoffdwqfamzczcb.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqdHVkeW9mZmR3cWZhbXpjemNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MTYxMDMsImV4cCI6MjEwMDE5MjEwM30.yO-fyi_hZv__XqMjz-OpuYNPAlKyaGT7KB4xscqHMNo';
 const TABLE_NAME = 'players';
+const SESSION_KEY = 'rpg_session';
 
 // ========================================
 //  СОСТОЯНИЕ
@@ -24,6 +25,16 @@ const RARITY_CONFIG = {
     epic: { label: '🔮 Эпическая', color: '#bf5af2', xp: 30, statBonus: 10 },
     common: { label: '📦 Обычная', color: '#0a84ff', xp: 15, statBonus: 5 },
     easy: { label: '🌱 Легкая', color: '#30d158', xp: 5, statBonus: 2 }
+};
+
+const STAT_LABELS = {
+    str: '💪 Сила',
+    end: '🏃‍♂️ Выносливость',
+    agi: '🎯 Ловкость',
+    int: '📚 Интеллект',
+    cha: '🗣 Харизма',
+    per: '👁 Дисциплина',
+    luck: '🍀 Удача'
 };
 
 const TITLES_DATABASE = [
@@ -56,6 +67,38 @@ const LOOT_POOL = {
     common: [{ name: "👟 Nike (+5 Выносл.)", stat: "end", bonus: 5 }, { name: "🏋️‍♂️ Эспандер (+5 Сила)", stat: "str", bonus: 5 }],
     epic: [{ name: "⌚ Rolex (+25 Харизма)", stat: "cha", bonus: 25 }, { name: "💻 Ноутбук (+25 Интелл.)", stat: "int", bonus: 25 }]
 };
+
+// ========================================
+//  СЕССИЯ
+// ========================================
+
+function saveSession(username) {
+    try {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({
+            username: username,
+            loginTime: new Date().toISOString()
+        }));
+    } catch (e) {
+        console.error('Error saving session:', e);
+    }
+}
+
+function getSession() {
+    try {
+        const data = localStorage.getItem(SESSION_KEY);
+        return data ? JSON.parse(data) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function clearSession() {
+    try {
+        localStorage.removeItem(SESSION_KEY);
+    } catch (e) {
+        console.error('Error clearing session:', e);
+    }
+}
 
 // ========================================
 //  ЗАПРОСЫ К SUPABASE
@@ -200,6 +243,9 @@ async function loginUser() {
         currentUsername = username;
         currentUserData = user;
         if (!currentUserData.goals) currentUserData.goals = [];
+        
+        saveSession(username);
+        
         showGameScreen();
         document.getElementById('user-nick').textContent = username;
         await checkDailyRotation();
@@ -216,6 +262,7 @@ function logoutUser() {
     if (confirm('Выйти из аккаунта?')) {
         currentUsername = null;
         currentUserData = null;
+        clearSession();
         showAuthScreen();
     }
 }
@@ -228,6 +275,40 @@ function showAuthScreen() {
 function showGameScreen() {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('game-container').classList.add('active');
+}
+
+async function restoreSession() {
+    const session = getSession();
+    if (!session || !session.username) {
+        showAuthScreen();
+        return false;
+    }
+
+    try {
+        const user = await getUser(session.username);
+        if (!user) {
+            clearSession();
+            showAuthScreen();
+            return false;
+        }
+
+        currentUsername = session.username;
+        currentUserData = user;
+        if (!currentUserData.goals) currentUserData.goals = [];
+        showGameScreen();
+        document.getElementById('user-nick').textContent = currentUsername;
+        await checkDailyRotation();
+        updateUI();
+        renderQuests();
+        renderGoals();
+        renderHotbar();
+        return true;
+    } catch (e) {
+        console.error('Session restore error:', e);
+        clearSession();
+        showAuthScreen();
+        return false;
+    }
 }
 
 // ========================================
@@ -474,18 +555,9 @@ function updateRewardPreview() {
     const rarity = document.getElementById('goal-rarity').value;
     const stat = document.getElementById('goal-stat').value;
     const config = getRarityConfig(rarity);
-    const statLabels = {
-        str: '💪 Сила',
-        end: '🏃‍♂️ Выносливость',
-        agi: '🎯 Ловкость',
-        int: '📚 Интеллект',
-        cha: '🗣 Харизма',
-        per: '👁 Дисциплина',
-        luck: '🍀 Удача'
-    };
     document.getElementById('goal-reward-preview').innerHTML = `
         🎁 Награда: <span style="color:#ffcc00;">+${config.xp} XP</span> + 
-        <span style="color:${config.color};">+${config.statBonus} ${statLabels[stat]}</span>
+        <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[stat]}</span>
         <span style="color:#8e8e93; font-size:11px; margin-left:8px;">(${config.label})</span>
     `;
 }
@@ -589,15 +661,6 @@ function renderGoals() {
         const config = getRarityConfig(g.rarity);
         const progress = g.target > 0 ? Math.min(100, (g.current || 0) / g.target * 100) : 0;
         const isCompleted = g.completed || progress >= 100;
-        const statLabels = {
-            str: '💪 Сила',
-            end: '🏃‍♂️ Выносливость',
-            agi: '🎯 Ловкость',
-            int: '📚 Интеллект',
-            cha: '🗣 Харизма',
-            per: '👁 Дисциплина',
-            luck: '🍀 Удача'
-        };
         return `
             <div class="goal-card ${isCompleted ? 'completed' : ''}" style="border-color: ${isCompleted ? '#30d158' : config.color};">
                 <div class="goal-header">
@@ -616,7 +679,7 @@ function renderGoals() {
                     <span style="font-size:13px; color:#8e8e93;">${g.target} ${g.unit || ''}</span>
                 </div>
                 <div class="goal-reward">
-                    🎁 Награда: <span>+${config.xp} XP</span> + <span style="color:${config.color};">+${config.statBonus} ${statLabels[g.stat] || '💪 Сила'}</span>
+                    🎁 Награда: <span>+${config.xp} XP</span> + <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[g.stat] || '💪 Сила'}</span>
                 </div>
                 <div class="goal-actions">
                     ${!isCompleted ? `
@@ -671,29 +734,10 @@ async function claimGoalReward(index) {
     const goal = currentUserData.goals[index];
     const config = getRarityConfig(goal.rarity);
     
-    // Добавляем XP и бонус к статам
-    // XP идет в общий прогресс (сумма статов)
-    const statNames = ['str', 'end', 'agi', 'int', 'cha', 'per', 'luck'];
-    const total = statNames.reduce((sum, s) => sum + (currentUserData.stats[s] || 0), 0);
-    const lvlBefore = Math.floor(total / EXP) + 1;
-    
-    // Добавляем XP через бонус к случайной характеристике (для XP используем luck)
-    // На самом деле XP считается от суммы статов, поэтому даем бонус к статам
     const targetStat = goal.stat || 'str';
     currentUserData.stats[targetStat] = (currentUserData.stats[targetStat] || 0) + config.statBonus;
-    
-    // Дополнительный бонус к удаче как XP
     currentUserData.stats.luck = (currentUserData.stats.luck || 0) + Math.floor(config.xp / 5);
-    
-    // Даем золото за выполнение
     currentUserData.stats.gold = (currentUserData.stats.gold || 0) + config.xp * 2;
-    
-    const totalAfter = statNames.reduce((sum, s) => sum + (currentUserData.stats[s] || 0), 0);
-    const lvlAfter = Math.floor(totalAfter / EXP) + 1;
-    
-    if (lvlAfter > lvlBefore) {
-        alert(`⭐ Уровень повышен! Теперь ты ${lvlAfter} уровень!`);
-    }
 }
 
 async function deleteGoal(index) {
@@ -729,4 +773,4 @@ document.getElementById('goal-rarity').addEventListener('change', updateRewardPr
 document.getElementById('goal-stat').addEventListener('change', updateRewardPreview);
 
 console.log('✅ Игра запущена!');
-showAuthScreen();
+restoreSession();
