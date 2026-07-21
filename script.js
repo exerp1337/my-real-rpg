@@ -1,6 +1,3 @@
-alert('script.js загружен!');
-console.log('✅ script.js загружен!');
-
 // ========================================
 //  ПОДКЛЮЧЕНИЕ К SUPABASE
 // ========================================
@@ -78,9 +75,10 @@ async function createUserInDB(username, password, email = '') {
         };
         
         const result = await supabaseRequest('POST', TABLE_NAME, newUser);
+        console.log('✅ User created:', result);
         return result && result.length > 0 ? result[0] : null;
     } catch (error) {
-        console.error('Error creating user:', error);
+        console.error('❌ Error creating user:', error);
         return null;
     }
 }
@@ -90,7 +88,7 @@ async function updateUserInDB(username, data) {
         const result = await supabaseRequest('PATCH', `${TABLE_NAME}?username=eq.${encodeURIComponent(username)}`, data);
         return result && result.length > 0 ? result[0] : null;
     } catch (error) {
-        console.error('Error updating user:', error);
+        console.error('❌ Error updating user:', error);
         return null;
     }
 }
@@ -99,30 +97,6 @@ async function validateUser(username, password) {
     const user = await getUserFromDB(username);
     if (!user) return false;
     return user.password === password;
-}
-
-// ========================================
-//  СИСТЕМА АВТОРИЗАЦИИ
-// ========================================
-
-function getCurrentUser() {
-    try {
-        const data = localStorage.getItem('rpg_current_user');
-        return data ? JSON.parse(data) : null;
-    } catch (e) {
-        return null;
-    }
-}
-
-function setCurrentUser(username) {
-    localStorage.setItem('rpg_current_user', JSON.stringify({ 
-        username: username, 
-        loginTime: new Date().toISOString() 
-    }));
-}
-
-function clearCurrentUser() {
-    localStorage.removeItem('rpg_current_user');
 }
 
 // ========================================
@@ -155,6 +129,8 @@ async function registerUser() {
     
     errorEl.textContent = '';
     successEl.textContent = '';
+    
+    console.log('🔵 Register attempt:', username);
     
     if (!username || username.length < 2) {
         errorEl.textContent = '❌ Имя должно быть минимум 2 символа!';
@@ -189,7 +165,7 @@ async function registerUser() {
             document.getElementById('login-error').textContent = '✅ Аккаунт создан! Войдите.';
         }, 800);
     } else {
-        errorEl.textContent = '❌ Ошибка создания аккаунта!';
+        errorEl.textContent = '❌ Ошибка создания аккаунта! Смотри консоль.';
     }
 }
 
@@ -200,12 +176,16 @@ async function loginUser() {
     
     errorEl.textContent = '';
     
+    console.log('🔵 Login attempt:', username);
+    
     if (!username || !password) {
         errorEl.textContent = '❌ Введите имя и пароль!';
         return;
     }
     
     const user = await getUserFromDB(username);
+    console.log('🔍 User found:', user);
+    
     if (!user) {
         errorEl.textContent = '❌ Пользователь не найден!';
         return;
@@ -215,17 +195,23 @@ async function loginUser() {
         return;
     }
     
-    setCurrentUser(username);
-    document.getElementById('login-username').value = '';
-    document.getElementById('login-password').value = '';
+    console.log('✅ Login success!');
+    currentUsername = username;
+    currentUserData = user;
     
-    // Загружаем игру
-    await initGame();
+    // Показываем игру
+    showGameScreen();
+    document.getElementById('user-nick').textContent = username;
+    
+    await checkDailyRotation();
+    updateUI();
+    renderQuests();
 }
 
 function logoutUser() {
     if (confirm('Выйти из аккаунта?')) {
-        clearCurrentUser();
+        currentUsername = null;
+        currentUserData = null;
         showAuthScreen();
     }
 }
@@ -264,36 +250,6 @@ const LOOT_POOL = {
     common: [{ name: "👟 Nike (+5 Выносл.)", stat: "end", bonus: 5 }, { name: "🏋️‍♂️ Эспандер (+5 Сила)", stat: "str", bonus: 5 }],
     epic: [{ name: "⌚ Rolex (+25 Харизма)", stat: "cha", bonus: 25 }, { name: "💻 Ноутбук (+25 Интелл.)", stat: "int", bonus: 25 }]
 };
-
-async function initGame() {
-    const session = getCurrentUser();
-    if (!session) {
-        showAuthScreen();
-        return;
-    }
-    
-    currentUsername = session.username;
-    const user = await getUserFromDB(currentUsername);
-    if (!user) {
-        clearCurrentUser();
-        showAuthScreen();
-        return;
-    }
-    
-    currentUserData = user;
-    showGameScreen();
-    
-    // Обновляем ник
-    document.getElementById('user-nick').textContent = currentUsername;
-    
-    await checkDailyRotation();
-    updateUI();
-    renderQuests();
-}
-
-// ========================================
-//  ИГРОВЫЕ ФУНКЦИИ
-// ========================================
 
 function switchTab(id, btn) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -465,8 +421,9 @@ async function saveUserData() {
         };
         
         await updateUserInDB(currentUsername, updateData);
+        console.log('✅ Data saved for:', currentUsername);
     } catch (error) {
-        console.error('Error saving user data:', error);
+        console.error('❌ Error saving user data:', error);
     }
 }
 
@@ -588,13 +545,12 @@ setInterval(() => {
 }, 1000);
 
 // ========================================
-//  ЗАПУСК
+//  ЗАПУСК - ПОКАЗЫВАЕМ ЭКРАН ВХОДА
 // ========================================
 
-// Проверяем, есть ли активная сессия
-const session = getCurrentUser();
-if (session) {
-    initGame();
-} else {
-    showAuthScreen();
-}
+console.log('✅ Supabase подключен!');
+console.log('URL:', SUPABASE_URL);
+console.log('Table:', TABLE_NAME);
+
+// Всегда показываем экран входа
+showAuthScreen();
