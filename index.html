@@ -6,88 +6,168 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Реал Лайф РПГ v8.0</title>
-    <!-- Подключаем стили твоей игры -->
-    <link rel="stylesheet" href="style.css">
-    <!-- Надежное подключение базы данных Supabase через Cloudflare CDN -->
-    <script src="https://cloudflare.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0b0b0c; color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; margin: 0; padding: 20px 20px 40px 20px; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 20px; }
+        .gold-badge { background: #1c1c1e; padding: 6px 14px; border-radius: 20px; font-weight: 700; color: #ffcc00; border: 1px solid #2c2c2e; display: flex; align-items: center; gap: 6px; }
+        .tabs { display: flex; width: 100%; max-width: 600px; background: #1c1c1e; border-radius: 12px; padding: 4px; margin-bottom: 25px; box-sizing: border-box; }
+        .tab-btn { flex: 1; background: none; border: none; color: #8e8e93; padding: 10px; font-size: 14px; font-weight: 600; border-radius: 9px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .tab-btn.active { background: #2c2c2e; color: #ffffff; }
+        .screen { display: none; width: 100%; max-width: 600px; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+        .profile-card { background: linear-gradient(145deg, #1e1e24, #121214); padding: 25px; border-radius: 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.5); width: 100%; text-align: center; margin-bottom: 25px; border: 1px solid #2a2a30; box-sizing: border-box; }
+        h1 { margin: 0; font-size: 36px; color: #ff9500; font-weight: 800; }
+        .title-display { font-size: 15px; font-weight: 700; color: #00bfff; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 10px rgba(0, 191, 255, 0.3); }
+        .progress-container { background-color: #2c2c2e; border-radius: 10px; height: 12px; width: 100%; margin: 15px 0 10px 0; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, #ff9500, #ffcc00); height: 100%; width: 0%; transition: width 0.2s ease; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 25px; }
+        .stat-item { display: flex; justify-content: space-between; background: #1c1c1e; padding: 14px 20px; border-radius: 16px; font-size: 16px; font-weight: 600; box-sizing: border-box; border: 1px solid #252528; }
+        .btn { background-color: #1c1c1e; color: white; border: none; padding: 15px; font-size: 15px; font-weight: 700; border-radius: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 100%; margin-bottom: 10px; touch-action: manipulation; }
+        .btn-plus { color: #30d158; font-weight: bold; }
+        .btn:active { transform: scale(0.96); background-color: #2c2c2e; }
+        .sleep-card { background: linear-gradient(145deg, #141419, #0d0d0f); border: 1px solid #0a84ff; box-shadow: 0 0 15px rgba(10, 132, 255, 0.15); border-radius: 20px; padding: 20px; width: 100%; box-sizing: border-box; margin-bottom: 25px; text-align: center; }
+        .sleep-title { font-size: 18px; font-weight: 700; color: #0a84ff; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .sleep-desc { font-size: 13px; color: #aeaeae; margin-bottom: 15px; line-height: 1.4; }
+        .sleep-btn { background: linear-gradient(90deg, #0055ff, #0a84ff); color: white; border: none; padding: 14px; font-size: 15px; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3); touch-action: manipulation; }
+        .sleep-btn:active { transform: scale(0.98); opacity: 0.9; }
+        .inventory-box { background: #1c1c1e; border-radius: 16px; padding: 15px; width: 100%; box-sizing: border-box; margin-top: 20px; }
+        .inventory-items { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; margin-top: 10px; }
+        .inv-item { background: #2c2c2e; padding: 6px 12px; border-radius: 8px; border: 1px solid #3a3a3c; }
+        .reset-btn { background: none; border: none; color: #ff453a; font-size: 13px; margin-top: 20px; cursor: pointer; text-decoration: underline; -webkit-tap-highlight-color: transparent; }
+        .quests-grid { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; margin-bottom: 25px; }
+        @media(min-width: 500px) { .quests-grid { grid-template-columns: 1fr 1fr; } }
+        .quest-card { background: #141417; border: 1px solid #222226; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; box-sizing: border-box; position: relative; }
+        .quest-title { font-size: 17px; font-weight: 700; color: #00bfff; margin-bottom: 6px; line-height: 1.3; }
+        .quest-desc { font-size: 13px; color: #aeaeae; margin-bottom: 15px; line-height: 1.4; flex-grow: 1; }
+        .quest-reward { font-size: 13px; font-weight: 700; color: #30d158; margin-bottom: 15px; display: flex; align-items: center; gap: 4px; }
+        .quest-card.required { border: 1px solid #ff453a; }
+        .quest-card.required .quest-title { color: #ff453a; }
+        .badge-required { background: #ff453a; color: white; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; position: absolute; top: -10px; left: 20px; text-transform: uppercase; }
+        .action-btn { background: #30d158; color: white; border: none; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; text-align: center; transition: background 0.2s; touch-action: manipulation; }
+        .action-btn:active { background: #24a142; }
+        .action-btn.blue { background: #007aff; }
+        .action-btn.blue:active { background: #0056b3; }
+        .action-btn.purple { background: #5856d6; }
+        .action-btn.purple:active { background: #3b3a93; }
+        .timer-box { background: #141416; border: 1px solid #222226; border-radius: 12px; padding: 10px; width: 100%; text-align: center; font-size: 13px; color: #aeaeae; margin-bottom: 20px; box-sizing: border-box; }
+        .weekly-section-title { font-size: 22px; color: #00bfff; font-weight: 800; margin: 10px 0 15px 0; text-align: center; width: 100%; letter-spacing: 1px; }
+        .weekly-challenge-card { background: #141417; border: 1px solid #ff9500; box-shadow: 0 0 15px rgba(255, 149, 0, 0.15); border-radius: 20px; padding: 22px; width: 100%; box-sizing: border-box; margin-bottom: 15px; position: relative; }
+        .weekly-header { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; color: #ff9500; margin-bottom: 8px; }
+        .weekly-desc { font-size: 13px; color: #eeeeee; margin-bottom: 15px; line-height: 1.4; }
+        .weekly-reward-text { font-size: 14px; font-weight: 700; color: #ffcc00; margin-bottom: 15px; display: flex; align-items: center; gap: 4px; }
+        .weekly-btn { background: linear-gradient(90deg, #ff5e00, #ff9500); color: white; border: none; padding: 14px; font-size: 15px; font-weight: 700; border-radius: 12px; cursor: pointer; width: 100%; text-align: center; box-shadow: 0 4px 12px rgba(255, 94, 0, 0.3); touch-action: manipulation; }
+        .weekly-btn:active { transform: scale(0.99); opacity: 0.9; }
+        .shop-grid { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; }
+        @media(min-width: 500px) { .shop-grid { grid-template-columns: 1fr 1fr; } }
+        .shop-card { background: #141416; border: 1px solid #222226; border-radius: 20px; padding: 20px; text-align: center; box-sizing: border-box; }
+        .buy-btn { background: #ff9500; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; margin-top: 15px; }
+        .shop-desc { font-size: 12px; color: #aeaeae; margin-bottom: 12px; }
+        .achieve-card { background: #141416; border: 1px solid #222226; border-radius: 20px; padding: 20px; margin-bottom: 15px; width: 100%; box-sizing: border-box; position: relative; }
+        .achieve-card.locked { opacity: 0.25; filter: grayscale(1); }
+        .achieve-badge { position: absolute; top: 12px; right: 15px; background: #222226; color: #8e8e93; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 8px; }
+    </style>
 </head>
-<body>
 
-    <!-- Вся разметка твоей игры (кнопки, вкладки, статы) -->
+  <body>
+
     <div class="header-bar">
-        <div class="gold-badge">🪙 Золото: <span id="gold-count">0</span></div>
-        <div class="level-badge">⭐ Уровень: <span id="player-level">1</span></div>
+        <div style="font-size: 14px; color: #8e8e93; font-weight: 600;">РПГ РЕАЛ ЛАЙФ</div>
+        <div class="gold-badge">🪙 <span id="gold-val">0</span></div>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('upgrade')">Прокачка</button>
-        <button class="tab-btn" onclick="switchTab('quests')">Квесты</button>
-        <button class="tab-btn" onclick="switchTab('shop')">Магазин</button>
-        <button class="tab-btn" onclick="switchTab('achievements')">Ачивки</button>
+        <button class="tab-btn active" onclick="switchTab('main-screen', this)">Прокачка</button>
+        <button class="tab-btn" onclick="switchTab('quests-screen', this)">Квесты</button>
+        <button class="tab-btn" onclick="switchTab('shop-screen', this)">Магазин</button>
+        <button class="tab-btn" onclick="switchTab('achieve-screen', this)">Ачивки</button>
     </div>
 
-    <!-- ВКЛАДКА ПРОКАЧКИ -->
-    <div id="upgrade" class="screen active">
+    <!-- ЭКРАН 1: ПРОКАЧКА -->
+    <div id="main-screen" class="screen active">
         <div class="profile-card">
-            <h1>Прокачка характеристик</h1>
-            <p class="title-display">Твой титул: <span id="player-title">Бомж</span></p>
-            <div class="progress-container">
-                <div class="progress-bar" id="xp-bar"></div>
-            </div>
-            <p style="text-align: center; margin-top: 5px; font-size: 12px; color: #aaa;">Опыт: <span id="xp-text">0/100</span></p>
+            <div style="color: #aeaeae; font-size: 12px; text-transform: uppercase;">Текущий Уровень</div>
+            <h1 id="level-display">1</h1>
+            <div class="title-display" id="title-display">🥚 Обыватель</div>
+            <div class="progress-container"><div class="progress-bar" id="exp-bar"></div></div>
+            <div id="exp-display" style="font-size: 13px; color: #8e8e93;">0 / 250 XP</div>
         </div>
 
-        <div class="stat-container">
-            <button class="action-btn" style="background: #111; grid-column: span 2; display: flex; justify-content: center; align-items: center; gap: 8px;" onclick="goToSleep()">
-                <span>🛌</span> Лечь спать <span id="energy-display" style="color: #ff9f00;">(100%)</span>
-            </button>
-            <div class="stat-box">
-                <div class="stat-info">💪 Сила <span class="stat-val" id="stat-strength">10</span></div>
-                <button class="plus-btn" onclick="upgradeStat('strength')">+</button>
+        <div class="sleep-card">
+            <div class="sleep-title">🌙 Контроль режима сна</div>
+            <div class="sleep-desc">Нажмите кнопку, когда ложитесь спать. <br>До 01:00 ночи: <b>+10 Воспр. / +15 🪙</b><br>После 01:00 ночи: <b>-10 Воспр.</b></div>
+            <button class="sleep-btn" id="sleep-action-btn" onclick="checkSleepTime()">🛌 Лечь спать</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item"><span>💪 Сила</span><span id="str-val" style="color:#ff453a">0</span></div>
+            <div class="stat-item"><span>🏃‍♂️ Выносливость</span><span id="end-val" style="color:#ff9500">0</span></div>
+            <div class="stat-item"><span>🎯 Ловкость</span><span id="agi-val" style="color:#30d158">0</span></div>
+            <div class="stat-item"><span>📚 Интеллект</span><span id="int-val" style="color:#0a84ff">0</span></div>
+            <div class="stat-item"><span>🗣 Харизма</span><span id="cha-val" style="color:#bf5af2">0</span></div>
+            <div class="stat-item"><span>👁 Восприятие</span><span id="per-val" style="color:#00bfff">0</span></div>
+            <div class="stat-item" style="grid-column: span 2; background: linear-gradient(90deg, #1c1c1e, #222226);">
+                <span>🍀 Удача (Luck)</span><span id="luck-val" style="color:#ffcc00">0</span>
             </div>
-            <div class="stat-box">
-                <div class="stat-info">🏃‍♂️ Выносливость <span class="stat-val" id="stat-endurance">0</span></div>
-                <button class="plus-btn" onclick="upgradeStat('endurance')">+</button>
+        </div>
+
+              <div style="width: 100%;">
+            <button class="btn" onclick="train('str')"><span>🏋️‍♂️ Зал (База)</span><span class="btn-plus">+10 Сила</span></button>
+            <button class="btn" onclick="train('end')"><span>🏃‍♂️ Бег / Кардио</span><span class="btn-plus">+10 Выносл.</span></button>
+            <button class="btn" onclick="train('agi')"><span>🎯 Растяжка / Реакция</span><span class="btn-plus">+10 Ловкость</span></button>
+            <button class="btn" onclick="train('int')"><span>📖 Чтение / Учеба</span><span class="btn-plus">+10 Интелл.</span></button>
+            <button class="btn" onclick="train('cha')"><span>🎤 Общение / Нетворк</span><span class="btn-plus">+10 Харизма</span></button>
+            <button class="btn" onclick="train('per')"><span>👁 Медитация / Фокус</span><span class="btn-plus">+10 Воспр.</span></button>
+        </div>
+
+        <div class="inventory-box">
+            <div style="font-size: 14px; font-weight: 700; color: #8e8e93;">🎒 НАДЕТЫЕ ВЕЩИ (БОНУСЫ)</div>
+            <div class="inventory-items" id="inventory-list">
+                <span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>
             </div>
-            <div class="stat-box">
-                <div class="stat-info">🎯 Ловкость <span class="stat-val" id="stat-agility">0</span></div>
-                <button class="plus-btn" onclick="upgradeStat('agility')">+</button>
+        </div>
+
+        <button class="reset-btn" onclick="resetProgress()">Начать жизнь с нуля</button>
+    </div>
+
+    <!-- ЭКРАН 2: КВЕСТЫ -->
+    <div id="quests-screen" class="screen">
+        <div class="weekly-section-title">Еженедельный вызов</div>
+        <div class="weekly-challenge-card">
+            <div class="weekly-header">⭐ Прочитай книгу</div>
+            <div class="weekly-desc">Прочитай книгу объемом не менее 200 страниц.</div>
+            <div class="weekly-reward-text">➕ Награда: +8 ко всем характеристикам +15 удачи +100 монет </div>
+            <button class="weekly-btn" id="w1" onclick="completeWeeklyChallenge(this)">Выполнить</button>
+        </div>
+        <div class="timer-box" style="margin-bottom: 25px;">Новый вызов через: <span style="color:#ff9500; font-weight: bold;" id="weekly-timer">6д 23:51:57</span></div>
+
+        <div style="font-size: 22px; color: #00bfff; font-weight: 800; margin-bottom: 15px; text-align: center; width: 100%; letter-spacing: 1px;">Ежедневные квесты</div>
+        <div class="timer-box">Новые квесты через: <span style="color:#00bfff; font-weight: bold;" id="daily-timer">23:59:59</span></div>
+        
+        <div class="quests-grid" id="quests-container"></div>
+    </div>
+
+    <!-- ЭКРАН 3: МАГАЗИН -->
+    <div id="shop-screen" class="screen">
+        <div class="shop-grid">
+            <div class="shop-card" style="border-color: #8e8e93;">
+                <h3 style="color:#aeaeae">📦 Обычный сундук</h3>
+                <div class="shop-desc">Шанс выбить базовые шмотки.</div>
+                <button class="buy-btn" style="background:#3a3a3c" onclick="openChest('common', 30)">Открыть за 30 🪙</button>
             </div>
-            <div class="stat-box">
-                <div class="stat-info">🧠 Интеллект <span class="stat-val" id="stat-intelligence">0</span></div>
-                <button class="plus-btn" onclick="upgradeStat('intelligence')">+</button>
-            </div>
-            <div class="stat-box">
-                <div class="stat-info">🕶️ Харизма <span class="stat-val" id="stat-charisma">0</span></div>
-                <button class="plus-btn" onclick="upgradeStat('charisma')">+</button>
-            </div>
-            <div class="stat-box">
-                <div class="stat-info">👁️ Восприятие <span class="stat-val" id="stat-perception">0</span></div>
-                <button class="plus-btn" onclick="upgradeStat('perception')">+</button>
+            <div class="shop-card" style="border-color: #bf5af2;">
+                <h3 style="color:#bf5af2">👑 Эпический кейс</h3>
+                <div class="shop-desc">Шанс выбить легендарный лут с огромными бонусами.</div>
+                <button class="buy-btn" style="background:#bf5af2" onclick="openChest('epic', 100)">Открыть за 100 🪙</button>
             </div>
         </div>
     </div>
 
-    <!-- ВКЛАДКА КВЕСТОВ -->
-    <div id="quests" class="screen">
-        <h2 style="margin-bottom: 15px; color: #00ffff;">Доступные квесты</h2>
-        <div id="quests-list"></div>
+    <!-- ЭКРАН 4: ДОСТИЖЕНИЯ -->
+    <div id="achieve-screen" class="screen">
+        <div class="achieve-card" id="ach-status"><div class="achieve-badge">3 УР</div><h3>Статус авторитета</h3><div>Разблокируется на 3 уровне</div></div>
+        <div class="achieve-card locked" id="ach-prof"><div class="achieve-badge">5 УР</div><h3>Мировой Мастер</h3><div>Разблокируется на 5 уровне</div></div>
     </div>
 
-    <!-- ВКЛАДКА МАГАЗИНА -->
-    <div id="shop" class="screen">
-        <h2 style="margin-bottom: 15px; color: #00ffff;">Магазин предметов</h2>
-        <div id="shop-list"></div>
-    </div>
-
-    <!-- ВКЛАДКА ДОСТИЖЕНИЙ -->
-    <div id="achievements" class="screen">
-        <h2 style="margin-bottom: 15px; color: #00ffff;">Твои ачивки</h2>
-        <div id="achievements-list"></div>
-    </div>
-
-    <!-- ВАЖНО: Сначала подключаем логику твоей игры, затем скрипт авторизации базы данных -->
     <script src="script.js"></script>
-    <script src="supabase-auth.js"></script>
 </body>
 </html>
