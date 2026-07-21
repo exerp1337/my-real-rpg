@@ -1,64 +1,110 @@
 // ========================================
-//  СИСТЕМА АВТОРИЗАЦИИ (ПСЕВДО-БД В LOCALSTORAGE)
+//  ПОДКЛЮЧЕНИЕ К SUPABASE
 // ========================================
 
-const DB_KEY = 'rpg_users_db';
-const SESSION_KEY = 'rpg_current_user';
+const SUPABASE_URL = 'https://zjtudyoffdwqfamzczcb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqdHVkeW9mZmR3cWZhbXpjemNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MTYxMDMsImV4cCI6MjEwMDE5MjEwM30.yO-fyi_hZv__XqMjz-OpuYNPAlKyaGT7KB4xscqHMNo';
+const TABLE_NAME = 'players';
 
 // ========================================
-//  РАБОТА С "БАЗОЙ ДАННЫХ"
+//  РАБОТА С "БАЗОЙ ДАННЫХ" ЧЕРЕЗ SUPABASE
 // ========================================
 
-function getDB() {
+let currentUserData = null;
+let currentUsername = null;
+let lastTrainTime = 0;
+const EXP = 250;
+
+// ========================================
+//  ФУНКЦИИ ДЛЯ РАБОТЫ С SUPABASE
+// ========================================
+
+async function supabaseRequest(method, endpoint, body = null) {
+    const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+    const headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    };
+
+    const options = {
+        method: method,
+        headers: headers
+    };
+
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+
     try {
-        const data = localStorage.getItem(DB_KEY);
-        return data ? JSON.parse(data) : {};
-    } catch (e) {
-        return {};
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Supabase request failed:', error);
+        throw error;
     }
 }
 
-function saveDB(db) {
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
+async function getUserFromDB(username) {
+    try {
+        const result = await supabaseRequest('GET', `${TABLE_NAME}?username=eq.${encodeURIComponent(username)}`);
+        return result && result.length > 0 ? result[0] : null;
+    } catch (error) {
+        console.error('Error getting user:', error);
+        return null;
+    }
 }
 
-function getUser(username) {
-    const db = getDB();
-    return db[username] || null;
+async function createUserInDB(username, password, email = '') {
+    try {
+        const newUser = {
+            username: username,
+            password: password,
+            email: email || '',
+            stats: { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 },
+            inventory: [],
+            completed_quests: [],
+            current_quests: [],
+            last_quest_date: '',
+            last_sleep_date: ''
+        };
+        
+        const result = await supabaseRequest('POST', TABLE_NAME, newUser);
+        return result && result.length > 0 ? result[0] : null;
+    } catch (error) {
+        console.error('Error creating user:', error);
+        return null;
+    }
 }
 
-function createUser(username, password, email = '') {
-    const db = getDB();
-    if (db[username]) return false;
-    
-    db[username] = {
-        password: password,
-        email: email || '',
-        createdAt: new Date().toISOString(),
-        stats: {
-            str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, 
-            luck: 0, gold: 0
-        },
-        completedQuests: [],
-        inventory: [],
-        currentQuests: [],
-        lastQuestDate: "",
-        lastSleepDate: ""
-    };
-    
-    saveDB(db);
-    return true;
+async function updateUserInDB(username, data) {
+    try {
+        const result = await supabaseRequest('PATCH', `${TABLE_NAME}?username=eq.${encodeURIComponent(username)}`, data);
+        return result && result.length > 0 ? result[0] : null;
+    } catch (error) {
+        console.error('Error updating user:', error);
+        return null;
+    }
 }
 
-function validateUser(username, password) {
-    const user = getUser(username);
+async function validateUser(username, password) {
+    const user = await getUserFromDB(username);
     if (!user) return false;
     return user.password === password;
 }
 
+// ========================================
+//  СИСТЕМА АВТОРИЗАЦИИ
+// ========================================
+
 function getCurrentUser() {
     try {
-        const data = localStorage.getItem(SESSION_KEY);
+        const data = localStorage.getItem('rpg_current_user');
         return data ? JSON.parse(data) : null;
     } catch (e) {
         return null;
@@ -66,14 +112,14 @@ function getCurrentUser() {
 }
 
 function setCurrentUser(username) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ 
+    localStorage.setItem('rpg_current_user', JSON.stringify({ 
         username: username, 
         loginTime: new Date().toISOString() 
     }));
 }
 
 function clearCurrentUser() {
-    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem('rpg_current_user');
 }
 
 // ========================================
@@ -96,7 +142,7 @@ function switchAuthTab(tab) {
     }
 }
 
-function registerUser() {
+async function registerUser() {
     const username = document.getElementById('reg-username').value.trim();
     const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
@@ -119,12 +165,15 @@ function registerUser() {
         errorEl.textContent = '❌ Пароли не совпадают!';
         return;
     }
-    if (getUser(username)) {
+    
+    const existingUser = await getUserFromDB(username);
+    if (existingUser) {
         errorEl.textContent = '❌ Пользователь уже существует!';
         return;
     }
     
-    if (createUser(username, password, email)) {
+    const newUser = await createUserInDB(username, password, email);
+    if (newUser) {
         successEl.textContent = '✅ Аккаунт создан! Теперь войдите.';
         document.getElementById('reg-username').value = '';
         document.getElementById('reg-email').value = '';
@@ -136,10 +185,12 @@ function registerUser() {
             document.getElementById('login-username').value = username;
             document.getElementById('login-error').textContent = '✅ Аккаунт создан! Войдите.';
         }, 800);
+    } else {
+        errorEl.textContent = '❌ Ошибка создания аккаунта!';
     }
 }
 
-function loginUser() {
+async function loginUser() {
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
     const errorEl = document.getElementById('login-error');
@@ -150,11 +201,13 @@ function loginUser() {
         errorEl.textContent = '❌ Введите имя и пароль!';
         return;
     }
-    if (!getUser(username)) {
+    
+    const user = await getUserFromDB(username);
+    if (!user) {
         errorEl.textContent = '❌ Пользователь не найден!';
         return;
     }
-    if (!validateUser(username, password)) {
+    if (!await validateUser(username, password)) {
         errorEl.textContent = '❌ Неверный пароль!';
         return;
     }
@@ -164,7 +217,7 @@ function loginUser() {
     document.getElementById('login-password').value = '';
     
     // Загружаем игру
-    initGame();
+    await initGame();
 }
 
 function logoutUser() {
@@ -188,10 +241,6 @@ function showGameScreen() {
 //  ОСНОВНАЯ ИГРОВАЯ ЛОГИКА
 // ========================================
 
-const EXP = 250;
-let lastTrainTime = 0;
-let currentUserData = null;
-
 const TITLES_DATABASE = [
     { lvl: 30, text: "👾 Высший разум" }, { lvl: 25, text: "🪐 Абсолют" }, { lvl: 20, text: "🔮 Легенда" },
     { lvl: 15, text: "🌌 Полубог реала" }, { lvl: 12, text: "🔱 Грандмастер" }, { lvl: 10, text: "👑 Мировой Мастер" },
@@ -213,28 +262,15 @@ const LOOT_POOL = {
     epic: [{ name: "⌚ Rolex (+25 Харизма)", stat: "cha", bonus: 25 }, { name: "💻 Ноутбук (+25 Интелл.)", stat: "int", bonus: 25 }]
 };
 
-function getStats() {
-    return currentUserData ? currentUserData.stats : null;
-}
-
-function saveUserData() {
-    if (!currentUserData) return;
-    const db = getDB();
-    const session = getCurrentUser();
-    if (session && db[session.username]) {
-        db[session.username] = currentUserData;
-        saveDB(db);
-    }
-}
-
-function initGame() {
+async function initGame() {
     const session = getCurrentUser();
     if (!session) {
         showAuthScreen();
         return;
     }
     
-    const user = getUser(session.username);
+    currentUsername = session.username;
+    const user = await getUserFromDB(currentUsername);
     if (!user) {
         clearCurrentUser();
         showAuthScreen();
@@ -245,9 +281,9 @@ function initGame() {
     showGameScreen();
     
     // Обновляем ник
-    document.getElementById('user-nick').textContent = session.username;
+    document.getElementById('user-nick').textContent = currentUsername;
     
-    checkDailyRotation();
+    await checkDailyRotation();
     updateUI();
     renderQuests();
 }
@@ -263,17 +299,17 @@ function switchTab(id, btn) {
     if(btn) btn.classList.add('active');
 }
 
-function checkDailyRotation() {
+async function checkDailyRotation() {
     if (!currentUserData) return;
     
     let todayStr = new Date().toDateString();
     
-    if (currentUserData.lastQuestDate !== todayStr || !currentUserData.currentQuests || currentUserData.currentQuests.length === 0) {
+    if (currentUserData.last_quest_date !== todayStr || !currentUserData.current_quests || currentUserData.current_quests.length === 0) {
         let shuffled = [...QUESTS_DATABASE].sort(() => 0.5 - Math.random());
-        currentUserData.currentQuests = shuffled.slice(0, 3);
-        currentUserData.completedQuests = currentUserData.completedQuests.filter(id => id.startsWith('w'));
-        currentUserData.lastQuestDate = todayStr;
-        saveUserData();
+        currentUserData.current_quests = shuffled.slice(0, 3);
+        currentUserData.completed_quests = currentUserData.completed_quests.filter(id => id.startsWith('w'));
+        currentUserData.last_quest_date = todayStr;
+        await saveUserData();
     }
 }
 
@@ -281,15 +317,15 @@ function renderQuests() {
     const container = document.getElementById('quests-container');
     if (!container) return;
     
-    if (!currentUserData || !currentUserData.currentQuests || currentUserData.currentQuests.length === 0) {
+    if (!currentUserData || !currentUserData.current_quests || currentUserData.current_quests.length === 0) {
         container.innerHTML = `<div style="color:#8e8e93; text-align:center; padding:20px;">Нет активных квестов. Зайдите завтра!</div>`;
         return;
     }
     
     container.innerHTML = "";
     
-    currentUserData.currentQuests.forEach((q) => {
-        let isDone = currentUserData.completedQuests.includes(q.id);
+    currentUserData.current_quests.forEach((q) => {
+        let isDone = currentUserData.completed_quests.includes(q.id);
         let card = document.createElement('div');
         card.className = "quest-card";
         card.innerHTML = `
@@ -302,7 +338,7 @@ function renderQuests() {
     });
 }
 
-function checkSleepTime() {
+async function checkSleepTime() {
     if (!currentUserData) {
         alert("Ошибка: данные пользователя не загружены!");
         return;
@@ -311,7 +347,7 @@ function checkSleepTime() {
     let now = new Date();
     let todayStr = now.toDateString();
     
-    if (currentUserData.lastSleepDate === todayStr) {
+    if (currentUserData.last_sleep_date === todayStr) {
         alert("Вы уже отметили сон сегодня!");
         return;
     }
@@ -326,8 +362,8 @@ function checkSleepTime() {
         alert(`⚠️ Режим нарушен! Штраф: -10 Восприятие.`);
     }
     
-    currentUserData.lastSleepDate = todayStr;
-    saveUserData();
+    currentUserData.last_sleep_date = todayStr;
+    await saveUserData();
     updateUI();
 }
 
@@ -369,7 +405,7 @@ function updateUI() {
 
     let wBtn = document.getElementById('w1');
     if(wBtn) {
-        if(currentUserData.completedQuests.includes('w1')) {
+        if(currentUserData.completed_quests.includes('w1')) {
             wBtn.style.background = "#2c2c2e";
             wBtn.style.opacity = "0.4";
             wBtn.style.pointerEvents = "none";
@@ -384,7 +420,7 @@ function updateUI() {
 
     let sBtn = document.getElementById('sleep-action-btn');
     if(sBtn) {
-        if(currentUserData.lastSleepDate === new Date().toDateString()) {
+        if(currentUserData.last_sleep_date === new Date().toDateString()) {
             sBtn.style.background = "#2c2c2e";
             sBtn.style.opacity = "0.4";
             sBtn.textContent = "💤 Отмечено";
@@ -411,7 +447,27 @@ function updateUI() {
     }
 }
 
-function train(type) {
+async function saveUserData() {
+    if (!currentUserData || !currentUsername) return;
+    
+    try {
+        const updateData = {
+            stats: currentUserData.stats,
+            inventory: currentUserData.inventory,
+            completed_quests: currentUserData.completed_quests,
+            current_quests: currentUserData.current_quests,
+            last_quest_date: currentUserData.last_quest_date,
+            last_sleep_date: currentUserData.last_sleep_date,
+            last_login: new Date().toISOString()
+        };
+        
+        await updateUserInDB(currentUsername, updateData);
+    } catch (error) {
+        console.error('Error saving user data:', error);
+    }
+}
+
+async function train(type) {
     if (!currentUserData) {
         alert("Ошибка: данные пользователя не загружены!");
         return;
@@ -426,33 +482,33 @@ function train(type) {
     
     currentUserData.stats[type] = (currentUserData.stats[type] || 0) + 10;
     currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 2;
-    saveUserData();
+    await saveUserData();
     updateUI();
 }
 
-function completeQuest(id, type, points, goldReward) {
+async function completeQuest(id, type, points, goldReward) {
     if (!currentUserData) {
         alert("Ошибка: данные пользователя не загружены!");
         return;
     }
     
-    if (currentUserData.completedQuests.includes(id)) return;
+    if (currentUserData.completed_quests.includes(id)) return;
     
     currentUserData.stats[type] = (currentUserData.stats[type] || 0) + points;
     currentUserData.stats.gold = (currentUserData.stats.gold || 0) + goldReward;
-    currentUserData.completedQuests.push(id);
-    saveUserData();
+    currentUserData.completed_quests.push(id);
+    await saveUserData();
     updateUI();
     renderQuests();
 }
 
-function completeWeeklyChallenge(btn) {
+async function completeWeeklyChallenge(btn) {
     if (!currentUserData) {
         alert("Ошибка: данные пользователя не загружены!");
         return;
     }
     
-    if (currentUserData.completedQuests.includes('w1')) {
+    if (currentUserData.completed_quests.includes('w1')) {
         alert("Вы уже выполнили еженедельный вызов!");
         return;
     }
@@ -460,13 +516,13 @@ function completeWeeklyChallenge(btn) {
     ['str', 'end', 'agi', 'int', 'cha', 'per'].forEach(id => currentUserData.stats[id] = (currentUserData.stats[id] || 0) + 8);
     currentUserData.stats.luck = (currentUserData.stats.luck || 0) + 15;
     currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 100;
-    currentUserData.completedQuests.push('w1');
-    saveUserData();
+    currentUserData.completed_quests.push('w1');
+    await saveUserData();
     updateUI();
     alert("⭐ Еженедельный вызов выполнен! +8 ко всем статам, +15 удачи, +100 монет!");
 }
 
-function openChest(tier, price) {
+async function openChest(tier, price) {
     if (!currentUserData) {
         alert("Ошибка: данные пользователя не загружены!");
         return;
@@ -483,12 +539,12 @@ function openChest(tier, price) {
     if(!currentUserData.inventory) currentUserData.inventory = [];
     currentUserData.inventory.push(randomItem.name);
     currentUserData.stats[randomItem.stat] = (currentUserData.stats[randomItem.stat] || 0) + randomItem.bonus;
-    saveUserData();
+    await saveUserData();
     updateUI();
     alert(`🎉 Вы выбили: ${randomItem.name}!`);
 }
 
-function resetProgress() {
+async function resetProgress() {
     if (!currentUserData) {
         alert("Ошибка: данные пользователя не загружены!");
         return;
@@ -497,13 +553,13 @@ function resetProgress() {
     if (!confirm(`Точно сбросить прогресс персонажа?`)) return;
     
     currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
-    currentUserData.completedQuests = [];
+    currentUserData.completed_quests = [];
     currentUserData.inventory = [];
-    currentUserData.currentQuests = [];
-    currentUserData.lastQuestDate = "";
-    currentUserData.lastSleepDate = "";
-    saveUserData();
-    checkDailyRotation();
+    currentUserData.current_quests = [];
+    currentUserData.last_quest_date = "";
+    currentUserData.last_sleep_date = "";
+    await saveUserData();
+    await checkDailyRotation();
     updateUI();
     renderQuests();
     alert("🗑️ Прогресс сброшен!");
@@ -524,13 +580,7 @@ setInterval(() => {
         wEl.textContent = `${daysLeft}д ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
     if (h === 0 && m === 0 && s === 0 && currentUserData) {
-        let shuffled = [...QUESTS_DATABASE].sort(() => 0.5 - Math.random());
-        currentUserData.currentQuests = shuffled.slice(0, 3);
-        currentUserData.completedQuests = currentUserData.completedQuests.filter(id => id.startsWith('w'));
-        currentUserData.lastQuestDate = new Date().toDateString();
-        saveUserData();
-        renderQuests();
-        updateUI();
+        checkDailyRotation();
     }
 }, 1000);
 
@@ -540,7 +590,7 @@ setInterval(() => {
 
 // Проверяем, есть ли активная сессия
 const session = getCurrentUser();
-if (session && getUser(session.username)) {
+if (session) {
     initGame();
 } else {
     showAuthScreen();
