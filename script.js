@@ -1,10 +1,3 @@
-// Подключение к твоей облачной базе данных Supabase
-const SUPABASE_URL = "https://supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_vZvOsb3vBq7SHnAmb3gvqw_Uh03t..."; // Вставь сюда свой ПОЛНЫЙ ключ, который ты скопировал кнопкой с последней картинки
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Переменная, которая будет хранить ID залогиненного игрока
-let currentUser = null; 
 // ЧАСТЬ 1 ИЗ 3: НАСТРОЙКИ СИСТЕМЫ И БАЗА СЛУЧАЙНЫХ КВЕСТОВ
 const SAVE_KEY = 'rpg_mega_save_v8.0';
 let stats = { 
