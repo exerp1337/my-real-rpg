@@ -1,16 +1,40 @@
 // ========================================
-//  СИСТЕМА ПРОФИЛЕЙ
+//  СИСТЕМА АВТОРИЗАЦИИ (ПСЕВДО-БД В LOCALSTORAGE)
 // ========================================
 
-const PROFILES_KEY = 'rpg_profiles_data';
-let currentProfileName = null;
-let profiles = {};
-let stats = {}; // Будет заполняться из текущего профиля
+const DB_KEY = 'rpg_users_db';
+const SESSION_KEY = 'rpg_current_user';
 
-// Базовый шаблон нового персонажа
-function createNewProfile(name) {
-    return {
-        name: name,
+// ========================================
+//  РАБОТА С "БАЗОЙ ДАННЫХ"
+// ========================================
+
+function getDB() {
+    try {
+        const data = localStorage.getItem(DB_KEY);
+        return data ? JSON.parse(data) : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveDB(db) {
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+
+function getUser(username) {
+    const db = getDB();
+    return db[username] || null;
+}
+
+function createUser(username, password, email = '') {
+    const db = getDB();
+    if (db[username]) return false;
+    
+    db[username] = {
+        password: password,
+        email: email || '',
+        createdAt: new Date().toISOString(),
         stats: {
             str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, 
             luck: 0, gold: 0
@@ -19,130 +43,154 @@ function createNewProfile(name) {
         inventory: [],
         currentQuests: [],
         lastQuestDate: "",
-        lastSleepDate: "",
-        createdAt: new Date().toISOString(),
-        lastPlayed: new Date().toISOString()
+        lastSleepDate: ""
     };
-}
-
-// Загрузка всех профилей
-function loadProfiles() {
-    try {
-        const data = localStorage.getItem(PROFILES_KEY);
-        if (data) {
-            const parsed = JSON.parse(data);
-            profiles = parsed.profiles || {};
-            currentProfileName = parsed.currentProfile || null;
-        } else {
-            profiles = {};
-            currentProfileName = null;
-        }
-    } catch (e) {
-        console.error("Ошибка загрузки профилей:", e);
-        profiles = {};
-        currentProfileName = null;
-    }
-}
-
-// Сохранение всех профилей
-function saveProfiles() {
-    try {
-        const data = {
-            profiles: profiles,
-            currentProfile: currentProfileName
-        };
-        localStorage.setItem(PROFILES_KEY, JSON.stringify(data));
-    } catch (e) {
-        console.error("Ошибка сохранения профилей:", e);
-    }
-}
-
-// Загрузка текущего профиля
-function loadCurrentProfile() {
-    if (currentProfileName && profiles[currentProfileName]) {
-        stats = profiles[currentProfileName].stats;
-        // Дополнительные поля тоже загружаем в глобальные переменные
-        // (можно оставить как есть, просто обновим stats)
-        return true;
-    }
-    return false;
-}
-
-// Переключение профиля
-function switchProfile(name) {
-    if (!profiles[name]) {
-        console.error("Профиль не найден:", name);
-        return false;
-    }
-    currentProfileName = name;
-    stats = profiles[name].stats;
-    saveProfiles();
-    // Обновляем все UI
-    checkDailyRotation();
-    updateUI();
-    renderQuests();
-    updateProfileSelector();
+    
+    saveDB(db);
     return true;
 }
 
-// Создание нового профиля
-function createProfile(name) {
-    // Проверка на дубликат
-    if (profiles[name]) {
-        alert(`Профиль "${name}" уже существует!`);
-        return false;
-    }
-    
-    // Проверка на пустое имя
-    if (!name || name.trim() === "") {
-        alert("Введите имя персонажа!");
-        return false;
-    }
-    
-    // Создаем профиль
-    profiles[name] = createNewProfile(name);
-    currentProfileName = name;
-    stats = profiles[name].stats;
-    saveProfiles();
-    
-    // Обновляем UI
-    checkDailyRotation();
-    updateUI();
-    renderQuests();
-    updateProfileSelector();
-    
-    alert(`✨ Персонаж "${name}" создан! Добро пожаловать в игру!`);
-    return true;
+function validateUser(username, password) {
+    const user = getUser(username);
+    if (!user) return false;
+    return user.password === password;
 }
 
-// Удаление профиля
-function deleteProfile(name) {
-    if (!profiles[name]) {
-        alert("Профиль не найден!");
-        return;
+function getCurrentUser() {
+    try {
+        const data = localStorage.getItem(SESSION_KEY);
+        return data ? JSON.parse(data) : null;
+    } catch (e) {
+        return null;
     }
-    
-    if (name === currentProfileName) {
-        alert("Нельзя удалить активный профиль! Сначала переключитесь на другой.");
-        return;
-    }
-    
-    if (!confirm(`Точно удалить персонажа "${name}"? Все данные будут потеряны!`)) {
-        return;
-    }
-    
-    delete profiles[name];
-    saveProfiles();
-    updateProfileSelector();
-    alert(`🗑️ Профиль "${name}" удален.`);
+}
+
+function setCurrentUser(username) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ 
+        username: username, 
+        loginTime: new Date().toISOString() 
+    }));
+}
+
+function clearCurrentUser() {
+    localStorage.removeItem(SESSION_KEY);
 }
 
 // ========================================
-//  ОСТАЛЬНАЯ ЛОГИКА (АДАПТИРОВАНА)
+//  ФУНКЦИИ ДЛЯ UI АВТОРИЗАЦИИ
+// ========================================
+
+function switchAuthTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(el => el.classList.remove('active'));
+    
+    if (tab === 'login') {
+        document.getElementById('login-tab').classList.add('active');
+        document.getElementById('login-form').classList.add('active');
+        document.getElementById('register-error').textContent = '';
+        document.getElementById('register-success').textContent = '';
+    } else {
+        document.getElementById('register-tab').classList.add('active');
+        document.getElementById('register-form').classList.add('active');
+        document.getElementById('login-error').textContent = '';
+    }
+}
+
+function registerUser() {
+    const username = document.getElementById('reg-username').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const password2 = document.getElementById('reg-password2').value;
+    const errorEl = document.getElementById('register-error');
+    const successEl = document.getElementById('register-success');
+    
+    errorEl.textContent = '';
+    successEl.textContent = '';
+    
+    if (!username || username.length < 2) {
+        errorEl.textContent = '❌ Имя должно быть минимум 2 символа!';
+        return;
+    }
+    if (!password || password.length < 4) {
+        errorEl.textContent = '❌ Пароль должен быть минимум 4 символа!';
+        return;
+    }
+    if (password !== password2) {
+        errorEl.textContent = '❌ Пароли не совпадают!';
+        return;
+    }
+    if (getUser(username)) {
+        errorEl.textContent = '❌ Пользователь уже существует!';
+        return;
+    }
+    
+    if (createUser(username, password, email)) {
+        successEl.textContent = '✅ Аккаунт создан! Теперь войдите.';
+        document.getElementById('reg-username').value = '';
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-password').value = '';
+        document.getElementById('reg-password2').value = '';
+        
+        setTimeout(() => {
+            switchAuthTab('login');
+            document.getElementById('login-username').value = username;
+            document.getElementById('login-error').textContent = '✅ Аккаунт создан! Войдите.';
+        }, 800);
+    }
+}
+
+function loginUser() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    
+    errorEl.textContent = '';
+    
+    if (!username || !password) {
+        errorEl.textContent = '❌ Введите имя и пароль!';
+        return;
+    }
+    if (!getUser(username)) {
+        errorEl.textContent = '❌ Пользователь не найден!';
+        return;
+    }
+    if (!validateUser(username, password)) {
+        errorEl.textContent = '❌ Неверный пароль!';
+        return;
+    }
+    
+    setCurrentUser(username);
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-password').value = '';
+    
+    // Загружаем игру
+    initGame();
+}
+
+function logoutUser() {
+    if (confirm('Выйти из аккаунта?')) {
+        clearCurrentUser();
+        showAuthScreen();
+    }
+}
+
+function showAuthScreen() {
+    document.getElementById('auth-screen').style.display = 'block';
+    document.getElementById('game-container').classList.remove('active');
+}
+
+function showGameScreen() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('game-container').classList.add('active');
+}
+
+// ========================================
+//  ОСНОВНАЯ ИГРОВАЯ ЛОГИКА
 // ========================================
 
 const EXP = 250;
 let lastTrainTime = 0;
+let currentUserData = null;
 
 const TITLES_DATABASE = [
     { lvl: 30, text: "👾 Высший разум" }, { lvl: 25, text: "🪐 Абсолют" }, { lvl: 20, text: "🔮 Легенда" },
@@ -165,93 +213,47 @@ const LOOT_POOL = {
     epic: [{ name: "⌚ Rolex (+25 Харизма)", stat: "cha", bonus: 25 }, { name: "💻 Ноутбук (+25 Интелл.)", stat: "int", bonus: 25 }]
 };
 
-// ========================================
-//  ФУНКЦИИ ДЛЯ РАБОТЫ С ПРОФИЛЕМ В UI
-// ========================================
+function getStats() {
+    return currentUserData ? currentUserData.stats : null;
+}
 
-// Обновление селектора профилей
-function updateProfileSelector() {
-    const container = document.getElementById('profile-selector');
-    if (!container) return;
-    
-    const names = Object.keys(profiles);
-    
-    if (names.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 10px; color: #8e8e93;">
-                Нет персонажей. Создайте первого!
-            </div>
-        `;
+function saveUserData() {
+    if (!currentUserData) return;
+    const db = getDB();
+    const session = getCurrentUser();
+    if (session && db[session.username]) {
+        db[session.username] = currentUserData;
+        saveDB(db);
+    }
+}
+
+function initGame() {
+    const session = getCurrentUser();
+    if (!session) {
+        showAuthScreen();
         return;
     }
     
-    let html = `<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">`;
-    
-    names.forEach(name => {
-        const isActive = name === currentProfileName;
-        const profile = profiles[name];
-        const total = profile ? 
-            profile.stats.str + profile.stats.end + profile.stats.agi + 
-            profile.stats.int + profile.stats.cha + profile.stats.per + profile.stats.luck : 0;
-        const lvl = Math.floor(total / EXP) + 1;
-        
-        html += `
-            <button onclick="switchProfile('${name}')" 
-                    style="
-                        background: ${isActive ? '#2c2c2e' : '#1c1c1e'};
-                        border: ${isActive ? '2px solid #ff9500' : '1px solid #3a3a3c'};
-                        color: ${isActive ? '#ff9500' : '#ffffff'};
-                        padding: 8px 16px;
-                        border-radius: 12px;
-                        cursor: pointer;
-                        font-weight: 600;
-                        font-size: 13px;
-                        display: flex;
-                        align-items: center;
-                        gap: 6px;
-                        touch-action: manipulation;
-                    "
-                    onmouseover="this.style.background='#2c2c2e'"
-                    onmouseout="this.style.background='${isActive ? '#2c2c2e' : '#1c1c1e'}'">
-                ${isActive ? '▶' : ''} ${name} (${lvl} ур.)
-                ${!isActive ? `<span onclick="event.stopPropagation(); deleteProfile('${name}')" style="color:#ff453a; margin-left:4px; cursor:pointer;">✕</span>` : ''}
-            </button>
-        `;
-    });
-    
-    html += `
-        <button onclick="showCreateProfileModal()" 
-                style="
-                    background: #0a84ff;
-                    border: none;
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    font-weight: 700;
-                    font-size: 13px;
-                    touch-action: manipulation;
-                "
-                onmouseover="this.style.background='#0066cc'"
-                onmouseout="this.style.background='#0a84ff'">
-            ➕ Создать
-        </button>
-    `;
-    
-    html += `</div>`;
-    container.innerHTML = html;
-}
-
-// Модалка создания профиля
-function showCreateProfileModal() {
-    const name = prompt("Введите имя нового персонажа:", "Игрок" + (Object.keys(profiles).length + 1));
-    if (name !== null) {
-        createProfile(name.trim());
+    const user = getUser(session.username);
+    if (!user) {
+        clearCurrentUser();
+        showAuthScreen();
+        return;
     }
+    
+    currentUserData = user;
+    showGameScreen();
+    
+    // Обновляем ник
+    document.getElementById('user-nick').textContent = session.username;
+    
+    checkDailyRotation();
+    updateUI();
+    renderQuests();
 }
 
 // ========================================
-//  ОСНОВНАЯ ИГРОВАЯ ЛОГИКА (АДАПТИРОВАНА)
+//  ИГРОВЫЕ ФУНКЦИИ
 // ========================================
 
 function switchTab(id, btn) {
@@ -262,17 +264,16 @@ function switchTab(id, btn) {
 }
 
 function checkDailyRotation() {
-    if (!currentProfileName || !profiles[currentProfileName]) return;
+    if (!currentUserData) return;
     
-    const profile = profiles[currentProfileName];
     let todayStr = new Date().toDateString();
     
-    if (profile.lastQuestDate !== todayStr || !profile.currentQuests || profile.currentQuests.length === 0) {
+    if (currentUserData.lastQuestDate !== todayStr || !currentUserData.currentQuests || currentUserData.currentQuests.length === 0) {
         let shuffled = [...QUESTS_DATABASE].sort(() => 0.5 - Math.random());
-        profile.currentQuests = shuffled.slice(0, 3);
-        profile.completedQuests = profile.completedQuests.filter(id => id.startsWith('w'));
-        profile.lastQuestDate = todayStr;
-        saveProfiles();
+        currentUserData.currentQuests = shuffled.slice(0, 3);
+        currentUserData.completedQuests = currentUserData.completedQuests.filter(id => id.startsWith('w'));
+        currentUserData.lastQuestDate = todayStr;
+        saveUserData();
     }
 }
 
@@ -280,16 +281,15 @@ function renderQuests() {
     const container = document.getElementById('quests-container');
     if (!container) return;
     
-    if (!currentProfileName || !profiles[currentProfileName]) {
-        container.innerHTML = `<div style="color:#8e8e93; text-align:center; padding:20px;">Создайте персонажа, чтобы видеть квесты</div>`;
+    if (!currentUserData || !currentUserData.currentQuests || currentUserData.currentQuests.length === 0) {
+        container.innerHTML = `<div style="color:#8e8e93; text-align:center; padding:20px;">Нет активных квестов. Зайдите завтра!</div>`;
         return;
     }
     
-    const profile = profiles[currentProfileName];
     container.innerHTML = "";
     
-    profile.currentQuests.forEach((q) => {
-        let isDone = profile.completedQuests.includes(q.id);
+    currentUserData.currentQuests.forEach((q) => {
+        let isDone = currentUserData.completedQuests.includes(q.id);
         let card = document.createElement('div');
         card.className = "quest-card";
         card.innerHTML = `
@@ -303,63 +303,38 @@ function renderQuests() {
 }
 
 function checkSleepTime() {
-    if (!currentProfileName || !profiles[currentProfileName]) {
-        alert("Сначала создайте персонажа!");
+    if (!currentUserData) {
+        alert("Ошибка: данные пользователя не загружены!");
         return;
     }
     
-    const profile = profiles[currentProfileName];
     let now = new Date();
     let todayStr = now.toDateString();
     
-    if (profile.lastSleepDate === todayStr) {
+    if (currentUserData.lastSleepDate === todayStr) {
         alert("Вы уже отметили сон сегодня!");
         return;
     }
     
     let hours = now.getHours();
     if (hours === 0 || hours >= 21) {
-        profile.stats.per += 10;
-        profile.stats.gold += 15;
+        currentUserData.stats.per += 10;
+        currentUserData.stats.gold += 15;
         alert(`🏆 Отличный режим! Награда: +10 Восприятие / +15 🪙`);
     } else {
-        profile.stats.per = Math.max(0, profile.stats.per - 10);
+        currentUserData.stats.per = Math.max(0, currentUserData.stats.per - 10);
         alert(`⚠️ Режим нарушен! Штраф: -10 Восприятие.`);
     }
     
-    profile.lastSleepDate = todayStr;
-    stats = profile.stats;
-    saveProfiles();
+    currentUserData.lastSleepDate = todayStr;
+    saveUserData();
     updateUI();
 }
 
 function updateUI() {
-    if (!currentProfileName || !profiles[currentProfileName]) {
-        // Показываем приглашение создать персонажа
-        document.querySelectorAll('.stat-item span:last-child').forEach(el => el.textContent = '-');
-        if(document.getElementById('gold-val')) document.getElementById('gold-val').textContent = '0';
-        if(document.getElementById('level-display')) document.getElementById('level-display').textContent = '?';
-        if(document.getElementById('title-display')) document.getElementById('title-display').textContent = '👤 Нет персонажа';
-        if(document.getElementById('exp-display')) document.getElementById('exp-display').textContent = 'Создайте персонажа!';
-        if(document.getElementById('exp-bar')) document.getElementById('exp-bar').style.width = '0%';
-        
-        const invList = document.getElementById('inventory-list');
-        if(invList) invList.innerHTML = `<span style="color:#636366; font-style: italic;">Создайте персонажа, чтобы видеть инвентарь</span>`;
-        
-        // Обновляем кнопку сна
-        const sBtn = document.getElementById('sleep-action-btn');
-        if(sBtn) {
-            sBtn.style.background = "#2c2c2e";
-            sBtn.style.opacity = "0.4";
-            sBtn.textContent = "🚫 Нет персонажа";
-        }
-        
-        updateProfileSelector();
-        return;
-    }
+    if (!currentUserData) return;
     
-    const profile = profiles[currentProfileName];
-    stats = profile.stats;
+    const stats = currentUserData.stats;
     
     let total = stats.str + stats.end + stats.agi + stats.int + stats.cha + stats.per + stats.luck;
     let lvl = Math.floor(total / EXP) + 1;
@@ -371,6 +346,7 @@ function updateUI() {
     
     if(document.getElementById('gold-val')) document.getElementById('gold-val').textContent = stats.gold || 0;
     if(document.getElementById('level-display')) document.getElementById('level-display').textContent = lvl;
+    if(document.getElementById('user-level-badge')) document.getElementById('user-level-badge').textContent = 'Lv.' + lvl;
     if(document.getElementById('exp-display')) document.getElementById('exp-display').textContent = curExp + " / " + EXP + " XP";
     if(document.getElementById('exp-bar')) document.getElementById('exp-bar').style.width = (curExp / EXP * 100) + "%";
 
@@ -383,7 +359,6 @@ function updateUI() {
     }
     if(document.getElementById('title-display')) document.getElementById('title-display').textContent = currentTitle;
 
-    // Ачивки
     ['ach-status', 'ach-prof'].forEach((id, i) => {
         let el = document.getElementById(id);
         if(el) {
@@ -392,10 +367,9 @@ function updateUI() {
         }
     });
 
-    // Weekly challenge
     let wBtn = document.getElementById('w1');
     if(wBtn) {
-        if(profile.completedQuests.includes('w1')) {
+        if(currentUserData.completedQuests.includes('w1')) {
             wBtn.style.background = "#2c2c2e";
             wBtn.style.opacity = "0.4";
             wBtn.style.pointerEvents = "none";
@@ -408,10 +382,9 @@ function updateUI() {
         }
     }
 
-    // Sleep button
     let sBtn = document.getElementById('sleep-action-btn');
     if(sBtn) {
-        if(profile.lastSleepDate === new Date().toDateString()) {
+        if(currentUserData.lastSleepDate === new Date().toDateString()) {
             sBtn.style.background = "#2c2c2e";
             sBtn.style.opacity = "0.4";
             sBtn.textContent = "💤 Отмечено";
@@ -422,12 +395,11 @@ function updateUI() {
         }
     }
 
-    // Inventory
     let invList = document.getElementById('inventory-list');
     if(invList) {
-        if(profile.inventory && profile.inventory.length > 0) {
+        if(currentUserData.inventory && currentUserData.inventory.length > 0) {
             invList.innerHTML = "";
-            profile.inventory.forEach(item => {
+            currentUserData.inventory.forEach(item => {
                 let span = document.createElement('span');
                 span.className = "inv-item";
                 span.textContent = item;
@@ -437,17 +409,11 @@ function updateUI() {
             invList.innerHTML = `<span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>`;
         }
     }
-    
-    updateProfileSelector();
 }
 
-// ========================================
-//  ИГРОВЫЕ ДЕЙСТВИЯ
-// ========================================
-
 function train(type) {
-    if (!currentProfileName || !profiles[currentProfileName]) {
-        alert("Сначала создайте персонажа!");
+    if (!currentUserData) {
+        alert("Ошибка: данные пользователя не загружены!");
         return;
     }
     
@@ -458,95 +424,85 @@ function train(type) {
     }
     lastTrainTime = now;
     
-    const profile = profiles[currentProfileName];
-    profile.stats[type] = (profile.stats[type] || 0) + 10;
-    profile.stats.gold = (profile.stats.gold || 0) + 2;
-    stats = profile.stats;
-    saveProfiles();
+    currentUserData.stats[type] = (currentUserData.stats[type] || 0) + 10;
+    currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 2;
+    saveUserData();
     updateUI();
 }
 
 function completeQuest(id, type, points, goldReward) {
-    if (!currentProfileName || !profiles[currentProfileName]) {
-        alert("Сначала создайте персонажа!");
+    if (!currentUserData) {
+        alert("Ошибка: данные пользователя не загружены!");
         return;
     }
     
-    const profile = profiles[currentProfileName];
-    if (profile.completedQuests.includes(id)) return;
+    if (currentUserData.completedQuests.includes(id)) return;
     
-    profile.stats[type] = (profile.stats[type] || 0) + points;
-    profile.stats.gold = (profile.stats.gold || 0) + goldReward;
-    profile.completedQuests.push(id);
-    stats = profile.stats;
-    saveProfiles();
+    currentUserData.stats[type] = (currentUserData.stats[type] || 0) + points;
+    currentUserData.stats.gold = (currentUserData.stats.gold || 0) + goldReward;
+    currentUserData.completedQuests.push(id);
+    saveUserData();
     updateUI();
     renderQuests();
 }
 
 function completeWeeklyChallenge(btn) {
-    if (!currentProfileName || !profiles[currentProfileName]) {
-        alert("Сначала создайте персонажа!");
+    if (!currentUserData) {
+        alert("Ошибка: данные пользователя не загружены!");
         return;
     }
     
-    const profile = profiles[currentProfileName];
-    if (profile.completedQuests.includes('w1')) {
+    if (currentUserData.completedQuests.includes('w1')) {
         alert("Вы уже выполнили еженедельный вызов!");
         return;
     }
     
-    ['str', 'end', 'agi', 'int', 'cha', 'per'].forEach(id => profile.stats[id] = (profile.stats[id] || 0) + 8);
-    profile.stats.luck = (profile.stats.luck || 0) + 15;
-    profile.stats.gold = (profile.stats.gold || 0) + 100;
-    profile.completedQuests.push('w1');
-    stats = profile.stats;
-    saveProfiles();
+    ['str', 'end', 'agi', 'int', 'cha', 'per'].forEach(id => currentUserData.stats[id] = (currentUserData.stats[id] || 0) + 8);
+    currentUserData.stats.luck = (currentUserData.stats.luck || 0) + 15;
+    currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 100;
+    currentUserData.completedQuests.push('w1');
+    saveUserData();
     updateUI();
     alert("⭐ Еженедельный вызов выполнен! +8 ко всем статам, +15 удачи, +100 монет!");
 }
 
 function openChest(tier, price) {
-    if (!currentProfileName || !profiles[currentProfileName]) {
-        alert("Сначала создайте персонажа!");
+    if (!currentUserData) {
+        alert("Ошибка: данные пользователя не загружены!");
         return;
     }
     
-    const profile = profiles[currentProfileName];
-    if ((profile.stats.gold || 0) < price) {
+    if ((currentUserData.stats.gold || 0) < price) {
         alert("Недостаточно монет!");
         return;
     }
     
-    profile.stats.gold -= price;
+    currentUserData.stats.gold -= price;
     let pool = LOOT_POOL[tier];
     let randomItem = pool[Math.floor(Math.random() * pool.length)];
-    if(!profile.inventory) profile.inventory = [];
-    profile.inventory.push(randomItem.name);
-    profile.stats[randomItem.stat] = (profile.stats[randomItem.stat] || 0) + randomItem.bonus;
-    stats = profile.stats;
-    saveProfiles();
+    if(!currentUserData.inventory) currentUserData.inventory = [];
+    currentUserData.inventory.push(randomItem.name);
+    currentUserData.stats[randomItem.stat] = (currentUserData.stats[randomItem.stat] || 0) + randomItem.bonus;
+    saveUserData();
     updateUI();
     alert(`🎉 Вы выбили: ${randomItem.name}!`);
 }
 
 function resetProgress() {
-    if (!currentProfileName || !profiles[currentProfileName]) {
-        alert("Нет активного персонажа!");
+    if (!currentUserData) {
+        alert("Ошибка: данные пользователя не загружены!");
         return;
     }
     
-    if (!confirm(`Точно сбросить прогресс персонажа "${currentProfileName}"?`)) return;
+    if (!confirm(`Точно сбросить прогресс персонажа?`)) return;
     
-    const profile = profiles[currentProfileName];
-    profile.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
-    profile.completedQuests = [];
-    profile.inventory = [];
-    profile.currentQuests = [];
-    profile.lastQuestDate = "";
-    profile.lastSleepDate = "";
-    stats = profile.stats;
-    saveProfiles();
+    currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
+    currentUserData.completedQuests = [];
+    currentUserData.inventory = [];
+    currentUserData.currentQuests = [];
+    currentUserData.lastQuestDate = "";
+    currentUserData.lastSleepDate = "";
+    saveUserData();
     checkDailyRotation();
     updateUI();
     renderQuests();
@@ -567,45 +523,25 @@ setInterval(() => {
         let daysLeft = 6 - (n.getDay() % 7);
         wEl.textContent = `${daysLeft}д ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
-    if (h === 0 && m === 0 && s === 0 && currentProfileName && profiles[currentProfileName]) {
-        const profile = profiles[currentProfileName];
+    if (h === 0 && m === 0 && s === 0 && currentUserData) {
         let shuffled = [...QUESTS_DATABASE].sort(() => 0.5 - Math.random());
-        profile.currentQuests = shuffled.slice(0, 3);
-        profile.completedQuests = profile.completedQuests.filter(id => id.startsWith('w'));
-        profile.lastQuestDate = new Date().toDateString();
-        saveProfiles();
+        currentUserData.currentQuests = shuffled.slice(0, 3);
+        currentUserData.completedQuests = currentUserData.completedQuests.filter(id => id.startsWith('w'));
+        currentUserData.lastQuestDate = new Date().toDateString();
+        saveUserData();
         renderQuests();
         updateUI();
     }
 }, 1000);
 
 // ========================================
-//  ИНИЦИАЛИЗАЦИЯ
+//  ЗАПУСК
 // ========================================
 
-loadProfiles();
-
-// Если есть активный профиль - загружаем его
-if (currentProfileName && profiles[currentProfileName]) {
-    stats = profiles[currentProfileName].stats;
-    checkDailyRotation();
+// Проверяем, есть ли активная сессия
+const session = getCurrentUser();
+if (session && getUser(session.username)) {
+    initGame();
 } else {
-    // Если профилей нет - показываем приглашение
-    if (Object.keys(profiles).length === 0) {
-        setTimeout(() => {
-            if (confirm("👋 Добро пожаловать! Создать первого персонажа?")) {
-                const name = prompt("Введите имя вашего персонажа:", "Герой");
-                if (name && name.trim()) {
-                    createProfile(name.trim());
-                }
-            }
-        }, 500);
-    } else {
-        // Если есть профили, но нет активного - выбираем первый
-        const firstProfile = Object.keys(profiles)[0];
-        switchProfile(firstProfile);
-    }
+    showAuthScreen();
 }
-
-updateUI();
-renderQuests();
