@@ -447,7 +447,13 @@ function switchTab(id, btn) {
     if (btn) btn.classList.add('active');
     if (id === 'goals-screen') renderGoals();
     if (id === 'main-screen') renderHotbar();
-    if (id === 'social-screen') renderSocialQuests();
+    if (id === 'quests-screen') {
+        renderQuests();
+        renderSocialQuests();
+    }
+    if (id === 'shop-screen') {
+        renderRouletteResult('');
+    }
     if (id === 'achieve-screen') renderAchievements();
 }
 
