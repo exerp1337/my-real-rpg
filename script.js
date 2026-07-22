@@ -8,6 +8,34 @@ const TABLE_NAME = 'players';
 const SESSION_KEY = 'rpg_session';
 
 // ========================================
+//  АВАТАРЫ
+// ========================================
+
+const AVATARS = [
+    { level: 1, emoji: '🥚', name: 'Яйцо' },
+    { level: 2, emoji: '🐣', name: 'Цыпленок' },
+    { level: 3, emoji: '🐥', name: 'Птенец' },
+    { level: 4, emoji: '🐦', name: 'Птица' },
+    { level: 5, emoji: '🦅', name: 'Орел' },
+    { level: 7, emoji: '🐺', name: 'Волк' },
+    { level: 9, emoji: '🦁', name: 'Лев' },
+    { level: 12, emoji: '🐉', name: 'Дракон' },
+    { level: 15, emoji: '🧙‍♂️', name: 'Маг' },
+    { level: 18, emoji: '👑', name: 'Король' },
+    { level: 21, emoji: '⚔️', name: 'Воин' },
+    { level: 25, emoji: '🦸‍♂️', name: 'Герой' },
+    { level: 30, emoji: '👾', name: 'Босс' }
+];
+
+function getAvatar(level) {
+    let result = AVATARS[0];
+    for (const a of AVATARS) {
+        if (level >= a.level) result = a;
+    }
+    return result;
+}
+
+// ========================================
 //  СОСТОЯНИЕ
 // ========================================
 
@@ -15,9 +43,10 @@ let currentUserData = null;
 let currentUsername = null;
 let lastTrainTime = 0;
 const EXP = 250;
+const SOCIAL_XP_PER_LEVEL = 100;
 
 // ========================================
-//  БАЗЫ ДАННЫХ
+//  БАЗЫ ДАННЫХ (НАГРАДЫ, КВЕСТЫ, ЛУТ)
 // ========================================
 
 const RARITY_CONFIG = {
@@ -36,6 +65,21 @@ const STAT_LABELS = {
     per: '👁 Дисциплина',
     luck: '🍀 Удача'
 };
+
+const SOCIAL_QUESTS_DB = [
+    { id: 's1', title: 'Изящное парирование', desc: 'Вежливо не согласись с чьим-то мнением, начав фразу с «Я понимаю твою точку зрения, но...» без агрессии и перехода на личности.', rank: 1, xpReward: 20, socialBonus: 1 },
+    { id: 's2', title: 'Сделать чей-то день', desc: 'Пообщайся с работником сферы услуг (таксистом, официантом) так, чтобы к концу взаимодействия он искренне рассмеялся или просиял.', rank: 1, xpReward: 20, socialBonus: 1 },
+    { id: 's3', title: 'Глас глашатая', desc: 'Возьми слово первым на рабочем созвоне/встрече, либо произнеси тост на празднике, завладев вниманием аудитории от 3 и более человек.', rank: 1, xpReward: 20, socialBonus: 1 },
+    { id: 's4', title: 'Знакомство + факт', desc: 'Познакомь двух людей, которые друг друга не знают, и обязательно упомяни крутой факт о каждом, чтобы завязать между ними беседу.', rank: 1, xpReward: 20, socialBonus: 1 },
+    { id: 's5', title: 'Публичный комплимент', desc: 'Сделай искренний комплимент человеку в присутствии других людей (не менее 2 свидетелей). Комплимент должен быть конкретным и небанальным.', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's6', title: 'Активное слушание', desc: 'В разговоре задай не менее 3 открытых вопросов, чтобы собеседник рассказал о себе больше, и ни разу не перебивай.', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's7', title: 'Тост за незнакомца', desc: 'На мероприятии (вечеринка, корпоратив) подними бокал за человека, с которым ты не знаком, и скажи тост, который вызовет улыбки.', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's8', title: 'Дебаты с незнакомцем', desc: 'Вступи в короткую дискуссию с незнакомым человеком на отвлечённую тему (погода, спорт, кино) и постарайся сохранить доброжелательный тон, даже если мнения расходятся.', rank: 3, xpReward: 30, socialBonus: 3 },
+    { id: 's9', title: 'Мастер малых разговоров', desc: 'Заведи разговор с незнакомцем в очереди, транспорте или лифте и поддерживай его не менее 2 минут, используя технику «перекрестного опроса» (задавай вопросы, связанные с предыдущими ответами).', rank: 3, xpReward: 30, socialBonus: 3 },
+    { id: 's10', title: 'Эмпатический отклик', desc: 'Когда кто-то поделится проблемой, вместо совета скажи: «Мне кажется, ты чувствуешь...» и опиши его эмоцию. Затем спроси: «Как я могу тебя поддержать?»', rank: 3, xpReward: 30, socialBonus: 3 },
+    { id: 's11', title: 'Вдохновляющая речь', desc: 'Выступи перед группой (от 5 человек) с короткой (2-3 мин) речью на тему, которая тебя вдохновляет. После выступления получи хотя бы один положительный отклик.', rank: 4, xpReward: 40, socialBonus: 5 },
+    { id: 's12', title: 'Нетворкинг-вечеринка', desc: 'На мероприятии познакомься с 5 новыми людьми, запомни их имена и по одному интересному факту о каждом. После мероприятия напиши каждому короткое сообщение с упоминанием этого факта.', rank: 4, xpReward: 40, socialBonus: 5 }
+];
 
 const TITLES_DATABASE = [
     { lvl: 30, text: "👾 Высший разум" },
@@ -64,9 +108,65 @@ const QUESTS_DATABASE = [
 ];
 
 const LOOT_POOL = {
-    common: [{ name: "👟 Nike (+5 Выносл.)", stat: "end", bonus: 5 }, { name: "🏋️‍♂️ Эспандер (+5 Сила)", stat: "str", bonus: 5 }],
-    epic: [{ name: "⌚ Rolex (+25 Харизма)", stat: "cha", bonus: 25 }, { name: "💻 Ноутбук (+25 Интелл.)", stat: "int", bonus: 25 }]
+    common: [
+        { name: "👟 Nike (+5 Выносл.)", stat: "end", bonus: 5 },
+        { name: "🏋️‍♂️ Эспандер (+5 Сила)", stat: "str", bonus: 5 },
+        { name: "📖 Блокнот (+5 Интелл.)", stat: "int", bonus: 5 },
+        { name: "🎯 Мишень (+5 Ловкость)", stat: "agi", bonus: 5 }
+    ],
+    epic: [
+        { name: "⌚ Rolex (+25 Харизма)", stat: "cha", bonus: 25 },
+        { name: "💻 Ноутбук (+25 Интелл.)", stat: "int", bonus: 25 },
+        { name: "🏆 Трофей (+25 Сила)", stat: "str", bonus: 25 },
+        { name: "🧘 Коврик (+25 Дисциплина)", stat: "per", bonus: 25 }
+    ]
 };
+
+// Рулетка — расширенный лут с редкостями
+const ROULETTE_POOL = [
+    // Обычные (шанс 45%)
+    { name: "🍀 Клевер (+3 Удача)", stat: "luck", bonus: 3, rarity: 'common' },
+    { name: "💪 Гантеля (+5 Сила)", stat: "str", bonus: 5, rarity: 'common' },
+    { name: "🏃 Кроссовки (+5 Выносл.)", stat: "end", bonus: 5, rarity: 'common' },
+    { name: "📚 Книга (+5 Интелл.)", stat: "int", bonus: 5, rarity: 'common' },
+    // Редкие (шанс 30%)
+    { name: "🔮 Хрустальный шар (+10 Удача)", stat: "luck", bonus: 10, rarity: 'rare' },
+    { name: "⚔️ Меч (+15 Сила)", stat: "str", bonus: 15, rarity: 'rare' },
+    { name: "🛡️ Щит (+15 Выносл.)", stat: "end", bonus: 15, rarity: 'rare' },
+    // Эпические (шанс 20%)
+    { name: "👑 Корона (+25 Харизма)", stat: "cha", bonus: 25, rarity: 'epic' },
+    { name: "🐉 Драконий глаз (+25 Удача)", stat: "luck", bonus: 25, rarity: 'epic' },
+    { name: "⚡ Молния (+25 Ловкость)", stat: "agi", bonus: 25, rarity: 'epic' },
+    // Легендарные (шанс 5%)
+    { name: "🌟 Звезда (+50 ко всем статам)", stat: "all", bonus: 50, rarity: 'legendary' },
+    { name: "👾 Артефакт (+50 Удача)", stat: "luck", bonus: 50, rarity: 'legendary' }
+];
+
+// ========================================
+//  ДОСТИЖЕНИЯ
+// ========================================
+
+const ACHIEVEMENTS_DB = [
+    { id: 'ach_level_3', title: 'Статус авторитета', desc: 'Достигнуть 3 уровня', check: () => getLevel() >= 3, reward: { stats: { str: 5, end: 5, agi: 5, int: 5, cha: 5, per: 5, luck: 5 } } },
+    { id: 'ach_level_5', title: 'Мировой Мастер', desc: 'Достигнуть 5 уровня', check: () => getLevel() >= 5, reward: { stats: { str: 10, end: 10, agi: 10, int: 10, cha: 10, per: 10, luck: 10 } } },
+    { id: 'ach_level_10', title: 'Легенда', desc: 'Достигнуть 10 уровня', check: () => getLevel() >= 10, reward: { stats: { str: 20, end: 20, agi: 20, int: 20, cha: 20, per: 20, luck: 20 } } },
+    { id: 'ach_quest_5', title: 'Квестовый энтузиаст', desc: 'Выполнить 5 ежедневных квестов', check: () => (currentUserData?.total_quests_completed || 0) >= 5, reward: { gold: 30 } },
+    { id: 'ach_quest_20', title: 'Квестовый профи', desc: 'Выполнить 20 ежедневных квестов', check: () => (currentUserData?.total_quests_completed || 0) >= 20, reward: { gold: 100 } },
+    { id: 'ach_social_5', title: 'Социальная бабочка', desc: 'Выполнить 5 социальных квестов', check: () => (currentUserData?.total_social_quests_completed || 0) >= 5, reward: { stats: { cha: 5 } } },
+    { id: 'ach_social_15', title: 'Мастер нетворкинга', desc: 'Выполнить 15 социальных квестов', check: () => (currentUserData?.total_social_quests_completed || 0) >= 15, reward: { stats: { cha: 15 } } },
+    { id: 'ach_chest_3', title: 'Коллекционер', desc: 'Открыть 3 сундука', check: () => (currentUserData?.total_chests_opened || 0) >= 3, reward: { gold: 50 } },
+    { id: 'ach_chest_10', title: 'Сундучный магнат', desc: 'Открыть 10 сундуков', check: () => (currentUserData?.total_chests_opened || 0) >= 10, reward: { gold: 150 } },
+    { id: 'ach_goal_3', title: 'Целеустремлённый', desc: 'Выполнить 3 цели', check: () => (currentUserData?.total_goals_completed || 0) >= 3, reward: { stats: { luck: 20 } } },
+    { id: 'ach_goal_10', title: 'Мастер целей', desc: 'Выполнить 10 целей', check: () => (currentUserData?.total_goals_completed || 0) >= 10, reward: { stats: { luck: 50 } } },
+    { id: 'ach_social_level_5', title: 'Социальный лидер', desc: 'Достигнуть 5 социального уровня', check: () => (currentUserData?.socialLevel || 1) >= 5, reward: { stats: { cha: 10 } } }
+];
+
+function getLevel() {
+    if (!currentUserData) return 1;
+    const stats = currentUserData.stats;
+    const total = stats.str + stats.end + stats.agi + stats.int + stats.cha + stats.per + stats.luck;
+    return Math.floor(total / EXP) + 1;
+}
 
 // ========================================
 //  СЕССИЯ
@@ -74,30 +174,19 @@ const LOOT_POOL = {
 
 function saveSession(username) {
     try {
-        localStorage.setItem(SESSION_KEY, JSON.stringify({
-            username: username,
-            loginTime: new Date().toISOString()
-        }));
-    } catch (e) {
-        console.error('Error saving session:', e);
-    }
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ username: username, loginTime: new Date().toISOString() }));
+    } catch (e) { console.error('Error saving session:', e); }
 }
 
 function getSession() {
     try {
         const data = localStorage.getItem(SESSION_KEY);
         return data ? JSON.parse(data) : null;
-    } catch (e) {
-        return null;
-    }
+    } catch (e) { return null; }
 }
 
 function clearSession() {
-    try {
-        localStorage.removeItem(SESSION_KEY);
-    } catch (e) {
-        console.error('Error clearing session:', e);
-    }
+    try { localStorage.removeItem(SESSION_KEY); } catch (e) { console.error('Error clearing session:', e); }
 }
 
 // ========================================
@@ -139,7 +228,16 @@ async function createUser(username, password, email = '') {
         current_quests: [],
         last_quest_date: '',
         last_sleep_date: '',
-        goals: []
+        goals: [],
+        socialLevel: 1,
+        socialXP: 0,
+        socialQuests: [],
+        lastSocialDate: '',
+        total_quests_completed: 0,
+        total_social_quests_completed: 0,
+        total_chests_opened: 0,
+        total_goals_completed: 0,
+        achievements: []
     };
     const result = await supabaseRequest('POST', TABLE_NAME, newUser);
     return result && result.length > 0 ? result[0] : null;
@@ -242,17 +340,31 @@ async function loginUser() {
         }
         currentUsername = username;
         currentUserData = user;
+        // Инициализация полей, если их нет
         if (!currentUserData.goals) currentUserData.goals = [];
+        if (!currentUserData.socialLevel) currentUserData.socialLevel = 1;
+        if (!currentUserData.socialXP) currentUserData.socialXP = 0;
+        if (!currentUserData.socialQuests) currentUserData.socialQuests = [];
+        if (!currentUserData.lastSocialDate) currentUserData.lastSocialDate = '';
+        if (currentUserData.total_quests_completed === undefined) currentUserData.total_quests_completed = 0;
+        if (currentUserData.total_social_quests_completed === undefined) currentUserData.total_social_quests_completed = 0;
+        if (currentUserData.total_chests_opened === undefined) currentUserData.total_chests_opened = 0;
+        if (currentUserData.total_goals_completed === undefined) currentUserData.total_goals_completed = 0;
+        if (!currentUserData.achievements) currentUserData.achievements = [];
         
         saveSession(username);
         
         showGameScreen();
         document.getElementById('user-nick').textContent = username;
         await checkDailyRotation();
+        await refreshSocialQuests();
         updateUI();
         renderQuests();
         renderGoals();
         renderHotbar();
+        renderSocialQuests();
+        renderAchievements();
+        renderRouletteResult('');
     } catch (e) {
         errorEl.textContent = '❌ Ошибка: ' + e.message;
     }
@@ -295,13 +407,26 @@ async function restoreSession() {
         currentUsername = session.username;
         currentUserData = user;
         if (!currentUserData.goals) currentUserData.goals = [];
+        if (!currentUserData.socialLevel) currentUserData.socialLevel = 1;
+        if (!currentUserData.socialXP) currentUserData.socialXP = 0;
+        if (!currentUserData.socialQuests) currentUserData.socialQuests = [];
+        if (!currentUserData.lastSocialDate) currentUserData.lastSocialDate = '';
+        if (currentUserData.total_quests_completed === undefined) currentUserData.total_quests_completed = 0;
+        if (currentUserData.total_social_quests_completed === undefined) currentUserData.total_social_quests_completed = 0;
+        if (currentUserData.total_chests_opened === undefined) currentUserData.total_chests_opened = 0;
+        if (currentUserData.total_goals_completed === undefined) currentUserData.total_goals_completed = 0;
+        if (!currentUserData.achievements) currentUserData.achievements = [];
         showGameScreen();
         document.getElementById('user-nick').textContent = currentUsername;
         await checkDailyRotation();
+        await refreshSocialQuests();
         updateUI();
         renderQuests();
         renderGoals();
         renderHotbar();
+        renderSocialQuests();
+        renderAchievements();
+        renderRouletteResult('');
         return true;
     } catch (e) {
         console.error('Session restore error:', e);
@@ -322,6 +447,8 @@ function switchTab(id, btn) {
     if (btn) btn.classList.add('active');
     if (id === 'goals-screen') renderGoals();
     if (id === 'main-screen') renderHotbar();
+    if (id === 'social-screen') renderSocialQuests();
+    if (id === 'achieve-screen') renderAchievements();
 }
 
 async function checkDailyRotation() {
@@ -365,6 +492,13 @@ function updateUI() {
     const lvl = Math.floor(total / EXP) + 1;
     const curExp = total % EXP;
 
+    // Avatar
+    const avatar = getAvatar(lvl);
+    document.getElementById('profile-avatar').textContent = avatar.emoji;
+    document.getElementById('header-avatar').textContent = avatar.emoji;
+    document.getElementById('profile-avatar').title = avatar.name;
+    document.getElementById('header-avatar').title = avatar.name;
+
     ['str', 'end', 'agi', 'int', 'cha', 'per', 'luck'].forEach(id => {
         const el = document.getElementById(id + '-val');
         if (el) el.textContent = stats[id] || 0;
@@ -381,15 +515,20 @@ function updateUI() {
     }
     document.getElementById('title-display').textContent = title;
 
-    ['ach-status', 'ach-prof'].forEach((id, i) => {
-        const el = document.getElementById(id);
-        if (el) {
-            const need = i === 0 ? 3 : 5;
-            if (lvl >= need) el.classList.remove('locked');
-            else el.classList.add('locked');
-        }
-    });
+    // Social level
+    const socialLevel = currentUserData.socialLevel || 1;
+    const socialXP = currentUserData.socialXP || 0;
+    const socialProgress = Math.min(100, (socialXP / SOCIAL_XP_PER_LEVEL) * 100);
+    document.getElementById('social-level-display').textContent = socialLevel;
+    document.getElementById('social-level-badge').textContent = socialLevel;
+    document.getElementById('social-xp-display').textContent = socialXP + ' / ' + SOCIAL_XP_PER_LEVEL + ' XP';
+    document.getElementById('social-percent-display').textContent = Math.round(socialProgress) + '%';
+    document.getElementById('social-bar').style.width = socialProgress + '%';
 
+    // Achievements
+    renderAchievements();
+
+    // Weekly button
     const wBtn = document.getElementById('w1');
     if (wBtn) {
         if (currentUserData.completed_quests.includes('w1')) {
@@ -405,6 +544,7 @@ function updateUI() {
         }
     }
 
+    // Sleep button
     const sBtn = document.getElementById('sleep-action-btn');
     if (sBtn) {
         if (currentUserData.last_sleep_date === new Date().toDateString()) {
@@ -418,6 +558,7 @@ function updateUI() {
         }
     }
 
+    // Inventory
     const invList = document.getElementById('inventory-list');
     if (invList) {
         if (currentUserData.inventory?.length) {
@@ -440,7 +581,16 @@ async function saveUserData() {
             current_quests: currentUserData.current_quests,
             last_quest_date: currentUserData.last_quest_date,
             last_sleep_date: currentUserData.last_sleep_date,
-            goals: currentUserData.goals
+            goals: currentUserData.goals,
+            socialLevel: currentUserData.socialLevel,
+            socialXP: currentUserData.socialXP,
+            socialQuests: currentUserData.socialQuests,
+            lastSocialDate: currentUserData.lastSocialDate,
+            total_quests_completed: currentUserData.total_quests_completed,
+            total_social_quests_completed: currentUserData.total_social_quests_completed,
+            total_chests_opened: currentUserData.total_chests_opened,
+            total_goals_completed: currentUserData.total_goals_completed,
+            achievements: currentUserData.achievements
         });
         console.log('✅ Saved');
     } catch (e) {
@@ -489,9 +639,11 @@ async function completeQuest(id, type, points, gold) {
     currentUserData.stats[type] = (currentUserData.stats[type] || 0) + points;
     currentUserData.stats.gold = (currentUserData.stats.gold || 0) + gold;
     currentUserData.completed_quests.push(id);
+    currentUserData.total_quests_completed = (currentUserData.total_quests_completed || 0) + 1;
     await saveUserData();
     updateUI();
     renderQuests();
+    renderAchievements();
 }
 
 async function completeWeeklyChallenge(btn) {
@@ -520,8 +672,10 @@ async function openChest(tier, price) {
     if (!currentUserData.inventory) currentUserData.inventory = [];
     currentUserData.inventory.push(item.name);
     currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
+    currentUserData.total_chests_opened = (currentUserData.total_chests_opened || 0) + 1;
     await saveUserData();
     updateUI();
+    renderAchievements();
     alert(`🎉 Вы выбили: ${item.name}!`);
 }
 
@@ -535,11 +689,23 @@ async function resetProgress() {
     currentUserData.last_quest_date = '';
     currentUserData.last_sleep_date = '';
     currentUserData.goals = [];
+    currentUserData.socialLevel = 1;
+    currentUserData.socialXP = 0;
+    currentUserData.socialQuests = [];
+    currentUserData.lastSocialDate = '';
+    currentUserData.total_quests_completed = 0;
+    currentUserData.total_social_quests_completed = 0;
+    currentUserData.total_chests_opened = 0;
+    currentUserData.total_goals_completed = 0;
+    currentUserData.achievements = [];
     await saveUserData();
     await checkDailyRotation();
+    await refreshSocialQuests();
     updateUI();
     renderQuests();
     renderGoals();
+    renderSocialQuests();
+    renderAchievements();
     alert('🗑️ Прогресс сброшен!');
 }
 
@@ -712,6 +878,7 @@ async function updateGoalProgress(index, amount) {
     renderGoals();
     renderHotbar();
     updateUI();
+    renderAchievements();
 }
 
 async function setGoalComplete(index) {
@@ -726,6 +893,7 @@ async function setGoalComplete(index) {
     renderGoals();
     renderHotbar();
     updateUI();
+    renderAchievements();
     alert('✅ Цель отмечена как выполненная! Награда получена!');
 }
 
@@ -733,11 +901,11 @@ async function claimGoalReward(index) {
     if (!currentUserData?.goals?.[index]) return;
     const goal = currentUserData.goals[index];
     const config = getRarityConfig(goal.rarity);
-    
     const targetStat = goal.stat || 'str';
     currentUserData.stats[targetStat] = (currentUserData.stats[targetStat] || 0) + config.statBonus;
     currentUserData.stats.luck = (currentUserData.stats.luck || 0) + Math.floor(config.xp / 5);
     currentUserData.stats.gold = (currentUserData.stats.gold || 0) + config.xp * 2;
+    currentUserData.total_goals_completed = (currentUserData.total_goals_completed || 0) + 1;
 }
 
 async function deleteGoal(index) {
@@ -748,6 +916,214 @@ async function deleteGoal(index) {
     await saveUserData();
     renderGoals();
     renderHotbar();
+}
+
+// ========================================
+//  СОЦИАЛЬНЫЕ КВЕСТЫ
+// ========================================
+
+async function refreshSocialQuests() {
+    if (!currentUserData) return;
+    const today = new Date().toDateString();
+    if (currentUserData.lastSocialDate !== today || !currentUserData.socialQuests?.length) {
+        const level = currentUserData.socialLevel || 1;
+        let rank = 1;
+        if (level >= 15) rank = 4;
+        else if (level >= 10) rank = 3;
+        else if (level >= 5) rank = 2;
+        
+        const available = SOCIAL_QUESTS_DB.filter(q => q.rank === rank);
+        const shuffled = available.sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 2);
+        currentUserData.socialQuests = selected.map(q => ({ ...q, completed: false }));
+        currentUserData.lastSocialDate = today;
+        await saveUserData();
+    }
+}
+
+function renderSocialQuests() {
+    const container = document.getElementById('social-quests-container');
+    if (!container) return;
+    if (!currentUserData?.socialQuests?.length) {
+        container.innerHTML = '<div class="social-quest-empty">Нет доступных социальных квестов. Зайдите завтра!</div>';
+        return;
+    }
+    container.innerHTML = '';
+    currentUserData.socialQuests.forEach((q, index) => {
+        const card = document.createElement('div');
+        card.className = 'social-quest-card';
+        const isDone = q.completed;
+        card.innerHTML = `
+            <div class="social-quest-rank">Ранг ${q.rank}</div>
+            <div class="title">${q.title}</div>
+            <div class="desc">${q.desc}</div>
+            <div class="reward">🎁 Награда: +${q.xpReward} XP соц. уровня, +${q.socialBonus} к Харизме</div>
+            <div class="actions">
+                <button onclick="completeSocialQuest(${index})" ${isDone ? 'class="done"' : ''}>${isDone ? '✅ Выполнено' : '✅ Выполнить'}</button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+    updateSocialTimer();
+}
+
+async function completeSocialQuest(index) {
+    if (!currentUserData?.socialQuests?.[index]) return;
+    const quest = currentUserData.socialQuests[index];
+    if (quest.completed) {
+        alert('Этот квест уже выполнен!');
+        return;
+    }
+    quest.completed = true;
+    currentUserData.socialXP = (currentUserData.socialXP || 0) + quest.xpReward;
+    currentUserData.stats.cha = (currentUserData.stats.cha || 0) + quest.socialBonus;
+    currentUserData.total_social_quests_completed = (currentUserData.total_social_quests_completed || 0) + 1;
+    let leveledUp = false;
+    while (currentUserData.socialXP >= SOCIAL_XP_PER_LEVEL) {
+        currentUserData.socialXP -= SOCIAL_XP_PER_LEVEL;
+        currentUserData.socialLevel = (currentUserData.socialLevel || 1) + 1;
+        leveledUp = true;
+    }
+    await saveUserData();
+    updateUI();
+    renderSocialQuests();
+    renderAchievements();
+    if (leveledUp) {
+        alert(`🎉 Социальный уровень повышен! Теперь ты ${currentUserData.socialLevel} уровень!`);
+    } else {
+        alert(`✅ Квест выполнен! +${quest.xpReward} XP, +${quest.socialBonus} к харизме.`);
+    }
+    await refreshSocialQuests();
+}
+
+function updateSocialTimer() {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const diff = tomorrow - now;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    const timerEl = document.getElementById('social-timer');
+    if (timerEl) {
+        timerEl.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+}
+
+// ========================================
+//  РУЛЕТКА
+// ========================================
+
+function spinRoulette() {
+    if (!currentUserData) {
+        alert('Сначала войдите в игру!');
+        return;
+    }
+    if (currentUserData.stats.gold < 50) {
+        alert('Недостаточно монет! Нужно 50 🪙');
+        return;
+    }
+    currentUserData.stats.gold -= 50;
+    // Определяем выигрыш
+    const rand = Math.random();
+    let pool, rarityLabel;
+    if (rand < 0.05) { // 5% легендарка
+        pool = ROULETTE_POOL.filter(item => item.rarity === 'legendary');
+        rarityLabel = '⭐ ЛЕГЕНДАРНОЕ';
+    } else if (rand < 0.25) { // 20% эпик
+        pool = ROULETTE_POOL.filter(item => item.rarity === 'epic');
+        rarityLabel = '🔮 ЭПИЧЕСКОЕ';
+    } else if (rand < 0.55) { // 30% редкое
+        pool = ROULETTE_POOL.filter(item => item.rarity === 'rare');
+        rarityLabel = '💎 РЕДКОЕ';
+    } else { // 45% обычное
+        pool = ROULETTE_POOL.filter(item => item.rarity === 'common');
+        rarityLabel = '📦 ОБЫЧНОЕ';
+    }
+    // Если пул пуст (маловероятно), берём всё
+    if (!pool.length) pool = ROULETTE_POOL;
+    const item = pool[Math.floor(Math.random() * pool.length)];
+    // Добавляем в инвентарь
+    if (!currentUserData.inventory) currentUserData.inventory = [];
+    currentUserData.inventory.push(item.name);
+    if (item.stat === 'all') {
+        // +50 ко всем
+        const allStats = ['str', 'end', 'agi', 'int', 'cha', 'per', 'luck'];
+        allStats.forEach(s => currentUserData.stats[s] = (currentUserData.stats[s] || 0) + item.bonus);
+    } else {
+        currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
+    }
+    // Сохраняем
+    saveUserData().then(() => {
+        updateUI();
+        renderRouletteResult(`${rarityLabel}: ${item.name} (+${item.bonus} ${STAT_LABELS[item.stat] || 'все статы'})`);
+        alert(`🎡 Вы выиграли: ${rarityLabel}\n${item.name} (+${item.bonus} ${STAT_LABELS[item.stat] || 'все статы'})`);
+    });
+}
+
+function renderRouletteResult(text) {
+    const el = document.getElementById('roulette-result');
+    if (el) el.textContent = text || '';
+}
+
+// ========================================
+//  ДОСТИЖЕНИЯ
+// ========================================
+
+function renderAchievements() {
+    const container = document.getElementById('achievements-container');
+    if (!container) return;
+    if (!currentUserData) {
+        container.innerHTML = '<div style="color:#8e8e93; text-align:center;">Войдите, чтобы видеть достижения</div>';
+        return;
+    }
+    // Проверяем все ачивки и награждаем, если ещё не получены
+    let anyUnlocked = false;
+    ACHIEVEMENTS_DB.forEach(ach => {
+        if (!currentUserData.achievements.includes(ach.id) && ach.check()) {
+            // Разблокируем
+            currentUserData.achievements.push(ach.id);
+            // Применяем награду
+            if (ach.reward.stats) {
+                Object.keys(ach.reward.stats).forEach(stat => {
+                    currentUserData.stats[stat] = (currentUserData.stats[stat] || 0) + ach.reward.stats[stat];
+                });
+            }
+            if (ach.reward.gold) {
+                currentUserData.stats.gold = (currentUserData.stats.gold || 0) + ach.reward.gold;
+            }
+            anyUnlocked = true;
+            // Показываем уведомление (но не спамим, покажем одно)
+            setTimeout(() => alert(`🏆 Достижение разблокировано: ${ach.title}!`), 100);
+        }
+    });
+    if (anyUnlocked) {
+        saveUserData().then(() => updateUI());
+    }
+
+    // Рендерим список
+    container.innerHTML = ACHIEVEMENTS_DB.map(ach => {
+        const unlocked = currentUserData.achievements.includes(ach.id);
+        const progress = ach.check() ? 1 : 0;
+        const progressPercent = progress * 100;
+        return `
+            <div class="achieve-card ${unlocked ? '' : 'locked'}">
+                <div class="achieve-header">
+                    <span class="achieve-title">${unlocked ? '✅' : '🔒'} ${ach.title}</span>
+                    <span class="achieve-badge">${unlocked ? 'Получено' : 'Закрыто'}</span>
+                </div>
+                <div class="achieve-desc">${ach.desc}</div>
+                <div class="achieve-progress-bar"><div class="fill" style="width:${progressPercent}%;"></div></div>
+                <div class="achieve-progress">${unlocked ? 'Выполнено!' : 'Не выполнено'}</div>
+                <div class="achieve-reward">
+                    🎁 Награда: 
+                    ${ach.reward.stats ? Object.entries(ach.reward.stats).map(([s, v]) => `+${v} ${STAT_LABELS[s]}`).join(', ') : ''}
+                    ${ach.reward.gold ? `+${ach.reward.gold} 🪙` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 // ========================================
@@ -763,6 +1139,7 @@ setInterval(() => {
     if (h === 0 && m === 0 && s === 0 && currentUserData) {
         checkDailyRotation();
     }
+    updateSocialTimer();
 }, 1000);
 
 // ========================================
