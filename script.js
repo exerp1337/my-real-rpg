@@ -1275,9 +1275,11 @@ function renderAchievements() {
 async function resetProgress() {
     if (!currentUserData) return;
     if (!confirm('Сбросить прогресс?')) return;
+    
+    // Обнуляем все данные
     currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
     currentUserData.completed_quests = [];
-    currentUserData.inventory = [];
+    currentUserData.inventory = []; // очищаем инвентарь
     currentUserData.current_quests = [];
     currentUserData.last_quest_date = '';
     currentUserData.last_sleep_date = '';
@@ -1291,14 +1293,24 @@ async function resetProgress() {
     currentUserData.total_chests_opened = 0;
     currentUserData.total_goals_completed = 0;
     currentUserData.achievements = [];
+    
+    // Сохраняем в БД
     await saveUserData();
+    
+    // Пересоздаём квесты
     await checkDailyRotation();
     await refreshSocialQuests();
-    updateUI();
+    
+    // Принудительно обновляем ВСЁ UI
+    updateUI();           // обновляет статы, аватары, социальный уровень
+    renderInventory();    // явный вызов для инвентаря
     renderQuests();
     renderGoals();
+    renderHotbar();
     renderSocialQuests();
     renderAchievements();
+    renderRouletteResult('');
+    
     alert('🗑️ Прогресс сброшен!');
 }
 
