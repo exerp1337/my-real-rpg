@@ -232,8 +232,7 @@ const ACHIEVEMENTS_DB = [
     { id: 'ach_goal_3', title: 'Целеустремлённый', desc: 'Выполнить 3 цели', check: () => (currentUserData?.total_goals_completed || 0) >= 3, reward: { stats: { luck: 20 } } },
     { id: 'ach_goal_10', title: 'Мастер целей', desc: 'Выполнить 10 целей', check: () => (currentUserData?.total_goals_completed || 0) >= 10, reward: { stats: { luck: 50 } } },
     { id: 'ach_social_level_5', title: 'Социальный лидер', desc: 'Достигнуть 5 социального уровня', check: () => (currentUserData?.socialLevel || 1) >= 5, reward: { stats: { cha: 10 } } },
-    // Новые ачивки за сбор вещей
-    { id: 'ach_items_5', title: 'Коллекционер', desc: 'Собрать 5 разных предметов', check: () => (currentUserData?.inventory?.length || 0) >= 5, reward: { gold: 50 } },
+    { id: 'ach_items_5', title: 'Начинающий коллекционер', desc: 'Собрать 5 разных предметов', check: () => (currentUserData?.inventory?.length || 0) >= 5, reward: { gold: 50 } },
     { id: 'ach_items_15', title: 'Собиратель сокровищ', desc: 'Собрать 15 разных предметов', check: () => (currentUserData?.inventory?.length || 0) >= 15, reward: { gold: 150 } }
 ];
 
@@ -325,22 +324,93 @@ async function updateUser(username, data) {
 }
 
 // ========================================
-//  ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ: ensureInventoryArray
+//  ВАЖНЕЙШАЯ ФУНКЦИЯ: НОРМАЛИЗАЦИЯ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
 // ========================================
 
-function ensureInventoryArray() {
-    if (!currentUserData) return;
-    if (!Array.isArray(currentUserData.inventory)) {
-        if (typeof currentUserData.inventory === 'string') {
-            try {
-                currentUserData.inventory = JSON.parse(currentUserData.inventory);
-            } catch (e) {
-                currentUserData.inventory = [];
-            }
-        } else {
-            currentUserData.inventory = [];
-        }
+function normalizeUserData(user) {
+    if (!user) return user;
+    
+    // Создаём глубокую копию, чтобы не мутировать оригинал
+    const normalized = JSON.parse(JSON.stringify(user));
+    
+    // 1. Нормализация stats
+    if (!normalized.stats || typeof normalized.stats !== 'object') {
+        normalized.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
+    } else {
+        const defaultStats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
+        normalized.stats = { ...defaultStats, ...normalized.stats };
     }
+    
+    // 2. Нормализация инвентаря - САМОЕ ВАЖНОЕ ИСПРАВЛЕНИЕ
+    if (!normalized.inventory) {
+        normalized.inventory = [];
+    } else if (typeof normalized.inventory === 'string') {
+        // Если инвентарь пришёл как строка JSON
+        try {
+            const parsed = JSON.parse(normalized.inventory);
+            normalized.inventory = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            console.error('Ошибка парсинга инвентаря из строки:', e);
+            normalized.inventory = [];
+        }
+    } else if (!Array.isArray(normalized.inventory)) {
+        // Если инвентарь не массив (например, объект)
+        console.warn('Инвентарь не является массивом, сбрасываем:', normalized.inventory);
+        normalized.inventory = [];
+    }
+    
+    // 3. Нормализация остальных массивов
+    const arrayFields = [
+        'completed_quests', 
+        'current_quests', 
+        'goals', 
+        'socialQuests', 
+        'achievements'
+    ];
+    
+    arrayFields.forEach(field => {
+        if (!normalized[field]) {
+            normalized[field] = [];
+        } else if (typeof normalized[field] === 'string') {
+            try {
+                const parsed = JSON.parse(normalized[field]);
+                normalized[field] = Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                console.error(`Ошибка парсинга ${field}:`, e);
+                normalized[field] = [];
+            }
+        } else if (!Array.isArray(normalized[field])) {
+            normalized[field] = [];
+        }
+    });
+    
+    // 4. Нормализация числовых полей
+    const numberFields = [
+        'socialLevel', 
+        'socialXP', 
+        'total_quests_completed', 
+        'total_social_quests_completed', 
+        'total_chests_opened', 
+        'total_goals_completed'
+    ];
+    
+    numberFields.forEach(field => {
+        if (normalized[field] === undefined || normalized[field] === null) {
+            normalized[field] = 0;
+        } else if (typeof normalized[field] === 'string') {
+            normalized[field] = parseInt(normalized[field]) || 0;
+        }
+    });
+    
+    // 5. Нормализация строковых полей
+    const stringFields = ['last_quest_date', 'last_sleep_date', 'lastSocialDate'];
+    stringFields.forEach(field => {
+        if (typeof normalized[field] !== 'string') {
+            normalized[field] = '';
+        }
+    });
+    
+    return normalized;
 }
 
 // ========================================
@@ -433,20 +503,12 @@ async function loginUser() {
             errorEl.textContent = '❌ Неверный пароль!';
             return;
         }
-        currentUsername = username;
-        currentUserData = user;
-        if (!currentUserData.goals) currentUserData.goals = [];
-        if (!currentUserData.socialLevel) currentUserData.socialLevel = 1;
-        if (!currentUserData.socialXP) currentUserData.socialXP = 0;
-        if (!currentUserData.socialQuests) currentUserData.socialQuests = [];
-        if (!currentUserData.lastSocialDate) currentUserData.lastSocialDate = '';
-        if (currentUserData.total_quests_completed === undefined) currentUserData.total_quests_completed = 0;
-        if (currentUserData.total_social_quests_completed === undefined) currentUserData.total_social_quests_completed = 0;
-        if (currentUserData.total_chests_opened === undefined) currentUserData.total_chests_opened = 0;
-        if (currentUserData.total_goals_completed === undefined) currentUserData.total_goals_completed = 0;
-        if (!currentUserData.achievements) currentUserData.achievements = [];
         
-        ensureInventoryArray();
+        // НОРМАЛИЗУЕМ ДАННЫЕ ПОСЛЕ ЗАГРУЗКИ
+        currentUsername = username;
+        currentUserData = normalizeUserData(user);
+        
+        console.log('✅ Пользователь загружен. Инвентарь:', currentUserData.inventory);
         
         saveSession(username);
         
@@ -500,20 +562,11 @@ async function restoreSession() {
             return false;
         }
 
+        // НОРМАЛИЗУЕМ ДАННЫЕ ПОСЛЕ ЗАГРУЗКИ
         currentUsername = session.username;
-        currentUserData = user;
-        if (!currentUserData.goals) currentUserData.goals = [];
-        if (!currentUserData.socialLevel) currentUserData.socialLevel = 1;
-        if (!currentUserData.socialXP) currentUserData.socialXP = 0;
-        if (!currentUserData.socialQuests) currentUserData.socialQuests = [];
-        if (!currentUserData.lastSocialDate) currentUserData.lastSocialDate = '';
-        if (currentUserData.total_quests_completed === undefined) currentUserData.total_quests_completed = 0;
-        if (currentUserData.total_social_quests_completed === undefined) currentUserData.total_social_quests_completed = 0;
-        if (currentUserData.total_chests_opened === undefined) currentUserData.total_chests_opened = 0;
-        if (currentUserData.total_goals_completed === undefined) currentUserData.total_goals_completed = 0;
-        if (!currentUserData.achievements) currentUserData.achievements = [];
+        currentUserData = normalizeUserData(user);
         
-        ensureInventoryArray();
+        console.log('✅ Сессия восстановлена. Инвентарь:', currentUserData.inventory);
         
         showGameScreen();
         document.getElementById('user-nick').textContent = currentUsername;
@@ -624,10 +677,15 @@ function updateUI() {
     const socialXP = currentUserData.socialXP || 0;
     const socialProgress = Math.min(100, (socialXP / SOCIAL_XP_PER_LEVEL) * 100);
     document.getElementById('social-level-display').textContent = socialLevel;
-    document.getElementById('social-level-badge').textContent = socialLevel;
     document.getElementById('social-xp-display').textContent = socialXP + ' / ' + SOCIAL_XP_PER_LEVEL + ' XP';
     document.getElementById('social-percent-display').textContent = Math.round(socialProgress) + '%';
     document.getElementById('social-bar').style.width = socialProgress + '%';
+
+    // Обновление социального уровня в хедере (если элемент существует)
+    const socialBadge = document.getElementById('social-level-badge');
+    if (socialBadge) {
+        socialBadge.textContent = 'Соц.' + socialLevel;
+    }
 
     renderAchievements();
 
@@ -663,63 +721,135 @@ function updateUI() {
     renderHotbar();
 }
 
+// ========================================
+//  ИНВЕНТАРЬ - ПОЛНОСТЬЮ ИСПРАВЛЕННАЯ ВЕРСИЯ
+// ========================================
+
 function renderInventory() {
     const container = document.getElementById('inventory-list');
-    if (!container) return;
-    if (!currentUserData) return;
+    if (!container) {
+        console.error('❌ Контейнер инвентаря не найден!');
+        return;
+    }
+    if (!currentUserData) {
+        container.innerHTML = `<span style="color:#636366; font-style: italic;">Войдите в игру...</span>`;
+        return;
+    }
     
-    ensureInventoryArray();
+    // ГАРАНТИРУЕМ, ЧТО ИНВЕНТАРЬ - ЭТО МАССИВ
+    if (!Array.isArray(currentUserData.inventory)) {
+        console.warn('⚠️ Инвентарь не массив, исправляем. Было:', typeof currentUserData.inventory);
+        if (typeof currentUserData.inventory === 'string') {
+            try {
+                currentUserData.inventory = JSON.parse(currentUserData.inventory);
+                if (!Array.isArray(currentUserData.inventory)) {
+                    currentUserData.inventory = [];
+                }
+            } catch (e) {
+                console.error('Ошибка парсинга инвентаря:', e);
+                currentUserData.inventory = [];
+            }
+        } else {
+            currentUserData.inventory = [];
+        }
+    }
     
-    if (!currentUserData.inventory || currentUserData.inventory.length === 0) {
+    const inventory = currentUserData.inventory;
+    
+    console.log('📦 Отображение инвентаря. Предметов:', inventory.length, inventory);
+    
+    if (inventory.length === 0) {
         container.innerHTML = `<span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>`;
         return;
     }
     
-    container.innerHTML = currentUserData.inventory.map(item => {
+    container.innerHTML = inventory.map((item, index) => {
+        // Если предмет - строка (старая система)
         if (typeof item === 'string') {
-            // Если предмет сохранён как строка (старая система)
-            return `<span class="inv-item">${item}</span>`;
+            return `<span class="inv-item" style="border: 1px solid #3a3a3c;">📦 ${item}</span>`;
         }
-        // Новая система: предмет — объект
-        const rarity = RARITIES[item.rarity] || RARITIES.common;
-        return `
-            <span class="inv-item" style="border-color: ${rarity.color}; background: ${rarity.color}22;" title="${item.desc || ''}">
-                ${item.icon || '📦'} ${item.name}
-                <span style="font-size:10px; color:${rarity.color};">${rarity.label}</span>
-            </span>
-        `;
+        
+        // Если предмет - объект (новая система)
+        if (item && typeof item === 'object') {
+            const rarity = RARITIES[item.rarity] || RARITIES.common;
+            const statLabel = STAT_LABELS[item.stat] || '';
+            const bonusText = item.stat && item.bonus ? `+${item.bonus} ${statLabel}` : '';
+            
+            return `
+                <span class="inv-item" 
+                      style="border: 2px solid ${rarity.color}; 
+                             background: ${rarity.color}22; 
+                             padding: 8px 12px; 
+                             border-radius: 10px; 
+                             display: inline-flex; 
+                             align-items: center; 
+                             gap: 6px;
+                             font-size: 13px;
+                             margin: 4px;"
+                      title="${item.desc || ''}">
+                    <span style="font-size: 18px;">${item.icon || '📦'}</span>
+                    <span style="font-weight: 600; color: #fff;">${item.name || 'Предмет'}</span>
+                    ${bonusText ? `<span style="font-size: 11px; color: #ffcc00; margin-left: 4px;">${bonusText}</span>` : ''}
+                    <span style="font-size: 10px; color: ${rarity.color}; margin-left: auto; padding: 2px 8px; background: ${rarity.color}33; border-radius: 8px;">${rarity.label}</span>
+                </span>
+            `;
+        }
+        
+        // На всякий случай
+        return `<span class="inv-item">📦 Неизвестный предмет</span>`;
     }).join('');
+    
+    console.log('✅ Инвентарь отображён');
 }
 
+// ========================================
+//  СОХРАНЕНИЕ ДАННЫХ (с логированием)
+// ========================================
+
 async function saveUserData() {
-    if (!currentUserData || !currentUsername) return;
+    if (!currentUserData || !currentUsername) {
+        console.error('❌ Нечего сохранять: нет данных или имени пользователя');
+        return;
+    }
     
-    ensureInventoryArray();
+    // Убеждаемся, что инвентарь - массив перед сохранением
+    if (!Array.isArray(currentUserData.inventory)) {
+        console.warn('⚠️ Инвентарь не массив перед сохранением, исправляем');
+        currentUserData.inventory = [];
+    }
+    
+    const dataToSave = {
+        stats: currentUserData.stats,
+        inventory: currentUserData.inventory,
+        completed_quests: currentUserData.completed_quests || [],
+        current_quests: currentUserData.current_quests || [],
+        last_quest_date: currentUserData.last_quest_date || '',
+        last_sleep_date: currentUserData.last_sleep_date || '',
+        goals: currentUserData.goals || [],
+        socialLevel: currentUserData.socialLevel || 1,
+        socialXP: currentUserData.socialXP || 0,
+        socialQuests: currentUserData.socialQuests || [],
+        lastSocialDate: currentUserData.lastSocialDate || '',
+        total_quests_completed: currentUserData.total_quests_completed || 0,
+        total_social_quests_completed: currentUserData.total_social_quests_completed || 0,
+        total_chests_opened: currentUserData.total_chests_opened || 0,
+        total_goals_completed: currentUserData.total_goals_completed || 0,
+        achievements: currentUserData.achievements || []
+    };
+    
+    console.log('💾 Сохранение данных. Инвентарь:', dataToSave.inventory.length, 'предметов');
     
     try {
-        await updateUser(currentUsername, {
-            stats: currentUserData.stats,
-            inventory: currentUserData.inventory,
-            completed_quests: currentUserData.completed_quests,
-            current_quests: currentUserData.current_quests,
-            last_quest_date: currentUserData.last_quest_date,
-            last_sleep_date: currentUserData.last_sleep_date,
-            goals: currentUserData.goals,
-            socialLevel: currentUserData.socialLevel,
-            socialXP: currentUserData.socialXP,
-            socialQuests: currentUserData.socialQuests,
-            lastSocialDate: currentUserData.lastSocialDate,
-            total_quests_completed: currentUserData.total_quests_completed,
-            total_social_quests_completed: currentUserData.total_social_quests_completed,
-            total_chests_opened: currentUserData.total_chests_opened,
-            total_goals_completed: currentUserData.total_goals_completed,
-            achievements: currentUserData.achievements
-        });
-        console.log('✅ Saved');
+        await updateUser(currentUsername, dataToSave);
+        console.log('✅ Данные сохранены успешно');
     } catch (e) {
-        console.error('❌ Save error', e);
+        console.error('❌ Ошибка сохранения:', e);
     }
 }
+
+// ========================================
+//  ТРЕНИРОВКИ И СОН
+// ========================================
 
 async function train(type) {
     if (!currentUserData) return;
@@ -744,18 +874,24 @@ async function checkSleepTime() {
         return;
     }
     const hours = now.getHours();
-    if (hours === 0 || hours >= 21) {
-        currentUserData.stats.per += 10;
-        currentUserData.stats.gold += 15;
-        alert('🏆 Отличный режим! +10 Дисциплина / +15 🪙');
+    if (hours >= 0 && hours < 1) {
+        // После 00:00 и до 01:00 - штраф
+        currentUserData.stats.per = Math.max(0, (currentUserData.stats.per || 0) - 10);
+        alert('⚠️ Вы легли после полуночи! -10 Дисциплина.');
     } else {
-        currentUserData.stats.per = Math.max(0, currentUserData.stats.per - 10);
-        alert('⚠️ Режим нарушен! -10 Дисциплина.');
+        // До 00:00 - награда
+        currentUserData.stats.per = (currentUserData.stats.per || 0) + 10;
+        currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 15;
+        alert('🏆 Отличный режим! +10 Дисциплина / +15 🪙');
     }
     currentUserData.last_sleep_date = today;
     await saveUserData();
     updateUI();
 }
+
+// ========================================
+//  КВЕСТЫ
+// ========================================
 
 async function completeQuest(id, type, points, gold) {
     if (!currentUserData || currentUserData.completed_quests.includes(id)) return;
@@ -774,7 +910,9 @@ async function completeWeeklyChallenge(btn) {
         alert('Вы уже выполнили вызов!');
         return;
     }
-    ['str', 'end', 'agi', 'int', 'cha', 'per'].forEach(id => currentUserData.stats[id] = (currentUserData.stats[id] || 0) + 8);
+    ['str', 'end', 'agi', 'int', 'cha', 'per'].forEach(id => {
+        currentUserData.stats[id] = (currentUserData.stats[id] || 0) + 8;
+    });
     currentUserData.stats.luck = (currentUserData.stats.luck || 0) + 15;
     currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 100;
     currentUserData.completed_quests.push('w1');
@@ -783,9 +921,8 @@ async function completeWeeklyChallenge(btn) {
     alert('⭐ Вызов выполнен!');
 }
 
-
 // ========================================
-//  НОВАЯ СИСТЕМА СУНДУКОВ И РУЛЕТКИ (ФИКС)
+//  СИСТЕМА СУНДУКОВ И РУЛЕТКИ
 // ========================================
 
 function getRandomItem() {
@@ -805,21 +942,25 @@ function getRandomItem() {
     if (pool.length === 0) {
         return ITEMS_POOL[Math.floor(Math.random() * ITEMS_POOL.length)];
     }
-    return pool[Math.floor(Math.random() * pool.length)];
+    return JSON.parse(JSON.stringify(pool[Math.floor(Math.random() * pool.length)]));
 }
 
 async function openChest(tier, price) {
     if (!currentUserData) return;
-    if (currentUserData.stats.gold < price) {
+    if ((currentUserData.stats.gold || 0) < price) {
         alert('Недостаточно монет!');
         return;
     }
     
-    ensureInventoryArray();
-    
     currentUserData.stats.gold -= price;
     
     const item = getRandomItem();
+    
+    // ГАРАНТИРУЕМ, ЧТО ИНВЕНТАРЬ - МАССИВ
+    if (!Array.isArray(currentUserData.inventory)) {
+        currentUserData.inventory = [];
+    }
+    
     currentUserData.inventory.push(item);
     
     // Добавляем бонус к статам
@@ -829,14 +970,15 @@ async function openChest(tier, price) {
     
     currentUserData.total_chests_opened = (currentUserData.total_chests_opened || 0) + 1;
     
+    console.log('🎁 Открыт сундук. Инвентарь теперь:', currentUserData.inventory.length, 'предметов');
+    
     await saveUserData();
-    // Принудительно обновляем инвентарь и всё UI
     updateUI();
     renderInventory();
     renderAchievements();
     
     const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
-    alert(`🎉 Вы выбили: ${item.icon} ${item.name} (${rarityConfig.label})! +${item.bonus} ${STAT_LABELS[item.stat] || 'всем статам'}`);
+    alert(`🎉 Вы выбили: ${item.icon} ${item.name} (${rarityConfig.label})!\n+${item.bonus} к ${STAT_LABELS[item.stat] || 'стату'}`);
 }
 
 async function spinRoulette() {
@@ -844,38 +986,42 @@ async function spinRoulette() {
         alert('Сначала войдите в игру!');
         return;
     }
-    if (currentUserData.stats.gold < 50) {
+    if ((currentUserData.stats.gold || 0) < 50) {
         alert('Недостаточно монет! Нужно 50 🪙');
         return;
     }
     
-    ensureInventoryArray();
-    
     currentUserData.stats.gold -= 50;
     
-    // Анимация — меняем эмодзи 5 раз с интервалом
     const wheel = document.getElementById('roulette-wheel');
     const emojis = ['🎁', '🎰', '💎', '⭐', '🏆', '🎯', '🎲', '🌀'];
     let count = 0;
+    
     const interval = setInterval(() => {
         wheel.textContent = emojis[Math.floor(Math.random() * emojis.length)];
         count++;
         if (count > 8) {
             clearInterval(interval);
-            // Выпадает предмет
+            
             const item = getRandomItem();
+            
+            // ГАРАНТИРУЕМ, ЧТО ИНВЕНТАРЬ - МАССИВ
+            if (!Array.isArray(currentUserData.inventory)) {
+                currentUserData.inventory = [];
+            }
+            
             currentUserData.inventory.push(item);
             
             if (item.stat && item.bonus) {
                 currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
             }
             
-            // Сохраняем и принудительно обновляем UI
+            console.log('🎰 Рулетка. Инвентарь теперь:', currentUserData.inventory.length, 'предметов');
+            
             saveUserData().then(() => {
                 const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
                 wheel.textContent = item.icon || '🎁';
                 renderRouletteResult(`${rarityConfig.label}: ${item.name} (+${item.bonus} ${STAT_LABELS[item.stat] || 'все статы'})`);
-                // Принудительно обновляем инвентарь и весь UI
                 updateUI();
                 renderInventory();
                 renderAchievements();
@@ -885,22 +1031,13 @@ async function spinRoulette() {
     }, 150);
 }
 
-function renderInventory() {
-    const container = document.getElementById('inventory-list');
-    if (!container) return;
-    if (!currentUserData) return;
-    
-    ensureInventoryArray();
-    
-    console.log('📦 inventory before render:', currentUserData.inventory);
-    
-    if (!currentUserData.inventory || currentUserData.inventory.length === 0) {
-        container.innerHTML = `<span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>`;
-        return;
+function renderRouletteResult(text) {
+    const resultEl = document.getElementById('roulette-result');
+    if (resultEl) {
+        resultEl.textContent = text || '';
     }
-    
-    // ... остальной код рендеринга ...
 }
+
 // ========================================
 //  СИСТЕМА ЦЕЛЕЙ
 // ========================================
@@ -910,14 +1047,17 @@ function getRarityConfig(rarity) {
 }
 
 function updateRewardPreview() {
-    const rarity = document.getElementById('goal-rarity').value;
-    const stat = document.getElementById('goal-stat').value;
+    const rarity = document.getElementById('goal-rarity')?.value || 'common';
+    const stat = document.getElementById('goal-stat')?.value || 'str';
     const config = getRarityConfig(rarity);
-    document.getElementById('goal-reward-preview').innerHTML = `
-        🎁 Награда: <span style="color:#ffcc00;">+${config.xp} XP</span> + 
-        <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[stat]}</span>
-        <span style="color:#8e8e93; font-size:11px; margin-left:8px;">(${config.label})</span>
-    `;
+    const previewEl = document.getElementById('goal-reward-preview');
+    if (previewEl) {
+        previewEl.innerHTML = `
+            🎁 Награда: <span style="color:#ffcc00;">+${config.xp} XP</span> + 
+            <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[stat]}</span>
+            <span style="color:#8e8e93; font-size:11px; margin-left:8px;">(${config.label})</span>
+        `;
+    }
 }
 
 function showAddGoalModal() {
@@ -968,7 +1108,9 @@ async function addGoal() {
         createdAt: new Date().toISOString()
     };
 
-    if (!currentUserData.goals) currentUserData.goals = [];
+    if (!Array.isArray(currentUserData.goals)) {
+        currentUserData.goals = [];
+    }
     currentUserData.goals.push(newGoal);
     await saveUserData();
     closeGoalModal();
@@ -1111,7 +1253,7 @@ async function deleteGoal(index) {
 }
 
 // ========================================
-//  СОЦИАЛЬНЫЕ КВЕСТЫ (обновление)
+//  СОЦИАЛЬНЫЕ КВЕСТЫ
 // ========================================
 
 async function refreshSocialQuests() {
@@ -1216,6 +1358,11 @@ function renderAchievements() {
         container.innerHTML = '<div style="color:#8e8e93; text-align:center;">Войдите, чтобы видеть достижения</div>';
         return;
     }
+    
+    if (!Array.isArray(currentUserData.achievements)) {
+        currentUserData.achievements = [];
+    }
+    
     let anyUnlocked = false;
     ACHIEVEMENTS_DB.forEach(ach => {
         if (!currentUserData.achievements.includes(ach.id) && ach.check()) {
@@ -1232,9 +1379,11 @@ function renderAchievements() {
             setTimeout(() => alert(`🏆 Достижение разблокировано: ${ach.title}!`), 100);
         }
     });
+    
     if (anyUnlocked) {
         saveUserData().then(() => updateUI());
     }
+    
     container.innerHTML = ACHIEVEMENTS_DB.map(ach => {
         const unlocked = currentUserData.achievements.includes(ach.id);
         const progress = ach.check() ? 1 : 0;
@@ -1266,10 +1415,9 @@ async function resetProgress() {
     if (!currentUserData) return;
     if (!confirm('Сбросить прогресс?')) return;
     
-    // Обнуляем все данные
     currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
     currentUserData.completed_quests = [];
-    currentUserData.inventory = []; // очищаем инвентарь
+    currentUserData.inventory = [];
     currentUserData.current_quests = [];
     currentUserData.last_quest_date = '';
     currentUserData.last_sleep_date = '';
@@ -1284,16 +1432,12 @@ async function resetProgress() {
     currentUserData.total_goals_completed = 0;
     currentUserData.achievements = [];
     
-    // Сохраняем в БД
     await saveUserData();
-    
-    // Пересоздаём квесты
     await checkDailyRotation();
     await refreshSocialQuests();
     
-    // Принудительно обновляем ВСЁ UI
-    updateUI();           // обновляет статы, аватары, социальный уровень
-    renderInventory();    // явный вызов для инвентаря
+    updateUI();
+    renderInventory();
     renderQuests();
     renderGoals();
     renderHotbar();
@@ -1311,9 +1455,15 @@ async function resetProgress() {
 setInterval(() => {
     const n = new Date();
     let h = 23 - n.getHours(), m = 59 - n.getMinutes(), s = 59 - n.getSeconds();
-    document.getElementById('daily-timer').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const dailyTimer = document.getElementById('daily-timer');
+    if (dailyTimer) {
+        dailyTimer.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
     const daysLeft = 6 - (n.getDay() % 7);
-    document.getElementById('weekly-timer').textContent = `${daysLeft}д ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const weeklyTimer = document.getElementById('weekly-timer');
+    if (weeklyTimer) {
+        weeklyTimer.textContent = `${daysLeft}д ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
     if (h === 0 && m === 0 && s === 0 && currentUserData) {
         checkDailyRotation();
     }
@@ -1324,8 +1474,8 @@ setInterval(() => {
 //  ЗАПУСК
 // ========================================
 
-document.getElementById('goal-rarity').addEventListener('change', updateRewardPreview);
-document.getElementById('goal-stat').addEventListener('change', updateRewardPreview);
+document.getElementById('goal-rarity')?.addEventListener('change', updateRewardPreview);
+document.getElementById('goal-stat')?.addEventListener('change', updateRewardPreview);
 
-console.log('✅ Игра запущена!');
+console.log('✅ Игра запущена! Все системы работают.');
 restoreSession();
