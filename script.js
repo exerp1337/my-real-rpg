@@ -783,8 +783,9 @@ async function completeWeeklyChallenge(btn) {
     alert('⭐ Вызов выполнен!');
 }
 
+
 // ========================================
-//  НОВАЯ СИСТЕМА СУНДУКОВ И РУЛЕТКИ
+//  НОВАЯ СИСТЕМА СУНДУКОВ И РУЛЕТКИ (ФИКС)
 // ========================================
 
 function getRandomItem() {
@@ -802,7 +803,6 @@ function getRandomItem() {
     
     const pool = ITEMS_POOL.filter(item => item.rarity === selectedRarity);
     if (pool.length === 0) {
-        // fallback: взять любой предмет
         return ITEMS_POOL[Math.floor(Math.random() * ITEMS_POOL.length)];
     }
     return pool[Math.floor(Math.random() * pool.length)];
@@ -830,7 +830,9 @@ async function openChest(tier, price) {
     currentUserData.total_chests_opened = (currentUserData.total_chests_opened || 0) + 1;
     
     await saveUserData();
+    // Принудительно обновляем инвентарь и всё UI
     updateUI();
+    renderInventory();
     renderAchievements();
     
     const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
@@ -868,22 +870,47 @@ async function spinRoulette() {
                 currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
             }
             
+            // Сохраняем и принудительно обновляем UI
             saveUserData().then(() => {
-                updateUI();
                 const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
                 wheel.textContent = item.icon || '🎁';
                 renderRouletteResult(`${rarityConfig.label}: ${item.name} (+${item.bonus} ${STAT_LABELS[item.stat] || 'все статы'})`);
+                // Принудительно обновляем инвентарь и весь UI
+                updateUI();
+                renderInventory();
+                renderAchievements();
                 alert(`🎡 Вы выиграли: ${rarityConfig.label}\n${item.icon} ${item.name}\n+${item.bonus} ${STAT_LABELS[item.stat] || 'всем статам'}`);
             });
         }
     }, 150);
 }
 
-function renderRouletteResult(text) {
-    const el = document.getElementById('roulette-result');
-    if (el) el.textContent = text || '';
+function renderInventory() {
+    const container = document.getElementById('inventory-list');
+    if (!container) return;
+    if (!currentUserData) return;
+    
+    ensureInventoryArray();
+    
+    if (!currentUserData.inventory || currentUserData.inventory.length === 0) {
+        container.innerHTML = `<span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>`;
+        return;
+    }
+    
+    container.innerHTML = currentUserData.inventory.map(item => {
+        if (typeof item === 'string') {
+            return `<span class="inv-item">${item}</span>`;
+        }
+        // Новая система: предмет — объект
+        const rarity = RARITIES[item.rarity] || RARITIES.common;
+        return `
+            <span class="inv-item" style="border-color: ${rarity.color}; background: ${rarity.color}22;" title="${item.desc || ''}">
+                ${item.icon || '📦'} ${item.name}
+                <span style="font-size:10px; color:${rarity.color};">${rarity.label}</span>
+            </span>
+        `;
+    }).join('');
 }
-
 // ========================================
 //  СИСТЕМА ЦЕЛЕЙ
 // ========================================
