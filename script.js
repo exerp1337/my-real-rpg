@@ -67,515 +67,127 @@ const STAT_LABELS = {
 };
 
 // ========================================
+//  НОВАЯ СИСТЕМА РЕДКОСТЕЙ И ВЕЩЕЙ
+// ========================================
+
+const RARITIES = {
+    common: { label: '📦 Обычное', color: '#8e8e93', weight: 40, emoji: '📦' },
+    uncommon: { label: '🟢 Необычное', color: '#30d158', weight: 25, emoji: '🟢' },
+    rare: { label: '🔵 Редкое', color: '#0a84ff', weight: 18, emoji: '🔵' },
+    epic: { label: '🟣 Эпическое', color: '#bf5af2', weight: 10, emoji: '🟣' },
+    legendary: { label: '🟠 Легендарное', color: '#ff9500', weight: 5, emoji: '🟠' },
+    mythic: { label: '🔴 Мифическое', color: '#ff453a', weight: 2, emoji: '🔴' }
+};
+
+const ITEMS_POOL = [
+    // Обычные (common)
+    { id: 'item_1', name: '🍀 Клевер', desc: 'Приносит удачу', stat: 'luck', bonus: 2, rarity: 'common', icon: '🍀' },
+    { id: 'item_2', name: '💪 Гантеля', desc: 'Для силовых тренировок', stat: 'str', bonus: 3, rarity: 'common', icon: '💪' },
+    { id: 'item_3', name: '📖 Книга', desc: 'Источник знаний', stat: 'int', bonus: 3, rarity: 'common', icon: '📖' },
+    { id: 'item_4', name: '👟 Кроссовки', desc: 'Для бега', stat: 'end', bonus: 3, rarity: 'common', icon: '👟' },
+    { id: 'item_5', name: '🎯 Мишень', desc: 'Тренирует меткость', stat: 'agi', bonus: 3, rarity: 'common', icon: '🎯' },
+    // Необычные (uncommon)
+    { id: 'item_6', name: '🔮 Хрустальный шар', desc: 'Усиливает интуицию', stat: 'luck', bonus: 5, rarity: 'uncommon', icon: '🔮' },
+    { id: 'item_7', name: '⚔️ Меч', desc: 'Символ силы', stat: 'str', bonus: 7, rarity: 'uncommon', icon: '⚔️' },
+    { id: 'item_8', name: '🛡️ Щит', desc: 'Защищает от усталости', stat: 'end', bonus: 7, rarity: 'uncommon', icon: '🛡️' },
+    { id: 'item_9', name: '🧠 Тренажёр', desc: 'Для мозга', stat: 'int', bonus: 7, rarity: 'uncommon', icon: '🧠' },
+    { id: 'item_10', name: '🎤 Микрофон', desc: 'Укрепляет голос', stat: 'cha', bonus: 7, rarity: 'uncommon', icon: '🎤' },
+    // Редкие (rare)
+    { id: 'item_11', name: '👑 Корона', desc: 'Власть и уважение', stat: 'cha', bonus: 12, rarity: 'rare', icon: '👑' },
+    { id: 'item_12', name: '🐉 Драконий глаз', desc: 'Мистическая удача', stat: 'luck', bonus: 12, rarity: 'rare', icon: '🐉' },
+    { id: 'item_13', name: '⚡ Молния', desc: 'Скорость реакции', stat: 'agi', bonus: 12, rarity: 'rare', icon: '⚡' },
+    { id: 'item_14', name: '📚 Энциклопедия', desc: 'Глубокая мудрость', stat: 'int', bonus: 12, rarity: 'rare', icon: '📚' },
+    // Эпические (epic)
+    { id: 'item_15', name: '⌚ Rolex', desc: 'Стиль и статус', stat: 'cha', bonus: 20, rarity: 'epic', icon: '⌚' },
+    { id: 'item_16', name: '💻 Ноутбук', desc: 'Инструмент гения', stat: 'int', bonus: 20, rarity: 'epic', icon: '💻' },
+    { id: 'item_17', name: '🏆 Трофей', desc: 'Победа во всём', stat: 'str', bonus: 20, rarity: 'epic', icon: '🏆' },
+    { id: 'item_18', name: '🧘 Коврик', desc: 'Гармония и фокус', stat: 'per', bonus: 20, rarity: 'epic', icon: '🧘' },
+    // Легендарные (legendary)
+    { id: 'item_19', name: '🌟 Звезда', desc: 'Сияние гения', stat: 'luck', bonus: 35, rarity: 'legendary', icon: '🌟' },
+    { id: 'item_20', name: '👾 Артефакт', desc: 'Древняя магия', stat: 'luck', bonus: 35, rarity: 'legendary', icon: '👾' },
+    { id: 'item_21', name: '🔥 Феникс', desc: 'Возрождение', stat: 'end', bonus: 35, rarity: 'legendary', icon: '🔥' },
+    // Мифические (mythic)
+    { id: 'item_22', name: '💎 Камень бесконечности', desc: 'Абсолютная сила', stat: 'str', bonus: 50, rarity: 'mythic', icon: '💎' },
+    { id: 'item_23', name: '🌌 Космос', desc: 'Бесконечные знания', stat: 'int', bonus: 50, rarity: 'mythic', icon: '🌌' },
+    { id: 'item_24', name: '🕊️ Ангельское крыло', desc: 'Божественная харизма', stat: 'cha', bonus: 50, rarity: 'mythic', icon: '🕊️' }
+];
+
+// ========================================
 //  СОЦИАЛЬНЫЕ КВЕСТЫ (60 штук, 6 рангов)
 // ========================================
 
 const SOCIAL_QUESTS_DB = [
-
-    // =============================================
-    //  РАНГ 1 (уровень харизмы 1–5) — «Снятие дебаффа «Невидимка»»
-    // =============================================
-    {
-        id: 's1',
-        title: '👀 Контакт установлен',
-        desc: 'Поймай взгляд случайного прохожего и не отводи его первым ровно 2 секунды.',
-        rank: 1,
-        xpReward: 15,
-        socialBonus: 1
-    },
-    {
-        id: 's2',
-        title: '🧍 Бафф осанки',
-        desc: 'Пройди 10 минут по улице с максимально прямой спиной и расправленными плечами.',
-        rank: 1,
-        xpReward: 15,
-        socialBonus: 1
-    },
-    {
-        id: 's3',
-        title: '🗣️ Голос из таверны',
-        desc: 'Скажи «Здравствуйте» кассиру или курьеру на 10% громче, чем обычно.',
-        rank: 1,
-        xpReward: 15,
-        socialBonus: 1
-    },
-    {
-        id: 's4',
-        title: '😊 Оружие к бою',
-        desc: 'Искренне улыбнись одному незнакомому человеку за день.',
-        rank: 1,
-        xpReward: 15,
-        socialBonus: 1
-    },
-    {
-        id: 's5',
-        title: '🛡️ Открытый щит',
-        desc: 'Проведи 15 минут в людном месте, сознательно не скрещивая руки и ноги.',
-        rank: 1,
-        xpReward: 15,
-        socialBonus: 1
-    },
-    {
-        id: 's6',
-        title: '⏳ Мастер времени',
-        desc: 'Подойди к незнакомцу на улице и спроси, который час.',
-        rank: 1,
-        xpReward: 20,
-        socialBonus: 1
-    },
-    {
-        id: 's7',
-        title: '🤝 Вежливый NPC',
-        desc: 'Поблагодари обслуживающий персонал, обязательно посмотрев при этом в глаза.',
-        rank: 1,
-        xpReward: 15,
-        socialBonus: 1
-    },
-    {
-        id: 's8',
-        title: '📱 Анти-стелс',
-        desc: 'Зайди в лифт с другими людьми и не доставай телефон.',
-        rank: 1,
-        xpReward: 15,
-        socialBonus: 1
-    },
-    {
-        id: 's9',
-        title: '👂 Эффект присутствия',
-        desc: 'Во время разговора со знакомым кивни минимум 3 раза, показывая, что ты слушаешь.',
-        rank: 1,
-        xpReward: 15,
-        socialBonus: 1
-    },
-    {
-        id: 's10',
-        title: '📖 Четкая дикция',
-        desc: 'Прочитай вслух любой текст (1 страница), чётко проговаривая каждое слово, чтобы разогреть речевой аппарат.',
-        rank: 1,
-        xpReward: 20,
-        socialBonus: 1
-    },
-
-    // =============================================
-    //  РАНГ 2 (уровень харизмы 6–10) — «Инициатор диалогов»
-    // =============================================
-    {
-        id: 's11',
-        title: '💎 Нежданный лут',
-        desc: 'Сделай искренний комплимент внешности или одежде малознакомого человека.',
-        rank: 2,
-        xpReward: 25,
-        socialBonus: 2
-    },
-    {
-        id: 's12',
-        title: '✨ Магия имени',
-        desc: 'Узнай имя нового собеседника и назови его по имени минимум 2 раза за диалог.',
-        rank: 2,
-        xpReward: 25,
-        socialBonus: 2
-    },
-    {
-        id: 's13',
-        title: '🔀 Разрыв шаблона',
-        desc: 'На дежурное «Как дела?» ответь не «нормально», а интересной деталью (например: «Отлично, пью вкусный кофе»).',
-        rank: 2,
-        xpReward: 25,
-        socialBonus: 2
-    },
-    {
-        id: 's14',
-        title: '🗺️ Следопыт',
-        desc: 'Спроси дорогу у прохожего, даже если точно знаешь, куда идти.',
-        rank: 2,
-        xpReward: 25,
-        socialBonus: 2
-    },
-    {
-        id: 's15',
-        title: '📡 Эхолокация',
-        desc: 'Повтори последние 3 слова собеседника с вопросительной интонацией, чтобы он продолжил рассказ.',
-        rank: 2,
-        xpReward: 30,
-        socialBonus: 2
-    },
-    {
-        id: 's16',
-        title: '🤝 Общий знаменатель',
-        desc: 'Найди одну общую деталь с человеком, с которым раньше почти не общался (музыка, нелюбовь к пробкам, хобби).',
-        rank: 2,
-        xpReward: 25,
-        socialBonus: 2
-    },
-    {
-        id: 's17',
-        title: '☕ Светская беседа',
-        desc: 'Перекинься парой фраз о погоде или ситуации с соседом/коллегой.',
-        rank: 2,
-        xpReward: 25,
-        socialBonus: 2
-    },
-    {
-        id: 's18',
-        title: '🚮 Без мусора',
-        desc: 'Поговори с кем-то 5 минут, сознательно избегая слов-паразитов («типа», «короче», «ну»).',
-        rank: 2,
-        xpReward: 30,
-        socialBonus: 2
-    },
-    {
-        id: 's19',
-        title: '📢 Развернутый ответ',
-        desc: 'Ни разу за день не ответь на вопросы односложно («да»/«нет») — добавляй минимум одно предложение.',
-        rank: 2,
-        xpReward: 25,
-        socialBonus: 2
-    },
-    {
-        id: 's20',
-        title: '👋 Новый союзник',
-        desc: 'Подойди к человеку на мероприятии/учебе/работе и первым представься: «Привет, я [Имя], мы еще не знакомы».',
-        rank: 2,
-        xpReward: 30,
-        socialBonus: 2
-    },
-
-    // =============================================
-    //  РАНГ 3 (уровень харизмы 11–15) — «Мастер эмпатии»
-    // =============================================
-    {
-        id: 's21',
-        title: '🧘 Безмолвный монах',
-        desc: 'Выслушай человека в течение 5 минут, ни разу его не перебив.',
-        rank: 3,
-        xpReward: 35,
-        socialBonus: 3
-    },
-    {
-        id: 's22',
-        title: '🔍 Глубокий зонд',
-        desc: 'Задай открытый вопрос, требующий размышления (например: «Что тебе больше всего нравится в твоей работе?»).',
-        rank: 3,
-        xpReward: 35,
-        socialBonus: 3
-    },
-    {
-        id: 's23',
-        title: '📡 Тонкая настройка',
-        desc: 'Заметь изменение настроения собеседника и аккуратно спроси об этом («Ты кажешься уставшим, всё ок?»).',
-        rank: 3,
-        xpReward: 35,
-        socialBonus: 3
-    },
-    {
-        id: 's24',
-        title: '🏅 Высокоуровневый комплимент',
-        desc: 'Похвали не внешность, а навык, характер или поступок человека.',
-        rank: 3,
-        xpReward: 35,
-        socialBonus: 3
-    },
-    {
-        id: 's25',
-        title: '🎁 Достойная награда',
-        desc: 'В ответ на похвалу скажи только «Спасибо, мне очень приятно», не принижая своих заслуг.',
-        rank: 3,
-        xpReward: 35,
-        socialBonus: 3
-    },
-    {
-        id: 's26',
-        title: '📚 Архивариус',
-        desc: 'Вспомни в разговоре мелкую деталь, которую человек упоминал несколько дней назад.',
-        rank: 3,
-        xpReward: 40,
-        socialBonus: 3
-    },
-    {
-        id: 's27',
-        title: '🪞 Отзеркаливание',
-        desc: 'В течение 3 минут незаметно копируй позу собеседника для повышения доверия.',
-        rank: 3,
-        xpReward: 35,
-        socialBonus: 3
-    },
-    {
-        id: 's28',
-        title: '⏸️ Тяжеловесная пауза',
-        desc: 'Выдержы паузу в 2 секунды перед ответом на важный вопрос, глядя человеку в глаза.',
-        rank: 3,
-        xpReward: 35,
-        socialBonus: 3
-    },
-    {
-        id: 's29',
-        title: '🛡️ Снятие брони',
-        desc: 'Расскажи собеседнику небольшую, но искреннюю историю о своей недавней мелкой неудаче (повышает доверие).',
-        rank: 3,
-        xpReward: 40,
-        socialBonus: 4
-    },
-    {
-        id: 's30',
-        title: '👁️ Удержание фокуса',
-        desc: 'Смотри в глаза собеседнику не только когда он говорит, но и когда говоришь ты сам.',
-        rank: 3,
-        xpReward: 35,
-        socialBonus: 3
-    },
-
-    // =============================================
-    //  РАНГ 4 (уровень харизмы 16–20) — «Укротитель внимания»
-    // =============================================
-    {
-        id: 's31',
-        title: '🔥 Байки у костра',
-        desc: 'Заранее вспомни, отрепетируй и расскажи в компании забавную историю на 1-2 минуты.',
-        rank: 4,
-        xpReward: 45,
-        socialBonus: 5
-    },
-    {
-        id: 's32',
-        title: '⚔️ Изящное парирование',
-        desc: 'Вежливо, но твердо не согласись с чужим мнением, начав с «Я понимаю твою мысль, но...»',
-        rank: 4,
-        xpReward: 45,
-        socialBonus: 5
-    },
-    {
-        id: 's33',
-        title: '🎮 Врыв в пати',
-        desc: 'Успешно вклинись в уже идущий разговор группы людей, не нарушив его динамику.',
-        rank: 4,
-        xpReward: 50,
-        socialBonus: 5
-    },
-    {
-        id: 's34',
-        title: '🕊️ Уютная тишина',
-        desc: 'Переживи неловкую паузу в разговоре, не пытаясь судорожно заполнить её болтовней, сохраняя спокойную улыбку.',
-        rank: 4,
-        xpReward: 45,
-        socialBonus: 5
-    },
-    {
-        id: 's35',
-        title: '🤲 Плавный жест',
-        desc: 'Рассказывая что-то, осознанно используй открытые жесты руками (ладонями вверх).',
-        rank: 4,
-        xpReward: 45,
-        socialBonus: 5
-    },
-    {
-        id: 's36',
-        title: '☕ Инвайт',
-        desc: 'Пригласи малознакомого, но интересного тебе человека выпить кофе или пообедать вместе.',
-        rank: 4,
-        xpReward: 50,
-        socialBonus: 5
-    },
-    {
-        id: 's37',
-        title: '🎬 Режиссёр',
-        desc: 'Увидев, что кого-то в компании перебили, верни ему слово («Так что ты там говорил про...?»).',
-        rank: 4,
-        xpReward: 50,
-        socialBonus: 6
-    },
-    {
-        id: 's38',
-        title: '🎙️ Прокачка голоса',
-        desc: 'Говори более низким и грудным голосом, чем обычно, в течение одного разговора.',
-        rank: 4,
-        xpReward: 50,
-        socialBonus: 6
-    },
-    {
-        id: 's39',
-        title: '😂 Шутка в тему',
-        desc: 'Сделай уместное ироничное замечание, заставив улыбнуться хотя бы одного человека.',
-        rank: 4,
-        xpReward: 50,
-        socialBonus: 6
-    },
-    {
-        id: 's40',
-        title: '🎯 Центр притяжения',
-        desc: 'Удержи на себе внимание группы из 3+ человек в течение хотя бы минуты.',
-        rank: 4,
-        xpReward: 55,
-        socialBonus: 6
-    },
-
-    // =============================================
-    //  РАНГ 5 (уровень харизмы 21–25) — «Социальный лидер»
-    // =============================================
-    {
-        id: 's41',
-        title: '🔗 Связующее звено',
-        desc: 'Познакомь двух людей, рассказав им по одному крутому факту друг о друге.',
-        rank: 5,
-        xpReward: 65,
-        socialBonus: 7
-    },
-    {
-        id: 's42',
-        title: '🛡️ Сбор рейда',
-        desc: 'Выступи инициатором: собери группу из 3+ друзей/коллег и организуй совместный поход куда-либо.',
-        rank: 5,
-        xpReward: 70,
-        socialBonus: 8
-    },
-    {
-        id: 's43',
-        title: '🤝 Дипломат',
-        desc: 'Успокой расстроенного или раздражённого человека, используя только эмпатию и слушание.',
-        rank: 5,
-        xpReward: 70,
-        socialBonus: 8
-    },
-    {
-        id: 's44',
-        title: '👔 Разговор с боссом',
-        desc: 'Уверенно и на равных заведи смолл-ток с человеком, который выше тебя по статусу или должности.',
-        rank: 5,
-        xpReward: 75,
-        socialBonus: 8
-    },
-    {
-        id: 's45',
-        title: '📢 Глас глашатая',
-        desc: 'Произнеси тост или возьми вступительное слово на встрече/празднике.',
-        rank: 5,
-        xpReward: 75,
-        socialBonus: 9
-    },
-    {
-        id: 's46',
-        title: '🔄 Перелом хода',
-        desc: 'Мягко переведи негативное обсуждение (жалобы, сплетни) в позитивное или нейтральное русло.',
-        rank: 5,
-        xpReward: 75,
-        socialBonus: 9
-    },
-    {
-        id: 's47',
-        title: '💼 Торговец',
-        desc: 'Попроси о небольшой скидке, бонусе или лучшем столике в заведении с дружелюбной улыбкой.',
-        rank: 5,
-        xpReward: 80,
-        socialBonus: 9
-    },
-    {
-        id: 's48',
-        title: '💪 Уверенная просьба',
-        desc: 'Попроси человека об одолжении прямо, без извиняющегося тона («Мне нужна твоя помощь с...»).',
-        rank: 5,
-        xpReward: 80,
-        socialBonus: 10
-    },
-    {
-        id: 's49',
-        title: '🧠 Память на имена',
-        desc: 'Попав в новую компанию, запомни и используй в разговоре имена минимум троих людей.',
-        rank: 5,
-        xpReward: 80,
-        socialBonus: 10
-    },
-    {
-        id: 's50',
-        title: '🎭 Эмоциональные качели',
-        desc: 'Расскажи историю так, чтобы слушатели испытали сначала напряжение, а затем смех или облегчение.',
-        rank: 5,
-        xpReward: 85,
-        socialBonus: 10
-    },
-
-    // =============================================
-    //  РАНГ 6 (уровень харизмы 26–30) — «Архитектор реальности»
-    // =============================================
-    {
-        id: 's51',
-        title: '🏠 Хост (Хозяин таверны)',
-        desc: 'Прими гостей у себя (или организуй вечеринку), лично следя за тем, чтобы всем было комфортно и никто не скучал.',
-        rank: 6,
-        xpReward: 100,
-        socialBonus: 12
-    },
-    {
-        id: 's52',
-        title: '🕊️ Миротворец',
-        desc: 'Выступи медиатором в споре двух людей и помоги им прийти к компромиссу без ссоры.',
-        rank: 6,
-        xpReward: 105,
-        socialBonus: 13
-    },
-    {
-        id: 's53',
-        title: '💡 Презентация идеи',
-        desc: 'Успешно «продай» свою идею группе людей (от выбора фильма до рабочего проекта).',
-        rank: 6,
-        xpReward: 105,
-        socialBonus: 13
-    },
-    {
-        id: 's54',
-        title: '⚡ Бафф вдохновения',
-        desc: 'Скажи человеку такие слова поддержки, после которых он сразу пойдёт что-то делать или воспрянет духом.',
-        rank: 6,
-        xpReward: 100,
-        socialBonus: 12
-    },
-    {
-        id: 's55',
-        title: '😂 Массовый смех',
-        desc: 'Рассмеши аудиторию от 5 и более человек одной историей или шуткой.',
-        rank: 6,
-        xpReward: 110,
-        socialBonus: 14
-    },
-    {
-        id: 's56',
-        title: '🛡️ Очарование стражи',
-        desc: 'Выйди из проблемной ситуации (опоздание, мелкий штраф, ошибка) исключительно за счёт обаяния и умения договариваться.',
-        rank: 6,
-        xpReward: 115,
-        socialBonus: 14
-    },
-    {
-        id: 's57',
-        title: '🧙 Наставник',
-        desc: 'Объясни сложную концепцию или научи навыку человека так, чтобы он почувствовал себя умным, а не глупым.',
-        rank: 6,
-        xpReward: 115,
-        socialBonus: 15
-    },
-    {
-        id: 's58',
-        title: '👑 Властелин зала',
-        desc: 'Войди в помещение, где сидят люди, и своим языком тела и приветствием заставь всех обратить на тебя позитивное внимание.',
-        rank: 6,
-        xpReward: 120,
-        socialBonus: 15
-    },
-    {
-        id: 's59',
-        title: '🤝 Мгновенный траст',
-        desc: 'Установи глубокий, доверительный раппорт с новым человеком менее чем за 10 минут.',
-        rank: 6,
-        xpReward: 130,
-        socialBonus: 16
-    },
-    {
-        id: 's60',
-        title: '🏆 Ачивка «Легенда»',
-        desc: 'Получи от кого-то искреннюю, невынужденную обратную связь в стиле: «С тобой так круто общаться» или «У тебя потрясающая энергетика».',
-        rank: 6,
-        xpReward: 150,
-        socialBonus: 20
-    }
+    // РАНГ 1 (уровни 1–5)
+    { id: 's1', title: '👀 Контакт установлен', desc: 'Поймай взгляд случайного прохожего и не отводи его первым ровно 2 секунды.', rank: 1, xpReward: 15, socialBonus: 1 },
+    { id: 's2', title: '🧍 Бафф осанки', desc: 'Пройди 10 минут по улице с максимально прямой спиной и расправленными плечами.', rank: 1, xpReward: 15, socialBonus: 1 },
+    { id: 's3', title: '🗣️ Голос из таверны', desc: 'Скажи «Здравствуйте» кассиру или курьеру на 10% громче, чем обычно.', rank: 1, xpReward: 15, socialBonus: 1 },
+    { id: 's4', title: '😊 Оружие к бою', desc: 'Искренне улыбнись одному незнакомому человеку за день.', rank: 1, xpReward: 15, socialBonus: 1 },
+    { id: 's5', title: '🛡️ Открытый щит', desc: 'Проведи 15 минут в людном месте, сознательно не скрещивая руки и ноги.', rank: 1, xpReward: 15, socialBonus: 1 },
+    { id: 's6', title: '⏳ Мастер времени', desc: 'Подойди к незнакомцу на улице и спроси, который час.', rank: 1, xpReward: 20, socialBonus: 1 },
+    { id: 's7', title: '🤝 Вежливый NPC', desc: 'Поблагодари обслуживающий персонал, обязательно посмотрев при этом в глаза.', rank: 1, xpReward: 15, socialBonus: 1 },
+    { id: 's8', title: '📱 Анти-стелс', desc: 'Зайди в лифт с другими людьми и не доставай телефон.', rank: 1, xpReward: 15, socialBonus: 1 },
+    { id: 's9', title: '👂 Эффект присутствия', desc: 'Во время разговора со знакомым кивни минимум 3 раза, показывая, что ты слушаешь.', rank: 1, xpReward: 15, socialBonus: 1 },
+    { id: 's10', title: '📖 Четкая дикция', desc: 'Прочитай вслух любой текст (1 страница), чётко проговаривая каждое слово, чтобы разогреть речевой аппарат.', rank: 1, xpReward: 20, socialBonus: 1 },
+    // РАНГ 2 (уровни 6–10)
+    { id: 's11', title: '💎 Нежданный лут', desc: 'Сделай искренний комплимент внешности или одежде малознакомого человека.', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's12', title: '✨ Магия имени', desc: 'Узнай имя нового собеседника и назови его по имени минимум 2 раза за диалог.', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's13', title: '🔀 Разрыв шаблона', desc: 'На дежурное «Как дела?» ответь не «нормально», а интересной деталью (например: «Отлично, пью вкусный кофе»).', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's14', title: '🗺️ Следопыт', desc: 'Спроси дорогу у прохожего, даже если точно знаешь, куда идти.', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's15', title: '📡 Эхолокация', desc: 'Повтори последние 3 слова собеседника с вопросительной интонацией, чтобы он продолжил рассказ.', rank: 2, xpReward: 30, socialBonus: 2 },
+    { id: 's16', title: '🤝 Общий знаменатель', desc: 'Найди одну общую деталь с человеком, с которым раньше почти не общался (музыка, нелюбовь к пробкам, хобби).', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's17', title: '☕ Светская беседа', desc: 'Перекинься парой фраз о погоде или ситуации с соседом/коллегой.', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's18', title: '🚮 Без мусора', desc: 'Поговори с кем-то 5 минут, сознательно избегая слов-паразитов («типа», «короче», «ну»).', rank: 2, xpReward: 30, socialBonus: 2 },
+    { id: 's19', title: '📢 Развернутый ответ', desc: 'Ни разу за день не ответь на вопросы односложно («да»/«нет») — добавляй минимум одно предложение.', rank: 2, xpReward: 25, socialBonus: 2 },
+    { id: 's20', title: '👋 Новый союзник', desc: 'Подойди к человеку на мероприятии/учебе/работе и первым представься: «Привет, я [Имя], мы еще не знакомы».', rank: 2, xpReward: 30, socialBonus: 2 },
+    // РАНГ 3 (уровни 11–15)
+    { id: 's21', title: '🧘 Безмолвный монах', desc: 'Выслушай человека в течение 5 минут, ни разу его не перебив.', rank: 3, xpReward: 35, socialBonus: 3 },
+    { id: 's22', title: '🔍 Глубокий зонд', desc: 'Задай открытый вопрос, требующий размышления (например: «Что тебе больше всего нравится в твоей работе?»).', rank: 3, xpReward: 35, socialBonus: 3 },
+    { id: 's23', title: '📡 Тонкая настройка', desc: 'Заметь изменение настроения собеседника и аккуратно спроси об этом («Ты кажешься уставшим, всё ок?»).', rank: 3, xpReward: 35, socialBonus: 3 },
+    { id: 's24', title: '🏅 Высокоуровневый комплимент', desc: 'Похвали не внешность, а навык, характер или поступок человека.', rank: 3, xpReward: 35, socialBonus: 3 },
+    { id: 's25', title: '🎁 Достойная награда', desc: 'В ответ на похвалу скажи только «Спасибо, мне очень приятно», не принижая своих заслуг.', rank: 3, xpReward: 35, socialBonus: 3 },
+    { id: 's26', title: '📚 Архивариус', desc: 'Вспомни в разговоре мелкую деталь, которую человек упоминал несколько дней назад.', rank: 3, xpReward: 40, socialBonus: 3 },
+    { id: 's27', title: '🪞 Отзеркаливание', desc: 'В течение 3 минут незаметно копируй позу собеседника для повышения доверия.', rank: 3, xpReward: 35, socialBonus: 3 },
+    { id: 's28', title: '⏸️ Тяжеловесная пауза', desc: 'Выдержи паузу в 2 секунды перед ответом на важный вопрос, глядя человеку в глаза.', rank: 3, xpReward: 35, socialBonus: 3 },
+    { id: 's29', title: '🛡️ Снятие брони', desc: 'Расскажи собеседнику небольшую, но искреннюю историю о своей недавней мелкой неудаче (повышает доверие).', rank: 3, xpReward: 40, socialBonus: 4 },
+    { id: 's30', title: '👁️ Удержание фокуса', desc: 'Смотри в глаза собеседнику не только когда он говорит, но и когда говоришь ты сам.', rank: 3, xpReward: 35, socialBonus: 3 },
+    // РАНГ 4 (уровни 16–20)
+    { id: 's31', title: '🔥 Байки у костра', desc: 'Заранее вспомни, отрепетируй и расскажи в компании забавную историю на 1-2 минуты.', rank: 4, xpReward: 45, socialBonus: 5 },
+    { id: 's32', title: '⚔️ Изящное парирование', desc: 'Вежливо, но твердо не согласись с чужим мнением, начав с «Я понимаю твою мысль, но...»', rank: 4, xpReward: 45, socialBonus: 5 },
+    { id: 's33', title: '🎮 Врыв в пати', desc: 'Успешно вклинись в уже идущий разговор группы людей, не нарушив его динамику.', rank: 4, xpReward: 50, socialBonus: 5 },
+    { id: 's34', title: '🕊️ Уютная тишина', desc: 'Переживи неловкую паузу в разговоре, не пытаясь судорожно заполнить её болтовней, сохраняя спокойную улыбку.', rank: 4, xpReward: 45, socialBonus: 5 },
+    { id: 's35', title: '🤲 Плавный жест', desc: 'Рассказывая что-то, осознанно используй открытые жесты руками (ладонями вверх).', rank: 4, xpReward: 45, socialBonus: 5 },
+    { id: 's36', title: '☕ Инвайт', desc: 'Пригласи малознакомого, но интересного тебе человека выпить кофе или пообедать вместе.', rank: 4, xpReward: 50, socialBonus: 5 },
+    { id: 's37', title: '🎬 Режиссёр', desc: 'Увидев, что кого-то в компании перебили, верни ему слово («Так что ты там говорил про...?»).', rank: 4, xpReward: 50, socialBonus: 6 },
+    { id: 's38', title: '🎙️ Прокачка голоса', desc: 'Говори более низким и грудным голосом, чем обычно, в течение одного разговора.', rank: 4, xpReward: 50, socialBonus: 6 },
+    { id: 's39', title: '😂 Шутка в тему', desc: 'Сделай уместное ироничное замечание, заставив улыбнуться хотя бы одного человека.', rank: 4, xpReward: 50, socialBonus: 6 },
+    { id: 's40', title: '🎯 Центр притяжения', desc: 'Удержи на себе внимание группы из 3+ человек в течение хотя бы минуты.', rank: 4, xpReward: 55, socialBonus: 6 },
+    // РАНГ 5 (уровни 21–25)
+    { id: 's41', title: '🔗 Связующее звено', desc: 'Познакомь двух людей, рассказав им по одному крутому факту друг о друге.', rank: 5, xpReward: 65, socialBonus: 7 },
+    { id: 's42', title: '🛡️ Сбор рейда', desc: 'Выступи инициатором: собери группу из 3+ друзей/коллег и организуй совместный поход куда-либо.', rank: 5, xpReward: 70, socialBonus: 8 },
+    { id: 's43', title: '🤝 Дипломат', desc: 'Успокой расстроенного или раздражённого человека, используя только эмпатию и слушание.', rank: 5, xpReward: 70, socialBonus: 8 },
+    { id: 's44', title: '👔 Разговор с боссом', desc: 'Уверенно и на равных заведи смолл-ток с человеком, который выше тебя по статусу или должности.', rank: 5, xpReward: 75, socialBonus: 8 },
+    { id: 's45', title: '📢 Глас глашатая', desc: 'Произнеси тост или возьми вступительное слово на встрече/празднике.', rank: 5, xpReward: 75, socialBonus: 9 },
+    { id: 's46', title: '🔄 Перелом хода', desc: 'Мягко переведи негативное обсуждение (жалобы, сплетни) в позитивное или нейтральное русло.', rank: 5, xpReward: 75, socialBonus: 9 },
+    { id: 's47', title: '💼 Торговец', desc: 'Попроси о небольшой скидке, бонусе или лучшем столике в заведении с дружелюбной улыбкой.', rank: 5, xpReward: 80, socialBonus: 9 },
+    { id: 's48', title: '💪 Уверенная просьба', desc: 'Попроси человека об одолжении прямо, без извиняющегося тона («Мне нужна твоя помощь с...»).', rank: 5, xpReward: 80, socialBonus: 10 },
+    { id: 's49', title: '🧠 Память на имена', desc: 'Попав в новую компанию, запомни и используй в разговоре имена минимум троих людей.', rank: 5, xpReward: 80, socialBonus: 10 },
+    { id: 's50', title: '🎭 Эмоциональные качели', desc: 'Расскажи историю так, чтобы слушатели испытали сначала напряжение, а затем смех или облегчение.', rank: 5, xpReward: 85, socialBonus: 10 },
+    // РАНГ 6 (уровни 26–30)
+    { id: 's51', title: '🏠 Хост (Хозяин таверны)', desc: 'Прими гостей у себя (или организуй вечеринку), лично следя за тем, чтобы всем было комфортно и никто не скучал.', rank: 6, xpReward: 100, socialBonus: 12 },
+    { id: 's52', title: '🕊️ Миротворец', desc: 'Выступи медиатором в споре двух людей и помоги им прийти к компромиссу без ссоры.', rank: 6, xpReward: 105, socialBonus: 13 },
+    { id: 's53', title: '💡 Презентация идеи', desc: 'Успешно «продай» свою идею группе людей (от выбора фильма до рабочего проекта).', rank: 6, xpReward: 105, socialBonus: 13 },
+    { id: 's54', title: '⚡ Бафф вдохновения', desc: 'Скажи человеку такие слова поддержки, после которых он сразу пойдёт что-то делать или воспрянет духом.', rank: 6, xpReward: 100, socialBonus: 12 },
+    { id: 's55', title: '😂 Массовый смех', desc: 'Рассмеши аудиторию от 5 и более человек одной историей или шуткой.', rank: 6, xpReward: 110, socialBonus: 14 },
+    { id: 's56', title: '🛡️ Очарование стражи', desc: 'Выйди из проблемной ситуации (опоздание, мелкий штраф, ошибка) исключительно за счёт обаяния и умения договариваться.', rank: 6, xpReward: 115, socialBonus: 14 },
+    { id: 's57', title: '🧙 Наставник', desc: 'Объясни сложную концепцию или научи навыку человека так, чтобы он почувствовал себя умным, а не глупым.', rank: 6, xpReward: 115, socialBonus: 15 },
+    { id: 's58', title: '👑 Властелин зала', desc: 'Войди в помещение, где сидят люди, и своим языком тела и приветствием заставь всех обратить на тебя позитивное внимание.', rank: 6, xpReward: 120, socialBonus: 15 },
+    { id: 's59', title: '🤝 Мгновенный траст', desc: 'Установи глубокий, доверительный раппорт с новым человеком менее чем за 10 минут.', rank: 6, xpReward: 130, socialBonus: 16 },
+    { id: 's60', title: '🏆 Ачивка «Легенда»', desc: 'Получи от кого-то искреннюю, невынужденную обратную связь в стиле: «С тобой так круто общаться» или «У тебя потрясающая энергетика».', rank: 6, xpReward: 150, socialBonus: 20 }
 ];
+
+// ========================================
+//  ОСТАЛЬНЫЕ БАЗЫ ДАННЫХ И НАСТРОЙКИ
+// ========================================
 
 const TITLES_DATABASE = [
     { lvl: 30, text: "👾 Высший разум" },
@@ -603,41 +215,6 @@ const QUESTS_DATABASE = [
     { id: 'q5', title: "25 минут учебы / кода", desc: "Поработайте над кодом 25 минут без пауз.", stat: "int", points: 3, gold: 20, type: "purple" }
 ];
 
-const LOOT_POOL = {
-    common: [
-        { name: "👟 Nike (+5 Выносл.)", stat: "end", bonus: 5 },
-        { name: "🏋️‍♂️ Эспандер (+5 Сила)", stat: "str", bonus: 5 },
-        { name: "📖 Блокнот (+5 Интелл.)", stat: "int", bonus: 5 },
-        { name: "🎯 Мишень (+5 Ловкость)", stat: "agi", bonus: 5 }
-    ],
-    epic: [
-        { name: "⌚ Rolex (+25 Харизма)", stat: "cha", bonus: 25 },
-        { name: "💻 Ноутбук (+25 Интелл.)", stat: "int", bonus: 25 },
-        { name: "🏆 Трофей (+25 Сила)", stat: "str", bonus: 25 },
-        { name: "🧘 Коврик (+25 Дисциплина)", stat: "per", bonus: 25 }
-    ]
-};
-
-// Рулетка — расширенный лут с редкостями
-const ROULETTE_POOL = [
-    // Обычные (шанс 45%)
-    { name: "🍀 Клевер (+3 Удача)", stat: "luck", bonus: 3, rarity: 'common' },
-    { name: "💪 Гантеля (+5 Сила)", stat: "str", bonus: 5, rarity: 'common' },
-    { name: "🏃 Кроссовки (+5 Выносл.)", stat: "end", bonus: 5, rarity: 'common' },
-    { name: "📚 Книга (+5 Интелл.)", stat: "int", bonus: 5, rarity: 'common' },
-    // Редкие (шанс 30%)
-    { name: "🔮 Хрустальный шар (+10 Удача)", stat: "luck", bonus: 10, rarity: 'rare' },
-    { name: "⚔️ Меч (+15 Сила)", stat: "str", bonus: 15, rarity: 'rare' },
-    { name: "🛡️ Щит (+15 Выносл.)", stat: "end", bonus: 15, rarity: 'rare' },
-    // Эпические (шанс 20%)
-    { name: "👑 Корона (+25 Харизма)", stat: "cha", bonus: 25, rarity: 'epic' },
-    { name: "🐉 Драконий глаз (+25 Удача)", stat: "luck", bonus: 25, rarity: 'epic' },
-    { name: "⚡ Молния (+25 Ловкость)", stat: "agi", bonus: 25, rarity: 'epic' },
-    // Легендарные (шанс 5%)
-    { name: "🌟 Звезда (+50 ко всем статам)", stat: "all", bonus: 50, rarity: 'legendary' },
-    { name: "👾 Артефакт (+50 Удача)", stat: "luck", bonus: 50, rarity: 'legendary' }
-];
-
 // ========================================
 //  ДОСТИЖЕНИЯ
 // ========================================
@@ -654,7 +231,10 @@ const ACHIEVEMENTS_DB = [
     { id: 'ach_chest_10', title: 'Сундучный магнат', desc: 'Открыть 10 сундуков', check: () => (currentUserData?.total_chests_opened || 0) >= 10, reward: { gold: 150 } },
     { id: 'ach_goal_3', title: 'Целеустремлённый', desc: 'Выполнить 3 цели', check: () => (currentUserData?.total_goals_completed || 0) >= 3, reward: { stats: { luck: 20 } } },
     { id: 'ach_goal_10', title: 'Мастер целей', desc: 'Выполнить 10 целей', check: () => (currentUserData?.total_goals_completed || 0) >= 10, reward: { stats: { luck: 50 } } },
-    { id: 'ach_social_level_5', title: 'Социальный лидер', desc: 'Достигнуть 5 социального уровня', check: () => (currentUserData?.socialLevel || 1) >= 5, reward: { stats: { cha: 10 } } }
+    { id: 'ach_social_level_5', title: 'Социальный лидер', desc: 'Достигнуть 5 социального уровня', check: () => (currentUserData?.socialLevel || 1) >= 5, reward: { stats: { cha: 10 } } },
+    // Новые ачивки за сбор вещей
+    { id: 'ach_items_5', title: 'Коллекционер', desc: 'Собрать 5 разных предметов', check: () => (currentUserData?.inventory?.length || 0) >= 5, reward: { gold: 50 } },
+    { id: 'ach_items_15', title: 'Собиратель сокровищ', desc: 'Собрать 15 разных предметов', check: () => (currentUserData?.inventory?.length || 0) >= 15, reward: { gold: 150 } }
 ];
 
 function getLevel() {
@@ -742,6 +322,25 @@ async function createUser(username, password, email = '') {
 async function updateUser(username, data) {
     const result = await supabaseRequest('PATCH', `${TABLE_NAME}?username=eq.${encodeURIComponent(username)}`, data);
     return result && result.length > 0 ? result[0] : null;
+}
+
+// ========================================
+//  ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ: ensureInventoryArray
+// ========================================
+
+function ensureInventoryArray() {
+    if (!currentUserData) return;
+    if (!Array.isArray(currentUserData.inventory)) {
+        if (typeof currentUserData.inventory === 'string') {
+            try {
+                currentUserData.inventory = JSON.parse(currentUserData.inventory);
+            } catch (e) {
+                currentUserData.inventory = [];
+            }
+        } else {
+            currentUserData.inventory = [];
+        }
+    }
 }
 
 // ========================================
@@ -836,7 +435,6 @@ async function loginUser() {
         }
         currentUsername = username;
         currentUserData = user;
-        // Инициализация полей, если их нет
         if (!currentUserData.goals) currentUserData.goals = [];
         if (!currentUserData.socialLevel) currentUserData.socialLevel = 1;
         if (!currentUserData.socialXP) currentUserData.socialXP = 0;
@@ -847,6 +445,8 @@ async function loginUser() {
         if (currentUserData.total_chests_opened === undefined) currentUserData.total_chests_opened = 0;
         if (currentUserData.total_goals_completed === undefined) currentUserData.total_goals_completed = 0;
         if (!currentUserData.achievements) currentUserData.achievements = [];
+        
+        ensureInventoryArray();
         
         saveSession(username);
         
@@ -912,6 +512,9 @@ async function restoreSession() {
         if (currentUserData.total_chests_opened === undefined) currentUserData.total_chests_opened = 0;
         if (currentUserData.total_goals_completed === undefined) currentUserData.total_goals_completed = 0;
         if (!currentUserData.achievements) currentUserData.achievements = [];
+        
+        ensureInventoryArray();
+        
         showGameScreen();
         document.getElementById('user-nick').textContent = currentUsername;
         await checkDailyRotation();
@@ -949,6 +552,7 @@ function switchTab(id, btn) {
     }
     if (id === 'shop-screen') {
         renderRouletteResult('');
+        renderInventory();
     }
     if (id === 'achieve-screen') renderAchievements();
 }
@@ -994,7 +598,6 @@ function updateUI() {
     const lvl = Math.floor(total / EXP) + 1;
     const curExp = total % EXP;
 
-    // Avatar
     const avatar = getAvatar(lvl);
     document.getElementById('profile-avatar').textContent = avatar.emoji;
     document.getElementById('header-avatar').textContent = avatar.emoji;
@@ -1017,7 +620,6 @@ function updateUI() {
     }
     document.getElementById('title-display').textContent = title;
 
-    // Social level
     const socialLevel = currentUserData.socialLevel || 1;
     const socialXP = currentUserData.socialXP || 0;
     const socialProgress = Math.min(100, (socialXP / SOCIAL_XP_PER_LEVEL) * 100);
@@ -1027,10 +629,8 @@ function updateUI() {
     document.getElementById('social-percent-display').textContent = Math.round(socialProgress) + '%';
     document.getElementById('social-bar').style.width = socialProgress + '%';
 
-    // Achievements
     renderAchievements();
 
-    // Weekly button
     const wBtn = document.getElementById('w1');
     if (wBtn) {
         if (currentUserData.completed_quests.includes('w1')) {
@@ -1046,7 +646,6 @@ function updateUI() {
         }
     }
 
-    // Sleep button
     const sBtn = document.getElementById('sleep-action-btn');
     if (sBtn) {
         if (currentUserData.last_sleep_date === new Date().toDateString()) {
@@ -1060,21 +659,43 @@ function updateUI() {
         }
     }
 
-    // Inventory
-    const invList = document.getElementById('inventory-list');
-    if (invList) {
-        if (currentUserData.inventory?.length) {
-            invList.innerHTML = currentUserData.inventory.map(item => `<span class="inv-item">${item}</span>`).join('');
-        } else {
-            invList.innerHTML = `<span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>`;
-        }
-    }
-
+    renderInventory();
     renderHotbar();
+}
+
+function renderInventory() {
+    const container = document.getElementById('inventory-list');
+    if (!container) return;
+    if (!currentUserData) return;
+    
+    ensureInventoryArray();
+    
+    if (!currentUserData.inventory || currentUserData.inventory.length === 0) {
+        container.innerHTML = `<span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>`;
+        return;
+    }
+    
+    container.innerHTML = currentUserData.inventory.map(item => {
+        if (typeof item === 'string') {
+            // Если предмет сохранён как строка (старая система)
+            return `<span class="inv-item">${item}</span>`;
+        }
+        // Новая система: предмет — объект
+        const rarity = RARITIES[item.rarity] || RARITIES.common;
+        return `
+            <span class="inv-item" style="border-color: ${rarity.color}; background: ${rarity.color}22;" title="${item.desc || ''}">
+                ${item.icon || '📦'} ${item.name}
+                <span style="font-size:10px; color:${rarity.color};">${rarity.label}</span>
+            </span>
+        `;
+    }).join('');
 }
 
 async function saveUserData() {
     if (!currentUserData || !currentUsername) return;
+    
+    ensureInventoryArray();
+    
     try {
         await updateUser(currentUsername, {
             stats: currentUserData.stats,
@@ -1162,53 +783,105 @@ async function completeWeeklyChallenge(btn) {
     alert('⭐ Вызов выполнен!');
 }
 
+// ========================================
+//  НОВАЯ СИСТЕМА СУНДУКОВ И РУЛЕТКИ
+// ========================================
+
+function getRandomItem() {
+    const rand = Math.random() * 100;
+    let cumulative = 0;
+    let selectedRarity = 'common';
+    
+    for (const [rarity, config] of Object.entries(RARITIES)) {
+        cumulative += config.weight;
+        if (rand <= cumulative) {
+            selectedRarity = rarity;
+            break;
+        }
+    }
+    
+    const pool = ITEMS_POOL.filter(item => item.rarity === selectedRarity);
+    if (pool.length === 0) {
+        // fallback: взять любой предмет
+        return ITEMS_POOL[Math.floor(Math.random() * ITEMS_POOL.length)];
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
 async function openChest(tier, price) {
     if (!currentUserData) return;
     if (currentUserData.stats.gold < price) {
         alert('Недостаточно монет!');
         return;
     }
+    
+    ensureInventoryArray();
+    
     currentUserData.stats.gold -= price;
-    const pool = LOOT_POOL[tier];
-    const item = pool[Math.floor(Math.random() * pool.length)];
-    if (!currentUserData.inventory) currentUserData.inventory = [];
-    currentUserData.inventory.push(item.name);
-    currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
+    
+    const item = getRandomItem();
+    currentUserData.inventory.push(item);
+    
+    // Добавляем бонус к статам
+    if (item.stat && item.bonus) {
+        currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
+    }
+    
     currentUserData.total_chests_opened = (currentUserData.total_chests_opened || 0) + 1;
+    
     await saveUserData();
     updateUI();
     renderAchievements();
-    alert(`🎉 Вы выбили: ${item.name}!`);
+    
+    const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
+    alert(`🎉 Вы выбили: ${item.icon} ${item.name} (${rarityConfig.label})! +${item.bonus} ${STAT_LABELS[item.stat] || 'всем статам'}`);
 }
 
-async function resetProgress() {
-    if (!currentUserData) return;
-    if (!confirm('Сбросить прогресс?')) return;
-    currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
-    currentUserData.completed_quests = [];
-    currentUserData.inventory = [];
-    currentUserData.current_quests = [];
-    currentUserData.last_quest_date = '';
-    currentUserData.last_sleep_date = '';
-    currentUserData.goals = [];
-    currentUserData.socialLevel = 1;
-    currentUserData.socialXP = 0;
-    currentUserData.socialQuests = [];
-    currentUserData.lastSocialDate = '';
-    currentUserData.total_quests_completed = 0;
-    currentUserData.total_social_quests_completed = 0;
-    currentUserData.total_chests_opened = 0;
-    currentUserData.total_goals_completed = 0;
-    currentUserData.achievements = [];
-    await saveUserData();
-    await checkDailyRotation();
-    await refreshSocialQuests();
-    updateUI();
-    renderQuests();
-    renderGoals();
-    renderSocialQuests();
-    renderAchievements();
-    alert('🗑️ Прогресс сброшен!');
+async function spinRoulette() {
+    if (!currentUserData) {
+        alert('Сначала войдите в игру!');
+        return;
+    }
+    if (currentUserData.stats.gold < 50) {
+        alert('Недостаточно монет! Нужно 50 🪙');
+        return;
+    }
+    
+    ensureInventoryArray();
+    
+    currentUserData.stats.gold -= 50;
+    
+    // Анимация — меняем эмодзи 5 раз с интервалом
+    const wheel = document.getElementById('roulette-wheel');
+    const emojis = ['🎁', '🎰', '💎', '⭐', '🏆', '🎯', '🎲', '🌀'];
+    let count = 0;
+    const interval = setInterval(() => {
+        wheel.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        count++;
+        if (count > 8) {
+            clearInterval(interval);
+            // Выпадает предмет
+            const item = getRandomItem();
+            currentUserData.inventory.push(item);
+            
+            if (item.stat && item.bonus) {
+                currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
+            }
+            
+            saveUserData().then(() => {
+                updateUI();
+                const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
+                wheel.textContent = item.icon || '🎁';
+                renderRouletteResult(`${rarityConfig.label}: ${item.name} (+${item.bonus} ${STAT_LABELS[item.stat] || 'все статы'})`);
+                alert(`🎡 Вы выиграли: ${rarityConfig.label}\n${item.icon} ${item.name}\n+${item.bonus} ${STAT_LABELS[item.stat] || 'всем статам'}`);
+            });
+        }
+    }, 150);
+}
+
+function renderRouletteResult(text) {
+    const el = document.getElementById('roulette-result');
+    if (el) el.textContent = text || '';
 }
 
 // ========================================
@@ -1421,14 +1094,13 @@ async function deleteGoal(index) {
 }
 
 // ========================================
-//  СОЦИАЛЬНЫЕ КВЕСТЫ
+//  СОЦИАЛЬНЫЕ КВЕСТЫ (обновление)
 // ========================================
 
 async function refreshSocialQuests() {
     if (!currentUserData) return;
     const today = new Date().toDateString();
     if (currentUserData.lastSocialDate !== today || !currentUserData.socialQuests?.length) {
-        // Определяем ранг по уровню харизмы
         const chaLevel = currentUserData.stats.cha || 0;
         let rank = 1;
         if (chaLevel >= 26) rank = 6;
@@ -1517,62 +1189,6 @@ function updateSocialTimer() {
 }
 
 // ========================================
-//  РУЛЕТКА
-// ========================================
-
-function spinRoulette() {
-    if (!currentUserData) {
-        alert('Сначала войдите в игру!');
-        return;
-    }
-    if (currentUserData.stats.gold < 50) {
-        alert('Недостаточно монет! Нужно 50 🪙');
-        return;
-    }
-    currentUserData.stats.gold -= 50;
-    // Определяем выигрыш
-    const rand = Math.random();
-    let pool, rarityLabel;
-    if (rand < 0.05) { // 5% легендарка
-        pool = ROULETTE_POOL.filter(item => item.rarity === 'legendary');
-        rarityLabel = '⭐ ЛЕГЕНДАРНОЕ';
-    } else if (rand < 0.25) { // 20% эпик
-        pool = ROULETTE_POOL.filter(item => item.rarity === 'epic');
-        rarityLabel = '🔮 ЭПИЧЕСКОЕ';
-    } else if (rand < 0.55) { // 30% редкое
-        pool = ROULETTE_POOL.filter(item => item.rarity === 'rare');
-        rarityLabel = '💎 РЕДКОЕ';
-    } else { // 45% обычное
-        pool = ROULETTE_POOL.filter(item => item.rarity === 'common');
-        rarityLabel = '📦 ОБЫЧНОЕ';
-    }
-    // Если пул пуст (маловероятно), берём всё
-    if (!pool.length) pool = ROULETTE_POOL;
-    const item = pool[Math.floor(Math.random() * pool.length)];
-    // Добавляем в инвентарь
-    if (!currentUserData.inventory) currentUserData.inventory = [];
-    currentUserData.inventory.push(item.name);
-    if (item.stat === 'all') {
-        // +50 ко всем
-        const allStats = ['str', 'end', 'agi', 'int', 'cha', 'per', 'luck'];
-        allStats.forEach(s => currentUserData.stats[s] = (currentUserData.stats[s] || 0) + item.bonus);
-    } else {
-        currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
-    }
-    // Сохраняем
-    saveUserData().then(() => {
-        updateUI();
-        renderRouletteResult(`${rarityLabel}: ${item.name} (+${item.bonus} ${STAT_LABELS[item.stat] || 'все статы'})`);
-        alert(`🎡 Вы выиграли: ${rarityLabel}\n${item.name} (+${item.bonus} ${STAT_LABELS[item.stat] || 'все статы'})`);
-    });
-}
-
-function renderRouletteResult(text) {
-    const el = document.getElementById('roulette-result');
-    if (el) el.textContent = text || '';
-}
-
-// ========================================
 //  ДОСТИЖЕНИЯ
 // ========================================
 
@@ -1583,13 +1199,10 @@ function renderAchievements() {
         container.innerHTML = '<div style="color:#8e8e93; text-align:center;">Войдите, чтобы видеть достижения</div>';
         return;
     }
-    // Проверяем все ачивки и награждаем, если ещё не получены
     let anyUnlocked = false;
     ACHIEVEMENTS_DB.forEach(ach => {
         if (!currentUserData.achievements.includes(ach.id) && ach.check()) {
-            // Разблокируем
             currentUserData.achievements.push(ach.id);
-            // Применяем награду
             if (ach.reward.stats) {
                 Object.keys(ach.reward.stats).forEach(stat => {
                     currentUserData.stats[stat] = (currentUserData.stats[stat] || 0) + ach.reward.stats[stat];
@@ -1599,15 +1212,12 @@ function renderAchievements() {
                 currentUserData.stats.gold = (currentUserData.stats.gold || 0) + ach.reward.gold;
             }
             anyUnlocked = true;
-            // Показываем уведомление (но не спамим, покажем одно)
             setTimeout(() => alert(`🏆 Достижение разблокировано: ${ach.title}!`), 100);
         }
     });
     if (anyUnlocked) {
         saveUserData().then(() => updateUI());
     }
-
-    // Рендерим список
     container.innerHTML = ACHIEVEMENTS_DB.map(ach => {
         const unlocked = currentUserData.achievements.includes(ach.id);
         const progress = ach.check() ? 1 : 0;
@@ -1629,6 +1239,40 @@ function renderAchievements() {
             </div>
         `;
     }).join('');
+}
+
+// ========================================
+//  СБРОС ПРОГРЕССА
+// ========================================
+
+async function resetProgress() {
+    if (!currentUserData) return;
+    if (!confirm('Сбросить прогресс?')) return;
+    currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
+    currentUserData.completed_quests = [];
+    currentUserData.inventory = [];
+    currentUserData.current_quests = [];
+    currentUserData.last_quest_date = '';
+    currentUserData.last_sleep_date = '';
+    currentUserData.goals = [];
+    currentUserData.socialLevel = 1;
+    currentUserData.socialXP = 0;
+    currentUserData.socialQuests = [];
+    currentUserData.lastSocialDate = '';
+    currentUserData.total_quests_completed = 0;
+    currentUserData.total_social_quests_completed = 0;
+    currentUserData.total_chests_opened = 0;
+    currentUserData.total_goals_completed = 0;
+    currentUserData.achievements = [];
+    await saveUserData();
+    await checkDailyRotation();
+    await refreshSocialQuests();
+    updateUI();
+    renderQuests();
+    renderGoals();
+    renderSocialQuests();
+    renderAchievements();
+    alert('🗑️ Прогресс сброшен!');
 }
 
 // ========================================
