@@ -1161,41 +1161,55 @@ function renderGoals() {
         const config = getRarityConfig(g.rarity);
         const progress = g.target > 0 ? Math.min(100, (g.current || 0) / g.target * 100) : 0;
         const isCompleted = g.completed || progress >= 100;
+        // Явно задаём рамку и свечение через inline-стили
+        const borderColor = isCompleted ? '#30d158' : config.color;
+        const glow = `0 0 15px ${borderColor}55`; // полупрозрачное свечение
+        const titleColor = isCompleted ? '#30d158' : config.color;
         return `
-            <div class="goal-card ${isCompleted ? 'completed' : ''}" style="border-color: ${isCompleted ? '#30d158' : config.color};">
-                <div class="goal-header">
-                    <div class="goal-title" style="color: ${isCompleted ? '#30d158' : config.color};">${g.title}</div>
+            <div class="goal-card" 
+                 style="
+                    background: #141417 !important;
+                    border: 3px solid ${borderColor} !important;
+                    border-radius: 18px !important;
+                    padding: 16px !important;
+                    margin-bottom: 12px !important;
+                    box-shadow: ${glow} !important;
+                    transition: all 0.2s ease !important;
+                 ">
+                <div class="goal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <div class="goal-title" style="color: ${titleColor}; font-size:16px; font-weight:700;">${g.title}</div>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="rarity-badge" style="background:${config.color}; color:#fff;">${config.label}</span>
+                        <span class="rarity-badge" style="background:${config.color}; color:#fff; padding:2px 10px; border-radius:12px; font-weight:700; font-size:11px;">${config.label}</span>
                         <div style="font-size:13px; color:#8e8e93;">${Math.round(progress)}%</div>
                     </div>
                 </div>
-                ${g.description ? `<div class="goal-desc">${g.description}</div>` : ''}
-                <div class="goal-progress">
+                ${g.description ? `<div class="goal-desc" style="color:#aeaeae; font-size:13px; margin:6px 0;">${g.description}</div>` : ''}
+                <div class="goal-progress" style="display:flex; align-items:center; gap:12px; margin:8px 0;">
                     <span style="font-size:13px; color:#8e8e93;">${g.current || 0}</span>
-                    <div class="goal-progress-bar">
-                        <div class="fill" style="width:${progress}%; background: ${config.color};"></div>
+                    <div class="goal-progress-bar" style="flex:1; height:6px; background:#2c2c2e; border-radius:4px; overflow:hidden;">
+                        <div class="fill" style="width:${progress}%; height:100%; background: ${config.color}; transition: width 0.3s;"></div>
                     </div>
                     <span style="font-size:13px; color:#8e8e93;">${g.target} ${g.unit || ''}</span>
                 </div>
-                <div class="goal-reward">
-                    🎁 Награда: <span>+${config.xp} XP</span> + <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[g.stat] || '💪 Сила'}</span>
+                <div class="goal-reward" style="font-size:12px; color:#8e8e93; margin:4px 0;">
+                    🎁 Награда: <span style="color:#ffcc00;">+${config.xp} XP</span> + <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[g.stat] || '💪 Сила'}</span>
                 </div>
-                <div class="goal-actions">
+                <div class="goal-actions" style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
                     ${!isCompleted ? `
-                        <button onclick="updateGoalProgress(${index}, 1)">➕ +1</button>
-                        <button onclick="updateGoalProgress(${index}, 5)">➕ +5</button>
-                        <button onclick="updateGoalProgress(${index}, 10)">➕ +10</button>
-                        <button onclick="setGoalComplete(${index})" class="done-btn">✅ Выполнено</button>
+                        <button onclick="updateGoalProgress(${index}, 1)" style="background:#2c2c2e; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">➕ +1</button>
+                        <button onclick="updateGoalProgress(${index}, 5)" style="background:#2c2c2e; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">➕ +5</button>
+                        <button onclick="updateGoalProgress(${index}, 10)" style="background:#2c2c2e; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">➕ +10</button>
+                        <button onclick="setGoalComplete(${index})" class="done-btn" style="background:#30d158; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">✅ Выполнено</button>
                     ` : `
                         <span style="color:#30d158; font-weight:600;">✅ Выполнено!</span>
                     `}
-                    <button onclick="deleteGoal(${index})" class="delete-btn">🗑️</button>
+                    <button onclick="deleteGoal(${index})" class="delete-btn" style="background:#ff453a; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">🗑️</button>
                 </div>
             </div>
         `;
     }).join('');
 }
+
 
 async function updateGoalProgress(index, amount) {
     if (!currentUserData?.goals?.[index]) return;
