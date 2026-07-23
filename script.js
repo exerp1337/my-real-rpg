@@ -899,13 +899,16 @@ function renderInventory() {
     
     container.innerHTML = currentUserData.inventory.map(item => {
         if (typeof item === 'string') {
+            // Старая система (строка)
             return `<span class="inv-item">${item}</span>`;
         }
         // Новая система: предмет — объект
         const rarity = RARITIES[item.rarity] || RARITIES.common;
+        const bonusText = item.stat && item.bonus ? `+${item.bonus} ${STAT_LABELS[item.stat] || item.stat}` : '';
         return `
             <span class="inv-item" style="border-color: ${rarity.color}; background: ${rarity.color}22;" title="${item.desc || ''}">
                 ${item.icon || '📦'} ${item.name}
+                ${bonusText ? `<span style="font-size:11px; color:#ffcc00;">${bonusText}</span>` : ''}
                 <span style="font-size:10px; color:${rarity.color};">${rarity.label}</span>
             </span>
         `;
