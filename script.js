@@ -80,33 +80,27 @@ const RARITIES = {
 };
 
 const ITEMS_POOL = [
-    // Обычные (common)
     { id: 'item_1', name: '🍀 Клевер', desc: 'Приносит удачу', stat: 'luck', bonus: 2, rarity: 'common', icon: '🍀' },
     { id: 'item_2', name: '💪 Гантеля', desc: 'Для силовых тренировок', stat: 'str', bonus: 3, rarity: 'common', icon: '💪' },
     { id: 'item_3', name: '📖 Книга', desc: 'Источник знаний', stat: 'int', bonus: 3, rarity: 'common', icon: '📖' },
     { id: 'item_4', name: '👟 Кроссовки', desc: 'Для бега', stat: 'end', bonus: 3, rarity: 'common', icon: '👟' },
     { id: 'item_5', name: '🎯 Мишень', desc: 'Тренирует меткость', stat: 'agi', bonus: 3, rarity: 'common', icon: '🎯' },
-    // Необычные (uncommon)
     { id: 'item_6', name: '🔮 Хрустальный шар', desc: 'Усиливает интуицию', stat: 'luck', bonus: 5, rarity: 'uncommon', icon: '🔮' },
     { id: 'item_7', name: '⚔️ Меч', desc: 'Символ силы', stat: 'str', bonus: 7, rarity: 'uncommon', icon: '⚔️' },
     { id: 'item_8', name: '🛡️ Щит', desc: 'Защищает от усталости', stat: 'end', bonus: 7, rarity: 'uncommon', icon: '🛡️' },
     { id: 'item_9', name: '🧠 Тренажёр', desc: 'Для мозга', stat: 'int', bonus: 7, rarity: 'uncommon', icon: '🧠' },
     { id: 'item_10', name: '🎤 Микрофон', desc: 'Укрепляет голос', stat: 'cha', bonus: 7, rarity: 'uncommon', icon: '🎤' },
-    // Редкие (rare)
     { id: 'item_11', name: '👑 Корона', desc: 'Власть и уважение', stat: 'cha', bonus: 12, rarity: 'rare', icon: '👑' },
     { id: 'item_12', name: '🐉 Драконий глаз', desc: 'Мистическая удача', stat: 'luck', bonus: 12, rarity: 'rare', icon: '🐉' },
     { id: 'item_13', name: '⚡ Молния', desc: 'Скорость реакции', stat: 'agi', bonus: 12, rarity: 'rare', icon: '⚡' },
     { id: 'item_14', name: '📚 Энциклопедия', desc: 'Глубокая мудрость', stat: 'int', bonus: 12, rarity: 'rare', icon: '📚' },
-    // Эпические (epic)
     { id: 'item_15', name: '⌚ Rolex', desc: 'Стиль и статус', stat: 'cha', bonus: 20, rarity: 'epic', icon: '⌚' },
     { id: 'item_16', name: '💻 Ноутбук', desc: 'Инструмент гения', stat: 'int', bonus: 20, rarity: 'epic', icon: '💻' },
     { id: 'item_17', name: '🏆 Трофей', desc: 'Победа во всём', stat: 'str', bonus: 20, rarity: 'epic', icon: '🏆' },
     { id: 'item_18', name: '🧘 Коврик', desc: 'Гармония и фокус', stat: 'per', bonus: 20, rarity: 'epic', icon: '🧘' },
-    // Легендарные (legendary)
     { id: 'item_19', name: '🌟 Звезда', desc: 'Сияние гения', stat: 'luck', bonus: 35, rarity: 'legendary', icon: '🌟' },
     { id: 'item_20', name: '👾 Артефакт', desc: 'Древняя магия', stat: 'luck', bonus: 35, rarity: 'legendary', icon: '👾' },
     { id: 'item_21', name: '🔥 Феникс', desc: 'Возрождение', stat: 'end', bonus: 35, rarity: 'legendary', icon: '🔥' },
-    // Мифические (mythic)
     { id: 'item_22', name: '💎 Камень бесконечности', desc: 'Абсолютная сила', stat: 'str', bonus: 50, rarity: 'mythic', icon: '💎' },
     { id: 'item_23', name: '🌌 Космос', desc: 'Бесконечные знания', stat: 'int', bonus: 50, rarity: 'mythic', icon: '🌌' },
     { id: 'item_24', name: '🕊️ Ангельское крыло', desc: 'Божественная харизма', stat: 'cha', bonus: 50, rarity: 'mythic', icon: '🕊️' }
@@ -117,7 +111,6 @@ const ITEMS_POOL = [
 // ========================================
 
 const SOCIAL_QUESTS_DB = [
-    // РАНГ 1 (уровни 1–5)
     { id: 's1', title: '👀 Контакт установлен', desc: 'Поймай взгляд случайного прохожего и не отводи его первым ровно 2 секунды.', rank: 1, xpReward: 15, socialBonus: 1 },
     { id: 's2', title: '🧍 Бафф осанки', desc: 'Пройди 10 минут по улице с максимально прямой спиной и расправленными плечами.', rank: 1, xpReward: 15, socialBonus: 1 },
     { id: 's3', title: '🗣️ Голос из таверны', desc: 'Скажи «Здравствуйте» кассиру или курьеру на 10% громче, чем обычно.', rank: 1, xpReward: 15, socialBonus: 1 },
@@ -128,7 +121,6 @@ const SOCIAL_QUESTS_DB = [
     { id: 's8', title: '📱 Анти-стелс', desc: 'Зайди в лифт с другими людьми и не доставай телефон.', rank: 1, xpReward: 15, socialBonus: 1 },
     { id: 's9', title: '👂 Эффект присутствия', desc: 'Во время разговора со знакомым кивни минимум 3 раза, показывая, что ты слушаешь.', rank: 1, xpReward: 15, socialBonus: 1 },
     { id: 's10', title: '📖 Четкая дикция', desc: 'Прочитай вслух любой текст (1 страница), чётко проговаривая каждое слово, чтобы разогреть речевой аппарат.', rank: 1, xpReward: 20, socialBonus: 1 },
-    // РАНГ 2 (уровни 6–10)
     { id: 's11', title: '💎 Нежданный лут', desc: 'Сделай искренний комплимент внешности или одежде малознакомого человека.', rank: 2, xpReward: 25, socialBonus: 2 },
     { id: 's12', title: '✨ Магия имени', desc: 'Узнай имя нового собеседника и назови его по имени минимум 2 раза за диалог.', rank: 2, xpReward: 25, socialBonus: 2 },
     { id: 's13', title: '🔀 Разрыв шаблона', desc: 'На дежурное «Как дела?» ответь не «нормально», а интересной деталью (например: «Отлично, пью вкусный кофе»).', rank: 2, xpReward: 25, socialBonus: 2 },
@@ -139,7 +131,6 @@ const SOCIAL_QUESTS_DB = [
     { id: 's18', title: '🚮 Без мусора', desc: 'Поговори с кем-то 5 минут, сознательно избегая слов-паразитов («типа», «короче», «ну»).', rank: 2, xpReward: 30, socialBonus: 2 },
     { id: 's19', title: '📢 Развернутый ответ', desc: 'Ни разу за день не ответь на вопросы односложно («да»/«нет») — добавляй минимум одно предложение.', rank: 2, xpReward: 25, socialBonus: 2 },
     { id: 's20', title: '👋 Новый союзник', desc: 'Подойди к человеку на мероприятии/учебе/работе и первым представься: «Привет, я [Имя], мы еще не знакомы».', rank: 2, xpReward: 30, socialBonus: 2 },
-    // РАНГ 3 (уровни 11–15)
     { id: 's21', title: '🧘 Безмолвный монах', desc: 'Выслушай человека в течение 5 минут, ни разу его не перебив.', rank: 3, xpReward: 35, socialBonus: 3 },
     { id: 's22', title: '🔍 Глубокий зонд', desc: 'Задай открытый вопрос, требующий размышления (например: «Что тебе больше всего нравится в твоей работе?»).', rank: 3, xpReward: 35, socialBonus: 3 },
     { id: 's23', title: '📡 Тонкая настройка', desc: 'Заметь изменение настроения собеседника и аккуратно спроси об этом («Ты кажешься уставшим, всё ок?»).', rank: 3, xpReward: 35, socialBonus: 3 },
@@ -150,7 +141,6 @@ const SOCIAL_QUESTS_DB = [
     { id: 's28', title: '⏸️ Тяжеловесная пауза', desc: 'Выдержи паузу в 2 секунды перед ответом на важный вопрос, глядя человеку в глаза.', rank: 3, xpReward: 35, socialBonus: 3 },
     { id: 's29', title: '🛡️ Снятие брони', desc: 'Расскажи собеседнику небольшую, но искреннюю историю о своей недавней мелкой неудаче (повышает доверие).', rank: 3, xpReward: 40, socialBonus: 4 },
     { id: 's30', title: '👁️ Удержание фокуса', desc: 'Смотри в глаза собеседнику не только когда он говорит, но и когда говоришь ты сам.', rank: 3, xpReward: 35, socialBonus: 3 },
-    // РАНГ 4 (уровни 16–20)
     { id: 's31', title: '🔥 Байки у костра', desc: 'Заранее вспомни, отрепетируй и расскажи в компании забавную историю на 1-2 минуты.', rank: 4, xpReward: 45, socialBonus: 5 },
     { id: 's32', title: '⚔️ Изящное парирование', desc: 'Вежливо, но твердо не согласись с чужим мнением, начав с «Я понимаю твою мысль, но...»', rank: 4, xpReward: 45, socialBonus: 5 },
     { id: 's33', title: '🎮 Врыв в пати', desc: 'Успешно вклинись в уже идущий разговор группы людей, не нарушив его динамику.', rank: 4, xpReward: 50, socialBonus: 5 },
@@ -161,7 +151,6 @@ const SOCIAL_QUESTS_DB = [
     { id: 's38', title: '🎙️ Прокачка голоса', desc: 'Говори более низким и грудным голосом, чем обычно, в течение одного разговора.', rank: 4, xpReward: 50, socialBonus: 6 },
     { id: 's39', title: '😂 Шутка в тему', desc: 'Сделай уместное ироничное замечание, заставив улыбнуться хотя бы одного человека.', rank: 4, xpReward: 50, socialBonus: 6 },
     { id: 's40', title: '🎯 Центр притяжения', desc: 'Удержи на себе внимание группы из 3+ человек в течение хотя бы минуты.', rank: 4, xpReward: 55, socialBonus: 6 },
-    // РАНГ 5 (уровни 21–25)
     { id: 's41', title: '🔗 Связующее звено', desc: 'Познакомь двух людей, рассказав им по одному крутому факту друг о друге.', rank: 5, xpReward: 65, socialBonus: 7 },
     { id: 's42', title: '🛡️ Сбор рейда', desc: 'Выступи инициатором: собери группу из 3+ друзей/коллег и организуй совместный поход куда-либо.', rank: 5, xpReward: 70, socialBonus: 8 },
     { id: 's43', title: '🤝 Дипломат', desc: 'Успокой расстроенного или раздражённого человека, используя только эмпатию и слушание.', rank: 5, xpReward: 70, socialBonus: 8 },
@@ -172,7 +161,6 @@ const SOCIAL_QUESTS_DB = [
     { id: 's48', title: '💪 Уверенная просьба', desc: 'Попроси человека об одолжении прямо, без извиняющегося тона («Мне нужна твоя помощь с...»).', rank: 5, xpReward: 80, socialBonus: 10 },
     { id: 's49', title: '🧠 Память на имена', desc: 'Попав в новую компанию, запомни и используй в разговоре имена минимум троих людей.', rank: 5, xpReward: 80, socialBonus: 10 },
     { id: 's50', title: '🎭 Эмоциональные качели', desc: 'Расскажи историю так, чтобы слушатели испытали сначала напряжение, а затем смех или облегчение.', rank: 5, xpReward: 85, socialBonus: 10 },
-    // РАНГ 6 (уровни 26–30)
     { id: 's51', title: '🏠 Хост (Хозяин таверны)', desc: 'Прими гостей у себя (или организуй вечеринку), лично следя за тем, чтобы всем было комфортно и никто не скучал.', rank: 6, xpReward: 100, socialBonus: 12 },
     { id: 's52', title: '🕊️ Миротворец', desc: 'Выступи медиатором в споре двух людей и помоги им прийти к компромиссу без ссоры.', rank: 6, xpReward: 105, socialBonus: 13 },
     { id: 's53', title: '💡 Презентация идеи', desc: 'Успешно «продай» свою идею группе людей (от выбора фильма до рабочего проекта).', rank: 6, xpReward: 105, socialBonus: 13 },
@@ -329,23 +317,20 @@ async function updateUser(username, data) {
 
 function normalizeUserData(user) {
     if (!user) return user;
-    
-    // Создаём глубокую копию, чтобы не мутировать оригинал
     const normalized = JSON.parse(JSON.stringify(user));
-    
-    // 1. Нормализация stats
+
+    // Нормализация stats
     if (!normalized.stats || typeof normalized.stats !== 'object') {
         normalized.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
     } else {
         const defaultStats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
         normalized.stats = { ...defaultStats, ...normalized.stats };
     }
-    
-    // 2. Нормализация инвентаря - САМОЕ ВАЖНОЕ ИСПРАВЛЕНИЕ
+
+    // Нормализация инвентаря — САМОЕ ВАЖНОЕ
     if (!normalized.inventory) {
         normalized.inventory = [];
     } else if (typeof normalized.inventory === 'string') {
-        // Если инвентарь пришёл как строка JSON
         try {
             const parsed = JSON.parse(normalized.inventory);
             normalized.inventory = Array.isArray(parsed) ? parsed : [];
@@ -354,20 +339,11 @@ function normalizeUserData(user) {
             normalized.inventory = [];
         }
     } else if (!Array.isArray(normalized.inventory)) {
-        // Если инвентарь не массив (например, объект)
-        console.warn('Инвентарь не является массивом, сбрасываем:', normalized.inventory);
         normalized.inventory = [];
     }
-    
-    // 3. Нормализация остальных массивов
-    const arrayFields = [
-        'completed_quests', 
-        'current_quests', 
-        'goals', 
-        'socialQuests', 
-        'achievements'
-    ];
-    
+
+    // Остальные массивы
+    const arrayFields = ['completed_quests', 'current_quests', 'goals', 'socialQuests', 'achievements'];
     arrayFields.forEach(field => {
         if (!normalized[field]) {
             normalized[field] = [];
@@ -376,24 +352,15 @@ function normalizeUserData(user) {
                 const parsed = JSON.parse(normalized[field]);
                 normalized[field] = Array.isArray(parsed) ? parsed : [];
             } catch (e) {
-                console.error(`Ошибка парсинга ${field}:`, e);
                 normalized[field] = [];
             }
         } else if (!Array.isArray(normalized[field])) {
             normalized[field] = [];
         }
     });
-    
-    // 4. Нормализация числовых полей
-    const numberFields = [
-        'socialLevel', 
-        'socialXP', 
-        'total_quests_completed', 
-        'total_social_quests_completed', 
-        'total_chests_opened', 
-        'total_goals_completed'
-    ];
-    
+
+    // Числовые поля
+    const numberFields = ['socialLevel', 'socialXP', 'total_quests_completed', 'total_social_quests_completed', 'total_chests_opened', 'total_goals_completed'];
     numberFields.forEach(field => {
         if (normalized[field] === undefined || normalized[field] === null) {
             normalized[field] = 0;
@@ -401,15 +368,15 @@ function normalizeUserData(user) {
             normalized[field] = parseInt(normalized[field]) || 0;
         }
     });
-    
-    // 5. Нормализация строковых полей
+
+    // Строковые поля
     const stringFields = ['last_quest_date', 'last_sleep_date', 'lastSocialDate'];
     stringFields.forEach(field => {
         if (typeof normalized[field] !== 'string') {
             normalized[field] = '';
         }
     });
-    
+
     return normalized;
 }
 
@@ -503,15 +470,12 @@ async function loginUser() {
             errorEl.textContent = '❌ Неверный пароль!';
             return;
         }
-        
-        // НОРМАЛИЗУЕМ ДАННЫЕ ПОСЛЕ ЗАГРУЗКИ
+
         currentUsername = username;
         currentUserData = normalizeUserData(user);
-        
         console.log('✅ Пользователь загружен. Инвентарь:', currentUserData.inventory);
-        
+
         saveSession(username);
-        
         showGameScreen();
         document.getElementById('user-nick').textContent = username;
         await checkDailyRotation();
@@ -562,12 +526,10 @@ async function restoreSession() {
             return false;
         }
 
-        // НОРМАЛИЗУЕМ ДАННЫЕ ПОСЛЕ ЗАГРУЗКИ
         currentUsername = session.username;
         currentUserData = normalizeUserData(user);
-        
         console.log('✅ Сессия восстановлена. Инвентарь:', currentUserData.inventory);
-        
+
         showGameScreen();
         document.getElementById('user-nick').textContent = currentUsername;
         await checkDailyRotation();
@@ -626,7 +588,7 @@ function renderQuests() {
     const container = document.getElementById('quests-container');
     if (!container) return;
     if (!currentUserData?.current_quests?.length) {
-        container.innerHTML = `<div style="color:#8e8e93; text-align:center; padding:20px;">Нет активных квестов. Зайдите завтра!</div>`;
+        container.innerHTML = `<div style="color:#9893a8; text-align:center; padding:20px;">Нет активных квестов. Зайдите завтра!</div>`;
         return;
     }
     container.innerHTML = '';
@@ -638,7 +600,11 @@ function renderQuests() {
             <div class="quest-title">${q.title}</div>
             <div class="quest-desc">${q.desc}</div>
             <div class="quest-reward">➕ +${q.points} XP / +${q.gold} 🪙</div>
-            <button class="action-btn ${q.type}" id="${q.id}" style="${isDone ? 'background:#2c2c2e; opacity:0.4; pointer-events:none;' : ''}" onclick="completeQuest('${q.id}', '${q.stat}', ${q.points}, ${q.gold})">${isDone ? 'Выполнено' : 'Выполнить'}</button>
+            <button class="quest-btn ${q.type || ''} ${isDone ? 'done' : ''}" 
+                    onclick="completeQuest('${q.id}', '${q.stat}', ${q.points}, ${q.gold})"
+                    ${isDone ? 'disabled' : ''}>
+                ${isDone ? '✅ Выполнено' : 'Выполнить'}
+            </button>
         `;
         container.appendChild(card);
     });
@@ -681,38 +647,31 @@ function updateUI() {
     document.getElementById('social-percent-display').textContent = Math.round(socialProgress) + '%';
     document.getElementById('social-bar').style.width = socialProgress + '%';
 
-    // Обновление социального уровня в хедере (если элемент существует)
     const socialBadge = document.getElementById('social-level-badge');
-    if (socialBadge) {
-        socialBadge.textContent = 'Соц.' + socialLevel;
-    }
+    if (socialBadge) socialBadge.textContent = 'Соц.' + socialLevel;
 
     renderAchievements();
 
     const wBtn = document.getElementById('w1');
     if (wBtn) {
         if (currentUserData.completed_quests.includes('w1')) {
-            wBtn.style.background = '#2c2c2e';
+            wBtn.disabled = true;
+            wBtn.textContent = '✅ Выполнено';
             wBtn.style.opacity = '0.4';
-            wBtn.style.pointerEvents = 'none';
-            wBtn.textContent = 'Выполнено';
         } else {
-            wBtn.style.background = 'linear-gradient(90deg, #ff5e00, #ff9500)';
-            wBtn.style.opacity = '1';
-            wBtn.style.pointerEvents = 'auto';
+            wBtn.disabled = false;
             wBtn.textContent = 'Выполнить';
+            wBtn.style.opacity = '1';
         }
     }
 
     const sBtn = document.getElementById('sleep-action-btn');
     if (sBtn) {
         if (currentUserData.last_sleep_date === new Date().toDateString()) {
-            sBtn.style.background = '#2c2c2e';
-            sBtn.style.opacity = '0.4';
+            sBtn.disabled = true;
             sBtn.textContent = '💤 Отмечено';
         } else {
-            sBtn.style.background = 'linear-gradient(90deg, #0055ff, #0a84ff)';
-            sBtn.style.opacity = '1';
+            sBtn.disabled = false;
             sBtn.textContent = '🛌 Лечь спать';
         }
     }
@@ -722,102 +681,70 @@ function updateUI() {
 }
 
 // ========================================
-//  ИНВЕНТАРЬ - ПОЛНОСТЬЮ ИСПРАВЛЕННАЯ ВЕРСИЯ
+//  ИНВЕНТАРЬ
 // ========================================
 
 function renderInventory() {
     const container = document.getElementById('inventory-list');
-    if (!container) {
-        console.error('❌ Контейнер инвентаря не найден!');
-        return;
-    }
+    if (!container) return;
     if (!currentUserData) {
-        container.innerHTML = `<span style="color:#636366; font-style: italic;">Войдите в игру...</span>`;
+        container.innerHTML = `<span style="color:#63606e;font-style:italic;">Войдите в игру...</span>`;
         return;
     }
-    
-    // ГАРАНТИРУЕМ, ЧТО ИНВЕНТАРЬ - ЭТО МАССИВ
+
     if (!Array.isArray(currentUserData.inventory)) {
-        console.warn('⚠️ Инвентарь не массив, исправляем. Было:', typeof currentUserData.inventory);
         if (typeof currentUserData.inventory === 'string') {
             try {
                 currentUserData.inventory = JSON.parse(currentUserData.inventory);
-                if (!Array.isArray(currentUserData.inventory)) {
-                    currentUserData.inventory = [];
-                }
+                if (!Array.isArray(currentUserData.inventory)) currentUserData.inventory = [];
             } catch (e) {
-                console.error('Ошибка парсинга инвентаря:', e);
                 currentUserData.inventory = [];
             }
         } else {
             currentUserData.inventory = [];
         }
     }
-    
+
     const inventory = currentUserData.inventory;
-    
-    console.log('📦 Отображение инвентаря. Предметов:', inventory.length, inventory);
-    
     if (inventory.length === 0) {
-        container.innerHTML = `<span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>`;
+        container.innerHTML = `<span style="color:#63606e;font-style:italic;">У вас пока нет снаряжения...</span>`;
         return;
     }
-    
+
     container.innerHTML = inventory.map((item, index) => {
-        // Если предмет - строка (старая система)
         if (typeof item === 'string') {
-            return `<span class="inv-item" style="border: 1px solid #3a3a3c;">📦 ${item}</span>`;
+            return `<span class="inv-item">📦 ${item}</span>`;
         }
-        
-        // Если предмет - объект (новая система)
         if (item && typeof item === 'object') {
             const rarity = RARITIES[item.rarity] || RARITIES.common;
             const statLabel = STAT_LABELS[item.stat] || '';
             const bonusText = item.stat && item.bonus ? `+${item.bonus} ${statLabel}` : '';
-            
             return `
                 <span class="inv-item" 
-                      style="border: 2px solid ${rarity.color}; 
-                             background: ${rarity.color}22; 
-                             padding: 8px 12px; 
-                             border-radius: 10px; 
-                             display: inline-flex; 
-                             align-items: center; 
-                             gap: 6px;
-                             font-size: 13px;
-                             margin: 4px;"
+                      style="border-color:${rarity.color}; background:${rarity.color}22;"
                       title="${item.desc || ''}">
-                    <span style="font-size: 18px;">${item.icon || '📦'}</span>
-                    <span style="font-weight: 600; color: #fff;">${item.name || 'Предмет'}</span>
-                    ${bonusText ? `<span style="font-size: 11px; color: #ffcc00; margin-left: 4px;">${bonusText}</span>` : ''}
-                    <span style="font-size: 10px; color: ${rarity.color}; margin-left: auto; padding: 2px 8px; background: ${rarity.color}33; border-radius: 8px;">${rarity.label}</span>
+                    <span style="font-size:18px;">${item.icon || '📦'}</span>
+                    <span style="font-weight:600;">${item.name || 'Предмет'}</span>
+                    ${bonusText ? `<span style="font-size:11px;color:#ffcc00;margin-left:4px;">${bonusText}</span>` : ''}
+                    <span style="font-size:10px;color:${rarity.color};padding:2px 8px;background:${rarity.color}33;border-radius:8px;">${rarity.label}</span>
                 </span>
             `;
         }
-        
-        // На всякий случай
         return `<span class="inv-item">📦 Неизвестный предмет</span>`;
     }).join('');
-    
-    console.log('✅ Инвентарь отображён');
 }
 
 // ========================================
-//  СОХРАНЕНИЕ ДАННЫХ (с логированием)
+//  СОХРАНЕНИЕ ДАННЫХ
 // ========================================
 
 async function saveUserData() {
-    if (!currentUserData || !currentUsername) {
-        console.error('❌ Нечего сохранять: нет данных или имени пользователя');
-        return;
-    }
-    
-    // Убеждаемся, что инвентарь - массив перед сохранением
+    if (!currentUserData || !currentUsername) return;
+
     if (!Array.isArray(currentUserData.inventory)) {
-        console.warn('⚠️ Инвентарь не массив перед сохранением, исправляем');
         currentUserData.inventory = [];
     }
-    
+
     const dataToSave = {
         stats: currentUserData.stats,
         inventory: currentUserData.inventory,
@@ -836,12 +763,10 @@ async function saveUserData() {
         total_goals_completed: currentUserData.total_goals_completed || 0,
         achievements: currentUserData.achievements || []
     };
-    
-    console.log('💾 Сохранение данных. Инвентарь:', dataToSave.inventory.length, 'предметов');
-    
+
     try {
         await updateUser(currentUsername, dataToSave);
-        console.log('✅ Данные сохранены успешно');
+        console.log('✅ Данные сохранены');
     } catch (e) {
         console.error('❌ Ошибка сохранения:', e);
     }
@@ -875,11 +800,9 @@ async function checkSleepTime() {
     }
     const hours = now.getHours();
     if (hours >= 0 && hours < 1) {
-        // После 00:00 и до 01:00 - штраф
         currentUserData.stats.per = Math.max(0, (currentUserData.stats.per || 0) - 10);
         alert('⚠️ Вы легли после полуночи! -10 Дисциплина.');
     } else {
-        // До 00:00 - награда
         currentUserData.stats.per = (currentUserData.stats.per || 0) + 10;
         currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 15;
         alert('🏆 Отличный режим! +10 Дисциплина / +15 🪙');
@@ -929,7 +852,6 @@ function getRandomItem() {
     const rand = Math.random() * 100;
     let cumulative = 0;
     let selectedRarity = 'common';
-    
     for (const [rarity, config] of Object.entries(RARITIES)) {
         cumulative += config.weight;
         if (rand <= cumulative) {
@@ -937,11 +859,8 @@ function getRandomItem() {
             break;
         }
     }
-    
     const pool = ITEMS_POOL.filter(item => item.rarity === selectedRarity);
-    if (pool.length === 0) {
-        return ITEMS_POOL[Math.floor(Math.random() * ITEMS_POOL.length)];
-    }
+    if (pool.length === 0) return ITEMS_POOL[Math.floor(Math.random() * ITEMS_POOL.length)];
     return JSON.parse(JSON.stringify(pool[Math.floor(Math.random() * pool.length)]));
 }
 
@@ -951,32 +870,21 @@ async function openChest(tier, price) {
         alert('Недостаточно монет!');
         return;
     }
-    
     currentUserData.stats.gold -= price;
-    
     const item = getRandomItem();
-    
-    // ГАРАНТИРУЕМ, ЧТО ИНВЕНТАРЬ - МАССИВ
-    if (!Array.isArray(currentUserData.inventory)) {
-        currentUserData.inventory = [];
-    }
-    
+
+    if (!Array.isArray(currentUserData.inventory)) currentUserData.inventory = [];
     currentUserData.inventory.push(item);
-    
-    // Добавляем бонус к статам
     if (item.stat && item.bonus) {
         currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
     }
-    
     currentUserData.total_chests_opened = (currentUserData.total_chests_opened || 0) + 1;
-    
-    console.log('🎁 Открыт сундук. Инвентарь теперь:', currentUserData.inventory.length, 'предметов');
-    
+
     await saveUserData();
     updateUI();
     renderInventory();
     renderAchievements();
-    
+
     const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
     alert(`🎉 Вы выбили: ${item.icon} ${item.name} (${rarityConfig.label})!\n+${item.bonus} к ${STAT_LABELS[item.stat] || 'стату'}`);
 }
@@ -990,34 +898,21 @@ async function spinRoulette() {
         alert('Недостаточно монет! Нужно 50 🪙');
         return;
     }
-    
     currentUserData.stats.gold -= 50;
-    
     const wheel = document.getElementById('roulette-wheel');
     const emojis = ['🎁', '🎰', '💎', '⭐', '🏆', '🎯', '🎲', '🌀'];
     let count = 0;
-    
     const interval = setInterval(() => {
         wheel.textContent = emojis[Math.floor(Math.random() * emojis.length)];
         count++;
         if (count > 8) {
             clearInterval(interval);
-            
             const item = getRandomItem();
-            
-            // ГАРАНТИРУЕМ, ЧТО ИНВЕНТАРЬ - МАССИВ
-            if (!Array.isArray(currentUserData.inventory)) {
-                currentUserData.inventory = [];
-            }
-            
+            if (!Array.isArray(currentUserData.inventory)) currentUserData.inventory = [];
             currentUserData.inventory.push(item);
-            
             if (item.stat && item.bonus) {
                 currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
             }
-            
-            console.log('🎰 Рулетка. Инвентарь теперь:', currentUserData.inventory.length, 'предметов');
-            
             saveUserData().then(() => {
                 const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
                 wheel.textContent = item.icon || '🎁';
@@ -1033,9 +928,7 @@ async function spinRoulette() {
 
 function renderRouletteResult(text) {
     const resultEl = document.getElementById('roulette-result');
-    if (resultEl) {
-        resultEl.textContent = text || '';
-    }
+    if (resultEl) resultEl.textContent = text || '';
 }
 
 // ========================================
@@ -1055,7 +948,7 @@ function updateRewardPreview() {
         previewEl.innerHTML = `
             🎁 Награда: <span style="color:#ffcc00;">+${config.xp} XP</span> + 
             <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[stat]}</span>
-            <span style="color:#8e8e93; font-size:11px; margin-left:8px;">(${config.label})</span>
+            <span style="color:#9893a8;font-size:11px;margin-left:8px;">(${config.label})</span>
         `;
     }
 }
@@ -1108,9 +1001,7 @@ async function addGoal() {
         createdAt: new Date().toISOString()
     };
 
-    if (!Array.isArray(currentUserData.goals)) {
-        currentUserData.goals = [];
-    }
+    if (!Array.isArray(currentUserData.goals)) currentUserData.goals = [];
     currentUserData.goals.push(newGoal);
     await saveUserData();
     closeGoalModal();
@@ -1134,17 +1025,13 @@ function renderHotbar() {
     container.innerHTML = activeGoals.map(g => {
         const config = getRarityConfig(g.rarity);
         const progress = g.target > 0 ? Math.min(100, (g.current || 0) / g.target * 100) : 0;
-        const isDone = progress >= 100;
         return `
-            <div class="hotbar-goal" style="border-left-color: ${config.color};">
+            <div class="hotbar-goal" style="border-left-color:${config.color};">
                 <div>
-                    <div class="title">${g.title}</div>
-                    <div class="progress">${g.current || 0} / ${g.target} ${g.unit || ''}</div>
+                    <div class="goal-title">${g.title}</div>
+                    <div class="goal-progress">${g.current || 0} / ${g.target} ${g.unit || ''}</div>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="rarity-badge" style="background:${config.color}; color:#fff;">${config.label}</span>
-                    ${isDone ? '<span class="done">✅</span>' : ''}
-                </div>
+                <span style="background:${config.color};color:#fff;padding:2px 8px;border-radius:8px;font-size:10px;">${config.label}</span>
             </div>
         `;
     }).join('');
@@ -1154,62 +1041,48 @@ function renderGoals() {
     const container = document.getElementById('goals-container');
     if (!container) return;
     if (!currentUserData?.goals?.length) {
-        container.innerHTML = '<div style="color:#8e8e93; text-align:center; padding:20px;">У вас пока нет целей. Добавьте первую!</div>';
+        container.innerHTML = '<div style="color:#9893a8;text-align:center;padding:20px;">У вас пока нет целей. Добавьте первую!</div>';
         return;
     }
     container.innerHTML = currentUserData.goals.map((g, index) => {
         const config = getRarityConfig(g.rarity);
         const progress = g.target > 0 ? Math.min(100, (g.current || 0) / g.target * 100) : 0;
         const isCompleted = g.completed || progress >= 100;
-        // Явно задаём рамку и свечение через inline-стили
-        const borderColor = isCompleted ? '#30d158' : config.color;
-        const glow = `0 0 15px ${borderColor}55`; // полупрозрачное свечение
-        const titleColor = isCompleted ? '#30d158' : config.color;
         return `
-            <div class="goal-card" 
-                 style="
-                    background: #141417 !important;
-                    border: 3px solid ${borderColor} !important;
-                    border-radius: 18px !important;
-                    padding: 16px !important;
-                    margin-bottom: 12px !important;
-                    box-shadow: ${glow} !important;
-                    transition: all 0.2s ease !important;
-                 ">
-                <div class="goal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <div class="goal-title" style="color: ${titleColor}; font-size:16px; font-weight:700;">${g.title}</div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="rarity-badge" style="background:${config.color}; color:#fff; padding:2px 10px; border-radius:12px; font-weight:700; font-size:11px;">${config.label}</span>
-                        <div style="font-size:13px; color:#8e8e93;">${Math.round(progress)}%</div>
+            <div class="goal-card ${isCompleted ? 'completed' : ''}" style="border-color:${isCompleted ? '#30d158' : config.color};">
+                <div class="goal-header">
+                    <div class="goal-title" style="color:${isCompleted ? '#30d158' : config.color};">${g.title}</div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="background:${config.color};color:#fff;padding:2px 10px;border-radius:8px;font-size:10px;">${config.label}</span>
+                        <div style="font-size:13px;color:#9893a8;">${Math.round(progress)}%</div>
                     </div>
                 </div>
-                ${g.description ? `<div class="goal-desc" style="color:#aeaeae; font-size:13px; margin:6px 0;">${g.description}</div>` : ''}
-                <div class="goal-progress" style="display:flex; align-items:center; gap:12px; margin:8px 0;">
-                    <span style="font-size:13px; color:#8e8e93;">${g.current || 0}</span>
-                    <div class="goal-progress-bar" style="flex:1; height:6px; background:#2c2c2e; border-radius:4px; overflow:hidden;">
-                        <div class="fill" style="width:${progress}%; height:100%; background: ${config.color}; transition: width 0.3s;"></div>
+                ${g.description ? `<div class="goal-desc">${g.description}</div>` : ''}
+                <div class="goal-progress">
+                    <span style="font-size:13px;color:#9893a8;">${g.current || 0}</span>
+                    <div class="goal-progress-bar">
+                        <div class="fill" style="width:${progress}%;background:${config.color};"></div>
                     </div>
-                    <span style="font-size:13px; color:#8e8e93;">${g.target} ${g.unit || ''}</span>
+                    <span style="font-size:13px;color:#9893a8;">${g.target} ${g.unit || ''}</span>
                 </div>
-                <div class="goal-reward" style="font-size:12px; color:#8e8e93; margin:4px 0;">
-                    🎁 Награда: <span style="color:#ffcc00;">+${config.xp} XP</span> + <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[g.stat] || '💪 Сила'}</span>
+                <div class="goal-reward">
+                    🎁 Награда: <span>+${config.xp} XP</span> + <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[g.stat] || '💪 Сила'}</span>
                 </div>
-                <div class="goal-actions" style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+                <div class="goal-actions">
                     ${!isCompleted ? `
-                        <button onclick="updateGoalProgress(${index}, 1)" style="background:#2c2c2e; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">➕ +1</button>
-                        <button onclick="updateGoalProgress(${index}, 5)" style="background:#2c2c2e; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">➕ +5</button>
-                        <button onclick="updateGoalProgress(${index}, 10)" style="background:#2c2c2e; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">➕ +10</button>
-                        <button onclick="setGoalComplete(${index})" class="done-btn" style="background:#30d158; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">✅ Выполнено</button>
+                        <button onclick="updateGoalProgress(${index}, 1)">➕ +1</button>
+                        <button onclick="updateGoalProgress(${index}, 5)">➕ +5</button>
+                        <button onclick="updateGoalProgress(${index}, 10)">➕ +10</button>
+                        <button onclick="setGoalComplete(${index})" class="done-btn">✅ Выполнено</button>
                     ` : `
-                        <span style="color:#30d158; font-weight:600;">✅ Выполнено!</span>
+                        <span style="color:#30d158;font-weight:600;">✅ Выполнено!</span>
                     `}
-                    <button onclick="deleteGoal(${index})" class="delete-btn" style="background:#ff453a; border:none; color:#fff; padding:6px 14px; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">🗑️</button>
+                    <button onclick="deleteGoal(${index})" class="delete-btn">🗑️</button>
                 </div>
             </div>
         `;
     }).join('');
 }
-
 
 async function updateGoalProgress(index, amount) {
     if (!currentUserData?.goals?.[index]) return;
@@ -1300,9 +1173,9 @@ function renderSocialQuests() {
     }
     container.innerHTML = '';
     currentUserData.socialQuests.forEach((q, index) => {
+        const isDone = q.completed;
         const card = document.createElement('div');
         card.className = 'social-quest-card';
-        const isDone = q.completed;
         card.innerHTML = `
             <div class="social-quest-rank">Ранг ${q.rank}</div>
             <div class="title">${q.title}</div>
@@ -1369,14 +1242,11 @@ function renderAchievements() {
     const container = document.getElementById('achievements-container');
     if (!container) return;
     if (!currentUserData) {
-        container.innerHTML = '<div style="color:#8e8e93; text-align:center;">Войдите, чтобы видеть достижения</div>';
+        container.innerHTML = '<div style="color:#9893a8;text-align:center;">Войдите, чтобы видеть достижения</div>';
         return;
     }
-    
-    if (!Array.isArray(currentUserData.achievements)) {
-        currentUserData.achievements = [];
-    }
-    
+    if (!Array.isArray(currentUserData.achievements)) currentUserData.achievements = [];
+
     let anyUnlocked = false;
     ACHIEVEMENTS_DB.forEach(ach => {
         if (!currentUserData.achievements.includes(ach.id) && ach.check()) {
@@ -1393,11 +1263,11 @@ function renderAchievements() {
             setTimeout(() => alert(`🏆 Достижение разблокировано: ${ach.title}!`), 100);
         }
     });
-    
+
     if (anyUnlocked) {
         saveUserData().then(() => updateUI());
     }
-    
+
     container.innerHTML = ACHIEVEMENTS_DB.map(ach => {
         const unlocked = currentUserData.achievements.includes(ach.id);
         const progress = ach.check() ? 1 : 0;
@@ -1410,7 +1280,6 @@ function renderAchievements() {
                 </div>
                 <div class="achieve-desc">${ach.desc}</div>
                 <div class="achieve-progress-bar"><div class="fill" style="width:${progressPercent}%;"></div></div>
-                <div class="achieve-progress">${unlocked ? 'Выполнено!' : 'Не выполнено'}</div>
                 <div class="achieve-reward">
                     🎁 Награда: 
                     ${ach.reward.stats ? Object.entries(ach.reward.stats).map(([s, v]) => `+${v} ${STAT_LABELS[s]}`).join(', ') : ''}
@@ -1428,7 +1297,7 @@ function renderAchievements() {
 async function resetProgress() {
     if (!currentUserData) return;
     if (!confirm('Сбросить прогресс?')) return;
-    
+
     currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
     currentUserData.completed_quests = [];
     currentUserData.inventory = [];
@@ -1445,11 +1314,10 @@ async function resetProgress() {
     currentUserData.total_chests_opened = 0;
     currentUserData.total_goals_completed = 0;
     currentUserData.achievements = [];
-    
+
     await saveUserData();
     await checkDailyRotation();
     await refreshSocialQuests();
-    
     updateUI();
     renderInventory();
     renderQuests();
@@ -1458,7 +1326,6 @@ async function resetProgress() {
     renderSocialQuests();
     renderAchievements();
     renderRouletteResult('');
-    
     alert('🗑️ Прогресс сброшен!');
 }
 
@@ -1471,12 +1338,12 @@ setInterval(() => {
     let h = 23 - n.getHours(), m = 59 - n.getMinutes(), s = 59 - n.getSeconds();
     const dailyTimer = document.getElementById('daily-timer');
     if (dailyTimer) {
-        dailyTimer.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        dailyTimer.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
     const daysLeft = 6 - (n.getDay() % 7);
     const weeklyTimer = document.getElementById('weekly-timer');
     if (weeklyTimer) {
-        weeklyTimer.textContent = `${daysLeft}д ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        weeklyTimer.textContent = `${daysLeft}д ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
     if (h === 0 && m === 0 && s === 0 && currentUserData) {
         checkDailyRotation();
