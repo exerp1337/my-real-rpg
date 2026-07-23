@@ -5,435 +5,576 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Реал Лайф РПГ v8.0</title>
+    <title>Реал Лайф РПГ v9.0</title>
+
     <style>
-        /* ===== RESET & BASE ===== */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* ----- БАЗА ----- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #0b0b0c;
-            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #0b0a0f;
+            color: #f0eef3;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             padding: 16px;
             -webkit-user-select: none;
             user-select: none;
+            background-image: radial-gradient(circle at 20% 30%, #1a142a 0%, #0b0a0f 80%);
         }
 
-        /* ===== АВТОРИЗАЦИЯ ===== */
+        /* ----- СКРОЛЛ ----- */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1c1a24;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ff9500;
+            border-radius: 8px;
+        }
+
+        /* ----- АВТОРИЗАЦИЯ ----- */
         .auth-container {
             width: 100%;
             max-width: 420px;
-            background: linear-gradient(145deg, #1e1e24, #121214);
-            border-radius: 28px;
-            padding: 28px 24px;
-            border: 1px solid #2a2a30;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+            background: rgba(28, 26, 36, 0.75);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 32px;
+            padding: 32px 26px;
+            border: 1px solid rgba(255, 149, 0, 0.25);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 149, 0, 0.05);
+            transition: 0.3s;
         }
-        .auth-container h1 {
-            text-align: center;
-            font-size: 30px;
-            color: #ff9500;
-            margin-bottom: 4px;
-            font-weight: 800;
-        }
-        .subtitle {
-            text-align: center;
-            color: #8e8e93;
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
+
         .logo-icon {
             text-align: center;
-            font-size: 54px;
-            margin-bottom: 8px;
+            font-size: 56px;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 0 20px rgba(255, 149, 0, 0.3));
         }
+
+        .auth-container h1 {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff9500, #ff6b00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9893a8;
+            font-size: 14px;
+            margin-bottom: 24px;
+            font-weight: 400;
+        }
+
         .auth-tabs {
             display: flex;
             gap: 8px;
             margin-bottom: 22px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 4px;
         }
+
         .auth-tab {
             flex: 1;
             padding: 11px;
-            background: #1c1c1e;
-            border: 2px solid transparent;
-            border-radius: 14px;
-            color: #8e8e93;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            color: #9893a8;
             font-weight: 700;
             font-size: 14px;
             cursor: pointer;
             text-align: center;
-            transition: all 0.2s;
+            transition: 0.25s;
         }
+
         .auth-tab.active {
-            border-color: #ff9500;
+            background: #2c2838;
             color: #ff9500;
-            background: #2c2c2e;
+            box-shadow: 0 0 15px rgba(255, 149, 0, 0.15);
         }
+
         .auth-form {
             display: none;
             flex-direction: column;
             gap: 14px;
         }
+
         .auth-form.active {
             display: flex;
         }
+
         .auth-form input {
-            background: #1c1c1e;
-            border: 1px solid #2a2a30;
+            background: rgba(20, 18, 30, 0.7);
+            backdrop-filter: blur(6px);
+            border: 1px solid #34303e;
             border-radius: 14px;
             padding: 14px 16px;
-            color: #ffffff;
+            color: #f0eef3;
             font-size: 15px;
             outline: none;
+            transition: 0.25s;
         }
+
         .auth-form input:focus {
             border-color: #ff9500;
+            box-shadow: 0 0 20px rgba(255, 149, 0, 0.08);
         }
+
         .auth-form input::placeholder {
-            color: #636366;
+            color: #63606e;
         }
+
         .auth-btn {
-            background: linear-gradient(90deg, #ff9500, #ff6b00);
-            color: white;
+            background: linear-gradient(135deg, #ff9500, #e65c00);
+            color: #fff;
             border: none;
-            padding: 15px;
+            padding: 16px;
             border-radius: 14px;
             font-weight: 700;
             font-size: 16px;
             cursor: pointer;
-            margin-top: 4px;
-        }
-        .auth-btn:active {
-            transform: scale(0.97);
-            opacity: 0.9;
-        }
-        .auth-error {
-            color: #ff453a;
-            font-size: 13px;
-            text-align: center;
-            min-height: 18px;
-        }
-        .auth-success {
-            color: #30d158;
-            font-size: 13px;
-            text-align: center;
-            min-height: 18px;
-        }
-        .auth-hint {
-            color: #8e8e93;
-            font-size: 12px;
-            text-align: center;
-        }
-        .auth-hint span {
-            color: #0a84ff;
-            cursor: pointer;
-            text-decoration: underline;
+            transition: 0.25s;
+            box-shadow: 0 4px 20px rgba(255, 149, 0, 0.25);
         }
 
-        /* ===== ИГРА ===== */
+        .auth-btn:active {
+            transform: scale(0.96);
+        }
+
+        .auth-btn:hover {
+            box-shadow: 0 6px 30px rgba(255, 149, 0, 0.35);
+        }
+
+        .auth-error {
+            color: #ff6b6b;
+            font-size: 13px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        .auth-success {
+            color: #51cf66;
+            font-size: 13px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        .auth-hint {
+            color: #9893a8;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .auth-hint span {
+            color: #ff9500;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .auth-hint span:hover {
+            text-shadow: 0 0 12px rgba(255, 149, 0, 0.3);
+        }
+
+        /* ----- ИГРОВОЙ КОНТЕЙНЕР ----- */
         .game-container {
             display: none;
             width: 100%;
-            max-width: 600px;
+            max-width: 640px;
             flex-direction: column;
             align-items: center;
+            gap: 14px;
         }
+
         .game-container.active {
             display: flex;
         }
 
-        /* ===== ХЕДЕР ===== */
+        /* ----- ХЕДЕР ----- */
         .header-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            margin-bottom: 12px;
             flex-wrap: wrap;
             gap: 8px;
-        }
-        .gold-badge {
-            background: #1c1c1e;
-            padding: 7px 16px;
+            background: rgba(20, 18, 30, 0.6);
+            backdrop-filter: blur(12px);
+            padding: 10px 16px;
             border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .brand {
+            font-size: 15px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #ff9500, #bf5af2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.3px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .user-badge {
+            background: rgba(28, 26, 36, 0.7);
+            backdrop-filter: blur(6px);
+            padding: 6px 14px 6px 10px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1px solid #34303e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .user-badge .avatar {
+            font-size: 18px;
+        }
+
+        .gold-badge {
+            background: rgba(28, 26, 36, 0.7);
+            backdrop-filter: blur(6px);
+            padding: 6px 16px;
+            border-radius: 40px;
             font-weight: 700;
             color: #ffcc00;
-            border: 1px solid #2c2c2e;
+            border: 1px solid rgba(255, 204, 0, 0.2);
             display: flex;
             align-items: center;
             gap: 6px;
+            font-size: 14px;
         }
-        .user-badge {
-            background: #1c1c1e;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-            color: #0a84ff;
-            border: 1px solid #2c2c2e;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-        }
+
         .logout-btn {
             background: none;
             border: none;
-            color: #ff453a;
-            font-size: 12px;
+            color: #ff6b6b;
+            font-size: 15px;
             cursor: pointer;
-            margin-left: 6px;
-            opacity: 0.7;
+            opacity: 0.6;
+            transition: 0.2s;
+            padding: 0 4px;
         }
 
-        /* ===== ВКЛАДКИ ===== */
+        .logout-btn:hover {
+            opacity: 1;
+        }
+
+        /* ----- ТАБЫ ----- */
         .tabs {
             display: flex;
             width: 100%;
-            background: #1c1c1e;
-            border-radius: 14px;
-            padding: 4px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-        .tab-btn {
-            flex: 1;
-            min-width: 60px;
-            background: none;
-            border: none;
-            color: #8e8e93;
-            padding: 10px 4px;
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .tab-btn.active {
-            background: #2c2c2e;
-            color: #ffffff;
+            background: rgba(20, 18, 30, 0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 18px;
+            padding: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            gap: 4px;
         }
 
-        /* ===== ЭКРАНЫ ===== */
+        .tab-btn {
+            flex: 1;
+            min-width: 50px;
+            background: transparent;
+            border: none;
+            color: #9893a8;
+            padding: 10px 4px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.25s;
+            letter-spacing: 0.3px;
+        }
+
+        .tab-btn.active {
+            background: #2c2838;
+            color: #f0eef3;
+            box-shadow: 0 0 20px rgba(255, 149, 0, 0.06);
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+        }
+
+        /* ----- ЭКРАНЫ ----- */
         .screen {
             display: none;
             width: 100%;
             flex-direction: column;
             align-items: center;
+            gap: 16px;
+            animation: fadeIn 0.3s ease;
         }
+
         .screen.active {
             display: flex;
         }
 
-        /* ===== ХОТБАР ===== */
-        .hotbar {
-            width: 100%;
-            background: #141417;
-            border-radius: 18px;
-            padding: 14px;
-            margin-bottom: 18px;
-            border: 1px solid #2a2a30;
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
+        /* ----- КАРТОЧКИ (glass) ----- */
+        .glass-card {
+            background: rgba(20, 18, 30, 0.55);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 20px;
+            width: 100%;
+            transition: 0.25s;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 149, 0, 0.1);
+        }
+
+        /* ----- ХОТБАР ЦЕЛЕЙ ----- */
+        .hotbar {
+            background: rgba(20, 18, 30, 0.45);
+            backdrop-filter: blur(10px);
+            border-radius: 22px;
+            padding: 16px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
         .hotbar-title {
             font-size: 13px;
-            color: #8e8e93;
+            color: #9893a8;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
+
+        .hotbar-title a {
+            color: #ff9500;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
         .hotbar-goals {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
+
         .hotbar-goal {
-            background: #1c1c1e;
-            border-radius: 12px;
-            padding: 8px 12px;
+            background: rgba(28, 26, 36, 0.6);
+            border-radius: 14px;
+            padding: 10px 14px;
             flex: 1;
             min-width: 110px;
             border-left: 3px solid #ff9500;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        .hotbar-empty {
-            color: #636366;
-            font-size: 13px;
-            padding: 6px 0;
+            transition: 0.2s;
         }
 
-        /* ===== ПРОФИЛЬ ===== */
+        .hotbar-goal .goal-title {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .hotbar-goal .goal-progress {
+            font-size: 11px;
+            color: #9893a8;
+        }
+
+        .hotbar-empty {
+            color: #63606e;
+            font-size: 13px;
+            padding: 4px 0;
+        }
+
+        /* ----- ПРОФИЛЬ ----- */
         .profile-card {
-            background: linear-gradient(145deg, #1e1e24, #121214);
-            padding: 24px;
+            background: rgba(20, 18, 30, 0.55);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 149, 0, 0.08);
             border-radius: 26px;
+            padding: 24px;
             width: 100%;
             text-align: center;
-            margin-bottom: 22px;
-            border: 1px solid #2a2a30;
         }
+
         #profile-avatar {
-            font-size: 70px;
+            font-size: 68px;
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 0 20px rgba(255, 149, 0, 0.2));
         }
-        h1 {
-            font-size: 36px;
-            color: #ff9500;
-            font-weight: 800;
-        }
-        .title-display {
-            font-size: 15px;
-            font-weight: 700;
-            color: #00bfff;
-            margin-top: 4px;
+
+        .level-label {
+            font-size: 11px;
+            color: #9893a8;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
+        #level-display {
+            font-size: 42px;
+            font-weight: 900;
+            color: #ff9500;
+            line-height: 1;
+            margin: 4px 0 2px;
+        }
+
+        .title-display {
+            font-size: 14px;
+            font-weight: 700;
+            color: #bf5af2;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
         .progress-container {
-            background: #2c2c2e;
-            border-radius: 10px;
-            height: 12px;
+            background: #2c2838;
+            border-radius: 20px;
+            height: 10px;
             width: 100%;
-            margin: 15px 0 10px;
             overflow: hidden;
+            margin: 12px 0 8px;
         }
+
         .progress-bar {
             background: linear-gradient(90deg, #ff9500, #ffcc00);
             height: 100%;
             width: 0%;
-            transition: width 0.2s;
+            transition: width 0.4s ease;
+            border-radius: 20px;
         }
 
-        /* ===== СОЦИАЛЬНЫЙ УРОВЕНЬ ===== */
-        .social-card {
-            background: linear-gradient(145deg, #1a1a24, #101018);
-            border: 1px solid #bf5af2;
-            border-radius: 22px;
-            padding: 18px;
-            width: 100%;
-            margin-bottom: 22px;
+        #exp-display {
+            font-size: 13px;
+            color: #9893a8;
         }
+
+        /* ----- СОЦИАЛЬНАЯ КАРТОЧКА ----- */
+        .social-card {
+            background: rgba(20, 18, 30, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(191, 90, 242, 0.15);
+            border-radius: 22px;
+            padding: 18px 20px;
+            width: 100%;
+        }
+
         .social-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
+
         .social-title {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             color: #bf5af2;
         }
+
         .social-level {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 800;
             color: #bf5af2;
         }
+
         .social-progress {
             margin-top: 8px;
         }
+
         .social-progress .label {
             font-size: 12px;
-            color: #8e8e93;
+            color: #9893a8;
             display: flex;
             justify-content: space-between;
         }
+
         .social-progress .bar {
-            background: #2c2c2e;
-            height: 8px;
-            border-radius: 6px;
+            background: #2c2838;
+            height: 7px;
+            border-radius: 10px;
             overflow: hidden;
             margin-top: 4px;
         }
+
         .social-progress .bar .fill {
             height: 100%;
             background: linear-gradient(90deg, #bf5af2, #8b3fbf);
-            transition: width 0.3s;
+            transition: width 0.4s ease;
         }
 
-        /* ===== СТАТЫ ===== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            width: 100%;
-            margin-bottom: 25px;
-        }
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            background: #1c1c1e;
-            padding: 14px 20px;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            border: 1px solid #252528;
-        }
-        .stat-item.luck-stat {
-            grid-column: span 2;
-            background: linear-gradient(90deg, #1c1c1e, #222226);
-        }
-
-        /* ===== КНОПКИ ТРЕНИРОВОК ===== */
-        .btn {
-            background: #1c1c1e;
-            color: white;
-            border: none;
-            padding: 15px;
-            font-size: 15px;
-            font-weight: 700;
-            border-radius: 14px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        .btn:active {
-            transform: scale(0.96);
-            background: #2c2c2e;
-        }
-        .btn-plus {
-            color: #30d158;
-            font-weight: bold;
-        }
-
-        /* ===== СОН ===== */
+        /* ----- СОН ----- */
         .sleep-card {
-            background: linear-gradient(145deg, #141419, #0d0d0f);
-            border: 1px solid #0a84ff;
+            background: rgba(20, 18, 30, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 122, 255, 0.15);
             border-radius: 22px;
-            padding: 20px;
+            padding: 18px 20px;
             width: 100%;
-            margin-bottom: 25px;
             text-align: center;
         }
+
         .sleep-title {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             color: #0a84ff;
-            margin-bottom: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
+
         .sleep-desc {
             font-size: 13px;
-            color: #aeaeae;
-            margin-bottom: 15px;
+            color: #b0aec0;
+            margin: 6px 0 14px;
             line-height: 1.4;
         }
+
         .sleep-btn {
-            background: linear-gradient(90deg, #0055ff, #0a84ff);
-            color: white;
+            background: linear-gradient(135deg, #0055ff, #0a84ff);
+            color: #fff;
             border: none;
             padding: 14px;
             font-size: 15px;
@@ -441,113 +582,149 @@
             border-radius: 14px;
             cursor: pointer;
             width: 100%;
+            transition: 0.25s;
+            box-shadow: 0 4px 20px rgba(10, 132, 255, 0.2);
         }
 
-        /* ===== ИНВЕНТАРЬ ===== */
-        .inventory-box {
-            background: #1c1c1e;
-            border-radius: 18px;
-            padding: 15px;
-            width: 100%;
-            margin-top: 20px;
+        .sleep-btn:active {
+            transform: scale(0.97);
         }
+
+        .sleep-btn:disabled {
+            opacity: 0.4;
+            filter: grayscale(0.5);
+            pointer-events: none;
+        }
+
+        /* ----- СТАТЫ (сетка) ----- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(28, 26, 36, 0.5);
+            backdrop-filter: blur(6px);
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: 0.2s;
+        }
+
+        .stat-item.luck-stat {
+            grid-column: span 2;
+            background: rgba(28, 26, 36, 0.6);
+            border-color: rgba(255, 204, 0, 0.08);
+        }
+
+        .stat-item .stat-label {
+            color: #b0aec0;
+        }
+
+        .stat-item .stat-value {
+            font-weight: 700;
+        }
+
+        /* ----- КНОПКИ ТРЕНИРОВОК ----- */
+        .train-btn {
+            background: rgba(28, 26, 36, 0.5);
+            backdrop-filter: blur(6px);
+            color: #f0eef3;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 16px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            transition: 0.25s;
+        }
+
+        .train-btn:active {
+            transform: scale(0.97);
+            background: rgba(255, 149, 0, 0.08);
+        }
+
+        .train-btn .plus {
+            color: #51cf66;
+            font-weight: 700;
+        }
+
+        /* ----- ИНВЕНТАРЬ ----- */
+        .inventory-box {
+            background: rgba(20, 18, 30, 0.45);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 16px 18px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .inventory-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #9893a8;
+            margin-bottom: 10px;
+        }
+
         .inventory-items {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
         }
+
+        .inv-item {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(28, 26, 36, 0.4);
+            border: 1px solid #34303e;
+            transition: 0.2s;
+        }
+
+        .inv-item:hover {
+            border-color: #ff9500;
+        }
+
         .reset-btn {
             background: none;
             border: none;
-            color: #ff453a;
+            color: #ff6b6b;
             font-size: 13px;
-            margin-top: 20px;
             cursor: pointer;
-            text-decoration: underline;
+            opacity: 0.5;
+            transition: 0.2s;
+            margin-top: 6px;
+            padding: 8px 0;
         }
 
-        /* ===== КВЕСТЫ (ежедневные) ===== */
-        .quests-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            width: 100%;
-            margin-bottom: 25px;
-        }
-        @media(min-width: 500px) {
-            .quests-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-        .quest-card {
-            background: #141417;
-            border: 1px solid #222226;
-            border-radius: 20px;
-            padding: 20px;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .quest-title {
-            font-size: 17px;
-            font-weight: 700;
-            color: #00bfff;
-            margin-bottom: 6px;
-        }
-        .quest-desc {
-            font-size: 13px;
-            color: #aeaeae;
-            margin-bottom: 15px;
-            flex-grow: 1;
-        }
-        .quest-reward {
-            font-size: 13px;
-            font-weight: 700;
-            color: #30d158;
-            margin-bottom: 15px;
-        }
-        .action-btn {
-            background: #30d158;
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            border-radius: 12px;
-            cursor: pointer;
-            width: 100%;
-        }
-        .action-btn.blue {
-            background: #007aff;
-        }
-        .action-btn.purple {
-            background: #5856d6;
+        .reset-btn:hover {
+            opacity: 1;
         }
 
-        /* ===== ТАЙМЕРЫ ===== */
-        .timer-box {
-            background: #141416;
-            border: 1px solid #222226;
-            border-radius: 14px;
-            padding: 10px;
-            width: 100%;
-            text-align: center;
-            font-size: 13px;
-            color: #aeaeae;
-            margin-bottom: 20px;
-        }
-
-        /* ===== ЗАГОЛОВКИ СЕКЦИЙ ===== */
+        /* ----- СЕКЦИОННЫЕ ЗАГОЛОВКИ ----- */
         .section-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 800;
-            margin: 10px 0 15px;
             text-align: center;
             width: 100%;
+            margin: 4px 0 2px;
         }
-        .section-title.blue {
-            color: #00bfff;
+
+        .section-title.orange {
+            color: #ff9500;
         }
         .section-title.purple {
             color: #bf5af2;
@@ -555,36 +732,121 @@
         .section-title.gold {
             color: #ffcc00;
         }
-
-        /* ===== ЕЖЕНЕДЕЛЬНЫЙ ВЫЗОВ ===== */
-        .weekly-challenge-card {
-            background: #141417;
-            border: 1px solid #ff9500;
-            border-radius: 22px;
-            padding: 22px;
-            width: 100%;
-            margin-bottom: 15px;
+        .section-title.blue {
+            color: #0a84ff;
         }
+
+        /* ----- КВЕСТЫ ----- */
+        .quests-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            width: 100%;
+        }
+
+        @media(min-width: 480px) {
+            .quests-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .quest-card {
+            background: rgba(20, 18, 30, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: 0.25s;
+        }
+
+        .quest-card:hover {
+            border-color: rgba(255, 149, 0, 0.1);
+        }
+
+        .quest-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0a84ff;
+            margin-bottom: 4px;
+        }
+
+        .quest-desc {
+            font-size: 13px;
+            color: #b0aec0;
+            margin-bottom: 12px;
+            flex-grow: 1;
+        }
+
+        .quest-reward {
+            font-size: 13px;
+            font-weight: 700;
+            color: #51cf66;
+            margin-bottom: 14px;
+        }
+
+        .quest-btn {
+            background: linear-gradient(135deg, #2c2838, #3a3548);
+            color: #f0eef3;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.25s;
+            width: 100%;
+        }
+
+        .quest-btn:hover {
+            background: linear-gradient(135deg, #3a3548, #4a4458);
+        }
+
+        .quest-btn.done {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .quest-btn.purple {
+            background: linear-gradient(135deg, #bf5af2, #8b3fbf);
+        }
+        .quest-btn.purple:hover {
+            box-shadow: 0 0 30px rgba(191, 90, 242, 0.2);
+        }
+        .quest-btn.blue {
+            background: linear-gradient(135deg, #0a84ff, #0055ff);
+        }
+        .quest-btn.blue:hover {
+            box-shadow: 0 0 30px rgba(10, 132, 255, 0.2);
+        }
+
+        /* ----- НЕДЕЛЬНЫЙ ВЫЗОВ ----- */
+        .weekly-challenge {
+            background: rgba(20, 18, 30, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 149, 0, 0.15);
+            border-radius: 22px;
+            padding: 20px;
+            width: 100%;
+        }
+
         .weekly-header {
             font-size: 18px;
             font-weight: 700;
             color: #ff9500;
-            margin-bottom: 8px;
         }
+
         .weekly-desc {
             font-size: 13px;
-            color: #eeeeee;
-            margin-bottom: 15px;
+            color: #b0aec0;
+            margin: 4px 0 12px;
         }
-        .weekly-reward-text {
-            font-size: 14px;
-            font-weight: 700;
-            color: #ffcc00;
-            margin-bottom: 15px;
-        }
+
         .weekly-btn {
-            background: linear-gradient(90deg, #ff5e00, #ff9500);
-            color: white;
+            background: linear-gradient(135deg, #ff5e00, #ff9500);
+            color: #fff;
             border: none;
             padding: 14px;
             font-size: 15px;
@@ -592,76 +854,118 @@
             border-radius: 14px;
             cursor: pointer;
             width: 100%;
-            text-align: center;
+            transition: 0.25s;
         }
 
-        /* ===== СОЦИАЛЬНЫЕ КВЕСТЫ ===== */
+        .weekly-btn:active {
+            transform: scale(0.97);
+        }
+        .weekly-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* ----- ТАЙМЕРЫ ----- */
+        .timer-box {
+            background: rgba(20, 18, 30, 0.4);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 10px 14px;
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+            color: #9893a8;
+        }
+
+        .timer-box strong {
+            color: #f0eef3;
+            font-weight: 700;
+        }
+
+        /* ----- СОЦИАЛЬНЫЕ КВЕСТЫ ----- */
         .social-quests-container {
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-top: 10px;
+            gap: 14px;
         }
+
         .social-quest-card {
-            background: #141417;
-            border: 1px solid #bf5af2;
+            background: rgba(20, 18, 30, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(191, 90, 242, 0.12);
             border-radius: 18px;
             padding: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            transition: 0.25s;
         }
+
+        .social-quest-card:hover {
+            border-color: rgba(191, 90, 242, 0.25);
+        }
+
+        .social-quest-rank {
+            font-size: 11px;
+            color: #9893a8;
+            background: rgba(28, 26, 36, 0.5);
+            padding: 2px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
         .social-quest-card .title {
             font-weight: 700;
             font-size: 16px;
             color: #bf5af2;
         }
+
         .social-quest-card .desc {
             font-size: 13px;
-            color: #aeaeae;
+            color: #b0aec0;
         }
+
         .social-quest-card .reward {
             font-size: 13px;
             color: #ffcc00;
+            font-weight: 600;
         }
+
         .social-quest-card .actions {
             display: flex;
             gap: 10px;
-            margin-top: 6px;
+            margin-top: 10px;
         }
+
         .social-quest-card .actions button {
-            background: #bf5af2;
+            background: linear-gradient(135deg, #bf5af2, #8b3fbf);
             border: none;
             color: #fff;
-            padding: 8px 16px;
-            border-radius: 10px;
+            padding: 8px 18px;
+            border-radius: 12px;
             font-weight: 700;
             cursor: pointer;
+            transition: 0.25s;
+            font-size: 13px;
         }
+
+        .social-quest-card .actions button:active {
+            transform: scale(0.96);
+        }
+
         .social-quest-card .actions button.done {
-            background: #2c2c2e;
-            opacity: 0.5;
+            background: #2c2838;
+            opacity: 0.4;
             pointer-events: none;
         }
+
         .social-quest-empty {
-            color: #8e8e93;
+            color: #63606e;
             text-align: center;
             padding: 20px;
         }
-        .social-quest-rank {
-            font-size: 12px;
-            color: #8e8e93;
-            background: #1c1c1e;
-            padding: 2px 10px;
-            border-radius: 10px;
-            display: inline-block;
-            margin-bottom: 4px;
-        }
 
-        /* ================================================================
-           ⭐ НОВЫЙ СТИЛЬ ДЛЯ КАРТОЧЕК ЦЕЛЕЙ (ОБВОДКА РЕДКОСТИ)
-           ================================================================ */
+        /* ----- ЦЕЛИ ----- */
         .goals-container {
             width: 100%;
             display: flex;
@@ -669,195 +973,199 @@
             gap: 12px;
         }
 
-        /* Базовая карточка цели — тёмный фон, обводка задаётся через style в JS */
         .goal-card {
-            background: #141417 !important;
-            border-radius: 18px !important;
-            padding: 16px !important;
-            margin-bottom: 12px !important;
-            transition: all 0.2s ease !important;
-            /* border и box-shadow будут заданы через JS, но мы оставляем резерв */
-            border: 2px solid #2a2a30 !important;
-            box-shadow: none !important;
-        }
-        .goal-card:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6) !important;
+            background: rgba(20, 18, 30, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 18px;
+            padding: 16px 18px;
+            transition: 0.25s;
         }
 
-        /* Заголовок цели */
+        .goal-card:hover {
+            border-color: rgba(255, 149, 0, 0.08);
+        }
+
+        .goal-card.completed {
+            opacity: 0.5;
+            border-color: #51cf66;
+        }
+
         .goal-card .goal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 4px;
         }
+
         .goal-card .goal-title {
             font-size: 16px;
             font-weight: 700;
-            /* цвет будет задан через JS, но резерв */
-            color: #ff9500;
         }
 
-        /* Описание */
         .goal-card .goal-desc {
             font-size: 13px;
-            color: #aeaeae;
-            margin: 4px 0 8px 0;
+            color: #b0aec0;
         }
 
-        /* Прогресс-бар */
         .goal-card .goal-progress {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin: 8px 0;
+            margin: 6px 0;
         }
+
         .goal-card .goal-progress-bar {
             flex: 1;
             height: 6px;
-            background: #2c2c2e;
-            border-radius: 4px;
+            background: #2c2838;
+            border-radius: 10px;
             overflow: hidden;
         }
+
         .goal-card .goal-progress-bar .fill {
             height: 100%;
-            border-radius: 4px;
-            transition: width 0.3s;
-            /* цвет будет задан через JS */
+            border-radius: 10px;
+            transition: width 0.3s ease;
         }
 
-        /* Награда */
-        .goal-card .goal-reward {
-            font-size: 12px;
-            color: #8e8e93;
-            margin: 4px 0 8px 0;
-        }
-        .goal-card .goal-reward span {
-            font-weight: 600;
-        }
-
-        /* Кнопки действий */
         .goal-card .goal-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-top: 8px;
             flex-wrap: wrap;
         }
+
         .goal-card .goal-actions button {
-            background: #2c2c2e;
+            background: #2c2838;
             border: none;
-            color: #fff;
+            color: #f0eef3;
             padding: 6px 14px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 600;
             font-size: 12px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: 0.2s;
         }
-        .goal-card .goal-actions button:hover {
-            background: #3a3a3c;
+
+        .goal-card .goal-actions button:active {
+            transform: scale(0.94);
         }
+
         .goal-card .goal-actions .done-btn {
-            background: #30d158;
+            background: #51cf66;
+            color: #0b0a0f;
         }
-        .goal-card .goal-actions .done-btn:hover {
-            background: #24a142 !important;
-        }
+
         .goal-card .goal-actions .delete-btn {
-            background: #ff453a;
-        }
-        .goal-card .goal-actions .delete-btn:hover {
-            background: #d93a30 !important;
+            background: #ff6b6b;
+            color: #0b0a0f;
         }
 
-        /* Состояние "выполнено" */
-        .goal-card.completed {
-            opacity: 0.5;
-            border-color: #30d158 !important;
-        }
-        .goal-card.completed .goal-title {
-            text-decoration: line-through;
+        .goal-reward {
+            font-size: 12px;
+            color: #9893a8;
+            margin-top: 4px;
         }
 
-        /* Бейдж редкости */
-        .goal-card .rarity-badge {
-            font-size: 11px;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-weight: 700;
-            display: inline-block;
-            color: #fff;
-        }
-
-        /* Кнопка "Добавить цель" */
         .add-goal-btn {
-            background: #0a84ff;
+            background: linear-gradient(135deg, #ff9500, #e65c00);
             border: none;
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 14px;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
             cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            transition: background 0.2s;
-        }
-        .add-goal-btn:hover {
-            background: #0066cc;
+            transition: 0.25s;
+            box-shadow: 0 4px 20px rgba(255, 149, 0, 0.15);
         }
 
-        /* ===== МАГАЗИН ===== */
+        .add-goal-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* ----- МАГАЗИН ----- */
         .shop-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 15px;
+            gap: 14px;
             width: 100%;
         }
-        @media(min-width: 500px) {
+
+        @media(min-width: 480px) {
             .shop-grid {
                 grid-template-columns: 1fr 1fr;
             }
         }
+
         .shop-card {
-            background: #141416;
-            border: 1px solid #222226;
+            background: rgba(20, 18, 30, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
             border-radius: 22px;
             padding: 20px;
             text-align: center;
+            transition: 0.25s;
         }
+
+        .shop-card:hover {
+            border-color: rgba(255, 149, 0, 0.08);
+        }
+
+        .shop-card h3 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
         .shop-desc {
             font-size: 12px;
-            color: #aeaeae;
+            color: #9893a8;
             margin-bottom: 12px;
         }
-        .buy-btn {
+
+        .shop-btn {
             background: #ff9500;
-            color: white;
+            color: #0b0a0f;
             border: none;
             padding: 12px;
             border-radius: 14px;
             font-weight: 700;
             width: 100%;
             cursor: pointer;
-            margin-top: 15px;
+            transition: 0.25s;
+            font-size: 14px;
         }
 
-        /* ===== РУЛЕТКА ===== */
-        .roulette-container {
-            width: 100%;
-            background: #141417;
-            border-radius: 22px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 1px solid #2a2a30;
-            text-align: center;
+        .shop-btn:active {
+            transform: scale(0.96);
         }
+
+        .shop-btn.purple {
+            background: linear-gradient(135deg, #bf5af2, #8b3fbf);
+            color: #fff;
+        }
+
+        /* ----- РУЛЕТКА ----- */
+        .roulette-container {
+            background: rgba(20, 18, 30, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 22px;
+            border: 1px solid rgba(191, 90, 242, 0.12);
+            text-align: center;
+            width: 100%;
+        }
+
+        .roulette-cost {
+            font-size: 13px;
+            color: #9893a8;
+            margin-bottom: 10px;
+        }
+
         .roulette-wheel {
             font-size: 64px;
             padding: 20px;
-            background: #1c1c1e;
+            background: rgba(28, 26, 36, 0.6);
             border-radius: 50%;
             width: 120px;
             height: 120px;
@@ -866,91 +1174,112 @@
             align-items: center;
             justify-content: center;
             border: 3px solid #bf5af2;
-            transition: transform 0.3s;
+            transition: 0.3s;
+            box-shadow: 0 0 40px rgba(191, 90, 242, 0.1);
         }
+
         .roulette-spin-btn {
-            background: linear-gradient(90deg, #bf5af2, #8b3fbf);
-            color: white;
+            background: linear-gradient(135deg, #bf5af2, #8b3fbf);
+            color: #fff;
             border: none;
             padding: 14px 30px;
             border-radius: 14px;
             font-weight: 700;
             font-size: 16px;
             cursor: pointer;
-            margin-top: 10px;
             width: 100%;
-        }
-        .roulette-result {
-            margin-top: 16px;
-            font-size: 18px;
-            font-weight: 700;
-            min-height: 40px;
-            color: #ffcc00;
-        }
-        .roulette-cost {
-            font-size: 13px;
-            color: #8e8e93;
-            margin-bottom: 8px;
+            transition: 0.25s;
         }
 
-        /* ===== ДОСТИЖЕНИЯ ===== */
-        .achieve-card {
-            background: #141416;
-            border: 1px solid #222226;
-            border-radius: 18px;
-            padding: 16px;
-            margin-bottom: 12px;
-            width: 100%;
+        .roulette-spin-btn:active {
+            transform: scale(0.96);
         }
+
+        .roulette-result {
+            margin-top: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            min-height: 30px;
+            color: #ffcc00;
+        }
+
+        /* ----- ДОСТИЖЕНИЯ ----- */
+        .achieve-card {
+            background: rgba(20, 18, 30, 0.45);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 18px;
+            padding: 16px 18px;
+            width: 100%;
+            transition: 0.25s;
+        }
+
+        .achieve-card:hover {
+            border-color: rgba(255, 204, 0, 0.08);
+        }
+
+        .achieve-card.locked {
+            opacity: 0.4;
+            filter: grayscale(0.5);
+        }
+
         .achieve-card .achieve-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
+
         .achieve-card .achieve-title {
             font-weight: 700;
             font-size: 15px;
             color: #ffcc00;
         }
+
+        .achieve-card.locked .achieve-title {
+            color: #9893a8;
+        }
+
         .achieve-card .achieve-desc {
             font-size: 13px;
-            color: #aeaeae;
+            color: #b0aec0;
         }
-        .achieve-card .achieve-progress {
-            font-size: 12px;
-            color: #8e8e93;
-        }
-        .achieve-card .achieve-reward {
-            font-size: 12px;
-            color: #30d158;
-        }
-        .achieve-card.locked {
-            opacity: 0.4;
-            filter: grayscale(0.6);
-        }
-        .achieve-card.locked .achieve-title {
-            color: #8e8e93;
-        }
-        .achieve-card .achieve-badge {
-            background: #ffcc00;
-            color: #000;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 12px;
-        }
+
         .achieve-card .achieve-progress-bar {
             height: 4px;
-            background: #2c2c2e;
-            border-radius: 4px;
+            background: #2c2838;
+            border-radius: 10px;
             overflow: hidden;
+            margin: 8px 0 4px;
         }
+
         .achieve-card .achieve-progress-bar .fill {
             height: 100%;
             background: linear-gradient(90deg, #ffcc00, #ff9500);
+            border-radius: 10px;
+            transition: width 0.4s ease;
         }
 
-        /* ===== МОДАЛКА ===== */
+        .achieve-card .achieve-badge {
+            background: #ffcc00;
+            color: #0b0a0f;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 12px;
+            border-radius: 20px;
+        }
+
+        .achieve-card.locked .achieve-badge {
+            background: #2c2838;
+            color: #63606e;
+        }
+
+        .achieve-card .achieve-reward {
+            font-size: 12px;
+            color: #51cf66;
+            margin-top: 4px;
+        }
+
+        /* ----- МОДАЛКА ----- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -958,101 +1287,174 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 20px;
         }
+
         .modal-overlay.active {
             display: flex;
         }
+
         .modal {
-            background: #1c1c1e;
-            border-radius: 26px;
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-            border: 1px solid #2a2a30;
+            background: rgba(28, 26, 36, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 28px;
+            max-width: 420px;
+            width: 100%;
+            border: 1px solid rgba(255, 149, 0, 0.1);
             max-height: 90vh;
             overflow-y: auto;
         }
+
         .modal h2 {
             color: #ff9500;
             margin-bottom: 16px;
+            font-size: 22px;
         }
+
         .modal input,
         .modal textarea,
         .modal select {
             width: 100%;
-            background: #0b0b0c;
-            border: 1px solid #2a2a30;
-            border-radius: 10px;
-            padding: 12px;
-            color: #fff;
+            background: rgba(12, 10, 18, 0.7);
+            border: 1px solid #34303e;
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: #f0eef3;
             font-size: 14px;
             margin-bottom: 12px;
             outline: none;
+            transition: 0.25s;
         }
+
         .modal input:focus,
         .modal textarea:focus,
         .modal select:focus {
             border-color: #ff9500;
         }
-        .modal select option {
-            background: #1c1c1e;
+
+        .modal textarea {
+            resize: vertical;
+            min-height: 50px;
+            font-family: inherit;
         }
+
+        .modal select option {
+            background: #1c1a24;
+        }
+
         .modal label {
-            color: #8e8e93;
+            color: #9893a8;
             font-size: 13px;
             margin-bottom: 4px;
             display: block;
         }
+
+        .modal .stat-select-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .modal .stat-select-row label {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+
+        .modal .stat-select-row select {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
         .modal .modal-actions {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
             margin-top: 16px;
         }
+
         .modal .modal-actions button {
             padding: 10px 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             border: none;
             font-weight: 700;
             cursor: pointer;
+            transition: 0.2s;
+            font-size: 14px;
         }
+
+        .modal .modal-actions button:active {
+            transform: scale(0.96);
+        }
+
         .modal .modal-actions .cancel {
-            background: #2c2c2e;
-            color: #fff;
+            background: #2c2838;
+            color: #9893a8;
         }
+
         .modal .modal-actions .submit {
-            background: #ff9500;
+            background: linear-gradient(135deg, #ff9500, #e65c00);
             color: #fff;
         }
-        .modal .stat-select-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .modal .stat-select-row label {
-            color: #8e8e93;
+
+        #goal-reward-preview {
             font-size: 13px;
-            white-space: nowrap;
+            color: #9893a8;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(12, 10, 18, 0.4);
+            border-radius: 10px;
+            text-align: center;
         }
-        .modal .stat-select-row select {
-            flex: 1;
-            margin-bottom: 0;
+
+        /* ----- АДАПТИВ ----- */
+        @media(max-width: 480px) {
+            .auth-container {
+                padding: 24px 18px;
+            }
+            .header-bar {
+                padding: 8px 12px;
+            }
+            .brand {
+                font-size: 13px;
+            }
+            .user-badge {
+                font-size: 12px;
+                padding: 4px 10px 4px 8px;
+            }
+            .gold-badge {
+                font-size: 12px;
+                padding: 4px 12px;
+            }
+            .stat-item {
+                font-size: 13px;
+                padding: 12px 14px;
+            }
+            #level-display {
+                font-size: 34px;
+            }
+            .profile-card {
+                padding: 18px;
+            }
+            .modal {
+                padding: 20px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-    <!-- ============================================ -->
-    <!-- АВТОРИЗАЦИЯ                                     -->
-    <!-- ============================================ -->
+    <!-- АВТОРИЗАЦИЯ -->
     <div id="auth-screen" class="auth-container">
         <div class="logo-icon">🎮</div>
         <h1>Реал Лайф РПГ</h1>
-        <div class="subtitle">Войдите в свой аккаунт</div>
+        <div class="subtitle">Войди в свою историю</div>
 
         <div class="auth-tabs">
             <div class="auth-tab active" id="login-tab" onclick="switchAuthTab('login')">🔑 Вход</div>
@@ -1064,32 +1466,30 @@
             <input type="password" id="login-password" placeholder="🔒 Пароль" autocomplete="current-password">
             <div class="auth-error" id="login-error"></div>
             <button class="auth-btn" onclick="loginUser()">🔓 Войти</button>
-            <div class="auth-hint">Нет аккаунта? <span onclick="switchAuthTab('register')">Зарегистрируйтесь</span></div>
+            <div class="auth-hint">Нет аккаунта? <span onclick="switchAuthTab('register')">Зарегистрируйся</span></div>
         </div>
 
         <div class="auth-form" id="register-form">
             <input type="text" id="reg-username" placeholder="👤 Имя пользователя" autocomplete="username">
             <input type="email" id="reg-email" placeholder="📧 Email (необязательно)" autocomplete="email">
-            <input type="password" id="reg-password" placeholder="🔒 Пароль (минимум 4 символа)" autocomplete="new-password">
-            <input type="password" id="reg-password2" placeholder="🔒 Повторите пароль" autocomplete="new-password">
+            <input type="password" id="reg-password" placeholder="🔒 Пароль (мин. 4 символа)" autocomplete="new-password">
+            <input type="password" id="reg-password2" placeholder="🔒 Повтори пароль" autocomplete="new-password">
             <div class="auth-error" id="register-error"></div>
             <div class="auth-success" id="register-success"></div>
             <button class="auth-btn" onclick="registerUser()">📝 Создать аккаунт</button>
-            <div class="auth-hint">Уже есть аккаунт? <span onclick="switchAuthTab('login')">Войдите</span></div>
+            <div class="auth-hint">Уже есть аккаунт? <span onclick="switchAuthTab('login')">Войди</span></div>
         </div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- ИГРА                                           -->
-    <!-- ============================================ -->
+    <!-- ИГРА -->
     <div id="game-container" class="game-container">
 
         <!-- ХЕДЕР -->
         <div class="header-bar">
-            <div style="font-size:14px;color:#8e8e93;font-weight:600;">РПГ РЕАЛ ЛАЙФ</div>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <span class="brand">⚡ РЕАЛ ЛАЙФ РПГ</span>
+            <div class="header-right">
                 <div class="user-badge">
-                    <span id="header-avatar">🥚</span>
+                    <span class="avatar" id="header-avatar">🥚</span>
                     <span id="user-nick">Игрок</span>
                     <span id="user-level-badge" style="color:#ff9500;font-size:11px;">Lv.1</span>
                     <span id="social-level-badge" style="color:#bf5af2;font-size:11px;">Соц.1</span>
@@ -1099,22 +1499,23 @@
             </div>
         </div>
 
-        <!-- ВКЛАДКИ -->
+        <!-- ТАБЫ -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('main-screen', this)">Прокачка</button>
-            <button class="tab-btn" onclick="switchTab('quests-screen', this)">Квесты</button>
+            <button class="tab-btn active" onclick="switchTab('main-screen', this)">📊 Главная</button>
+            <button class="tab-btn" onclick="switchTab('quests-screen', this)">⚔️ Квесты</button>
             <button class="tab-btn" onclick="switchTab('goals-screen', this)">🎯 Цели</button>
-            <button class="tab-btn" onclick="switchTab('shop-screen', this)">Магазин</button>
+            <button class="tab-btn" onclick="switchTab('shop-screen', this)">🛒 Магазин</button>
             <button class="tab-btn" onclick="switchTab('achieve-screen', this)">🏆 Ачивки</button>
         </div>
 
-        <!-- ===== ГЛАВНЫЙ ЭКРАН ===== -->
+        <!-- ГЛАВНАЯ -->
         <div id="main-screen" class="screen active">
-            <!-- Хотбар -->
+
+            <!-- Хотбар целей -->
             <div class="hotbar">
                 <div class="hotbar-title">
                     <span>🎯 Мои цели</span>
-                    <span style="font-size:12px;color:#0a84ff;cursor:pointer;" onclick="switchTab('goals-screen', document.querySelector('.tab-btn:nth-child(3)'))">Все →</span>
+                    <a onclick="switchTab('goals-screen', document.querySelector('.tab-btn:nth-child(3)'))">Все →</a>
                 </div>
                 <div class="hotbar-goals" id="hotbar-goals"></div>
             </div>
@@ -1122,11 +1523,11 @@
             <!-- Профиль -->
             <div class="profile-card">
                 <div id="profile-avatar">🥚</div>
-                <div style="color:#aeaeae;font-size:12px;text-transform:uppercase;">Текущий Уровень</div>
-                <h1 id="level-display">1</h1>
+                <div class="level-label">Текущий уровень</div>
+                <div id="level-display">1</div>
                 <div class="title-display" id="title-display">🥚 Обыватель</div>
                 <div class="progress-container"><div class="progress-bar" id="exp-bar"></div></div>
-                <div id="exp-display" style="font-size:13px;color:#8e8e93;">0 / 250 XP</div>
+                <div id="exp-display">0 / 250 XP</div>
             </div>
 
             <!-- Социальный уровень -->
@@ -1147,105 +1548,104 @@
             <!-- Сон -->
             <div class="sleep-card">
                 <div class="sleep-title">🌙 Контроль режима сна</div>
-                <div class="sleep-desc">До 00:00: <b>+10 Дисциплина / +15 🪙</b><br>После 00:00: <b>-10 Дисциплина</b></div>
+                <div class="sleep-desc">До 00:00: <strong style="color:#51cf66;">+10 Дисциплина / +15 🪙</strong><br>После 00:00: <strong style="color:#ff6b6b;">-10 Дисциплина</strong></div>
                 <button class="sleep-btn" id="sleep-action-btn" onclick="checkSleepTime()">🛌 Лечь спать</button>
             </div>
 
             <!-- Статы -->
             <div class="stats-grid">
-                <div class="stat-item"><span>💪 Сила</span><span id="str-val" style="color:#ff453a">0</span></div>
-                <div class="stat-item"><span>🏃‍♂️ Выносливость</span><span id="end-val" style="color:#ff9500">0</span></div>
-                <div class="stat-item"><span>🎯 Ловкость</span><span id="agi-val" style="color:#30d158">0</span></div>
-                <div class="stat-item"><span>📚 Интеллект</span><span id="int-val" style="color:#0a84ff">0</span></div>
-                <div class="stat-item"><span>🗣 Харизма</span><span id="cha-val" style="color:#bf5af2">0</span></div>
-                <div class="stat-item"><span>👁 Дисциплина</span><span id="per-val" style="color:#00bfff">0</span></div>
-                <div class="stat-item luck-stat"><span>🍀 Удача (Luck)</span><span id="luck-val" style="color:#ffcc00">0</span></div>
+                <div class="stat-item"><span class="stat-label">💪 Сила</span><span class="stat-value" id="str-val" style="color:#ff6b6b;">0</span></div>
+                <div class="stat-item"><span class="stat-label">🏃 Выносливость</span><span class="stat-value" id="end-val" style="color:#ff9500;">0</span></div>
+                <div class="stat-item"><span class="stat-label">🎯 Ловкость</span><span class="stat-value" id="agi-val" style="color:#51cf66;">0</span></div>
+                <div class="stat-item"><span class="stat-label">📚 Интеллект</span><span class="stat-value" id="int-val" style="color:#0a84ff;">0</span></div>
+                <div class="stat-item"><span class="stat-label">🗣 Харизма</span><span class="stat-value" id="cha-val" style="color:#bf5af2;">0</span></div>
+                <div class="stat-item"><span class="stat-label">👁 Дисциплина</span><span class="stat-value" id="per-val" style="color:#00bfff;">0</span></div>
+                <div class="stat-item luck-stat"><span class="stat-label">🍀 Удача</span><span class="stat-value" id="luck-val" style="color:#ffcc00;">0</span></div>
             </div>
 
             <!-- Тренировки -->
-            <div style="width:100%;">
-                <button class="btn" onclick="train('str')"><span>🏋️‍♂️ Зал (База)</span><span class="btn-plus">+10 Сила</span></button>
-                <button class="btn" onclick="train('end')"><span>🏃‍♂️ Бег / Кардио</span><span class="btn-plus">+10 Выносл.</span></button>
-                <button class="btn" onclick="train('agi')"><span>🎯 Растяжка / Реакция</span><span class="btn-plus">+10 Ловкость</span></button>
-                <button class="btn" onclick="train('int')"><span>📖 Чтение / Учеба</span><span class="btn-plus">+10 Интелл.</span></button>
-                <button class="btn" onclick="train('cha')"><span>🗣 Общение / Нетворк</span><span class="btn-plus">+10 Харизма</span></button>
-                <button class="btn" onclick="train('per')"><span>👁 Медитация / Фокус</span><span class="btn-plus">+10 Дисциплина</span></button>
-            </div>
+            <button class="train-btn" onclick="train('str')"><span>🏋️‍♂️ Зал (База)</span><span class="plus">+10 Сила</span></button>
+            <button class="train-btn" onclick="train('end')"><span>🏃‍♂️ Бег / Кардио</span><span class="plus">+10 Выносл.</span></button>
+            <button class="train-btn" onclick="train('agi')"><span>🎯 Растяжка / Реакция</span><span class="plus">+10 Ловкость</span></button>
+            <button class="train-btn" onclick="train('int')"><span>📖 Чтение / Учеба</span><span class="plus">+10 Интелл.</span></button>
+            <button class="train-btn" onclick="train('cha')"><span>🗣 Общение / Нетворк</span><span class="plus">+10 Харизма</span></button>
+            <button class="train-btn" onclick="train('per')"><span>👁 Медитация / Фокус</span><span class="plus">+10 Дисциплина</span></button>
 
             <!-- Инвентарь -->
             <div class="inventory-box">
-                <div style="font-size:14px;font-weight:700;color:#8e8e93;margin-bottom:10px;">🎒 НАДЕТЫЕ ВЕЩИ (БОНУСЫ)</div>
+                <div class="inventory-title">🎒 Экипировка (бонусы)</div>
                 <div class="inventory-items" id="inventory-list">
-                    <span style="color:#636366;font-style:italic;">У вас пока нет снаряжения...</span>
+                    <span style="color:#63606e;font-style:italic;">У вас пока нет снаряжения...</span>
                 </div>
             </div>
-            <button class="reset-btn" onclick="resetProgress()">Начать жизнь с нуля</button>
+
+            <button class="reset-btn" onclick="resetProgress()">🗑️ Начать жизнь с нуля</button>
         </div>
 
-        <!-- ===== КВЕСТЫ ===== -->
+        <!-- КВЕСТЫ -->
         <div id="quests-screen" class="screen">
-            <div class="section-title blue">Еженедельный вызов</div>
-            <div class="weekly-challenge-card">
-                <div class="weekly-header">⭐ Прочитай книгу</div>
+            <div class="section-title orange">⭐ Еженедельный вызов</div>
+
+            <div class="weekly-challenge">
+                <div class="weekly-header">📖 Прочитай книгу</div>
                 <div class="weekly-desc">Прочитай книгу объемом не менее 200 страниц.</div>
-                <div class="weekly-reward-text">➕ Награда: +8 ко всем характеристикам +15 удачи +100 монет</div>
+                <div style="font-weight:700;color:#ffcc00;margin-bottom:14px;">➕ Награда: +8 ко всем статам +15 удачи +100 🪙</div>
                 <button class="weekly-btn" id="w1" onclick="completeWeeklyChallenge(this)">Выполнить</button>
             </div>
-            <div class="timer-box">Новый вызов через: <span style="color:#ff9500;font-weight:bold;" id="weekly-timer">6д 23:59:59</span></div>
 
-            <div class="section-title blue">Ежедневные квесты</div>
-            <div class="timer-box">Новые квесты через: <span style="color:#00bfff;font-weight:bold;" id="daily-timer">23:59:59</span></div>
+            <div class="timer-box">⏳ Новый вызов через: <strong id="weekly-timer">6д 23:59:59</strong></div>
+
+            <div class="section-title blue">📅 Ежедневные квесты</div>
+            <div class="timer-box">⏳ Новые квесты через: <strong id="daily-timer">23:59:59</strong></div>
             <div class="quests-grid" id="quests-container"></div>
 
             <div class="section-title purple">🤝 Социальные квесты</div>
-            <div class="timer-box">Новые квесты через: <span style="color:#bf5af2;font-weight:bold;" id="social-timer">23:59:59</span></div>
+            <div class="timer-box">⏳ Новые квесты через: <strong id="social-timer">23:59:59</strong></div>
             <div class="social-quests-container" id="social-quests-container"></div>
         </div>
 
-        <!-- ===== ЦЕЛИ ===== -->
+        <!-- ЦЕЛИ -->
         <div id="goals-screen" class="screen">
-            <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-                <h2 style="color:#ff9500;margin:0;">🎯 Мои цели</h2>
-                <button class="add-goal-btn" style="width:auto;padding:8px 16px;" onclick="showAddGoalModal()">➕ Добавить</button>
+            <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <h2 style="color:#ff9500;font-size:22px;margin:0;">🎯 Мои цели</h2>
+                <button class="add-goal-btn" style="width:auto;padding:10px 20px;font-size:13px;" onclick="showAddGoalModal()">➕ Добавить</button>
             </div>
             <div class="goals-container" id="goals-container"></div>
         </div>
 
-        <!-- ===== МАГАЗИН ===== -->
+        <!-- МАГАЗИН -->
         <div id="shop-screen" class="screen">
+            <div class="section-title gold">🛒 Магазин</div>
             <div class="shop-grid">
-                <div class="shop-card" style="border-color:#8e8e93;">
-                    <h3 style="color:#aeaeae">📦 Обычный сундук</h3>
+                <div class="shop-card" style="border-color:#63606e;">
+                    <h3 style="color:#b0aec0;">📦 Обычный сундук</h3>
                     <div class="shop-desc">Шанс выбить базовые предметы.</div>
-                    <button class="buy-btn" style="background:#3a3a3c" onclick="openChest('common', 30)">Открыть за 30 🪙</button>
+                    <button class="shop-btn" onclick="openChest('common', 30)">Открыть за 30 🪙</button>
                 </div>
                 <div class="shop-card" style="border-color:#bf5af2;">
-                    <h3 style="color:#bf5af2">👑 Эпический кейс</h3>
+                    <h3 style="color:#bf5af2;">👑 Эпический кейс</h3>
                     <div class="shop-desc">Шанс выбить легендарный лут.</div>
-                    <button class="buy-btn" style="background:#bf5af2" onclick="openChest('epic', 100)">Открыть за 100 🪙</button>
+                    <button class="shop-btn purple" onclick="openChest('epic', 100)">Открыть за 100 🪙</button>
                 </div>
             </div>
 
-            <div style="width:100%;margin-top:30px;">
-                <h2 class="section-title purple">🎡 Рулетка</h2>
-                <div class="roulette-container">
-                    <div class="roulette-cost">Стоимость вращения: <span style="color:#ffcc00;">50 🪙</span></div>
-                    <div class="roulette-wheel" id="roulette-wheel">🎁</div>
-                    <button class="roulette-spin-btn" onclick="spinRoulette()">🔮 Крутить</button>
-                    <div class="roulette-result" id="roulette-result"></div>
-                </div>
+            <div class="section-title purple">🎡 Рулетка</div>
+            <div class="roulette-container">
+                <div class="roulette-cost">Стоимость вращения: <strong style="color:#ffcc00;">50 🪙</strong></div>
+                <div class="roulette-wheel" id="roulette-wheel">🎁</div>
+                <button class="roulette-spin-btn" onclick="spinRoulette()">🔮 Крутить</button>
+                <div class="roulette-result" id="roulette-result"></div>
             </div>
         </div>
 
-        <!-- ===== ДОСТИЖЕНИЯ ===== -->
+        <!-- ДОСТИЖЕНИЯ -->
         <div id="achieve-screen" class="screen">
-            <h2 class="section-title gold">🏆 Достижения</h2>
+            <div class="section-title gold">🏆 Достижения</div>
             <div id="achievements-container" style="width:100%;display:flex;flex-direction:column;gap:10px;"></div>
         </div>
+    </div>
 
-    </div><!-- /game-container -->
-
-    <!-- ===== МОДАЛКА ДОБАВЛЕНИЯ ЦЕЛИ ===== -->
+    <!-- МОДАЛКА ДОБАВЛЕНИЯ ЦЕЛИ -->
     <div class="modal-overlay" id="goal-modal">
         <div class="modal">
             <h2>🎯 Новая цель</h2>
@@ -1253,6 +1653,7 @@
             <textarea id="goal-desc" placeholder="Описание (необязательно)" rows="2"></textarea>
             <input type="number" id="goal-target" placeholder="Целевое значение (например: 120)">
             <input type="text" id="goal-unit" placeholder="Единица измерения (кг, раз, мин...)">
+
             <label>Редкость цели</label>
             <select id="goal-rarity">
                 <option value="legendary">⭐ Легендарная</option>
@@ -1260,6 +1661,7 @@
                 <option value="common">📦 Обычная</option>
                 <option value="easy">🌱 Легкая</option>
             </select>
+
             <div class="stat-select-row">
                 <label>Награда: +</label>
                 <select id="goal-stat">
@@ -1272,7 +1674,9 @@
                     <option value="luck">🍀 Удача</option>
                 </select>
             </div>
-            <div id="goal-reward-preview" style="font-size:13px;color:#8e8e93;margin-bottom:12px;"></div>
+
+            <div id="goal-reward-preview"></div>
+
             <div class="modal-actions">
                 <button class="cancel" onclick="closeGoalModal()">Отмена</button>
                 <button class="submit" onclick="addGoal()">Добавить</button>
@@ -1280,10 +1684,7 @@
         </div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- ПОДКЛЮЧАЕМ JAVASCRIPT                        -->
-    <!-- ============================================ -->
+    <!-- ПОДКЛЮЧАЕМ JAVASCRIPT -->
     <script src="script.js"></script>
-
 </body>
 </html>
