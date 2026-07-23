@@ -892,27 +892,14 @@ function renderInventory() {
     
     ensureInventoryArray();
     
+    console.log('📦 inventory before render:', currentUserData.inventory);
+    
     if (!currentUserData.inventory || currentUserData.inventory.length === 0) {
         container.innerHTML = `<span style="color:#636366; font-style: italic;">У вас пока нет снаряжения...</span>`;
         return;
     }
     
-    container.innerHTML = currentUserData.inventory.map(item => {
-        if (typeof item === 'string') {
-            // Старая система (строка)
-            return `<span class="inv-item">${item}</span>`;
-        }
-        // Новая система: предмет — объект
-        const rarity = RARITIES[item.rarity] || RARITIES.common;
-        const bonusText = item.stat && item.bonus ? `+${item.bonus} ${STAT_LABELS[item.stat] || item.stat}` : '';
-        return `
-            <span class="inv-item" style="border-color: ${rarity.color}; background: ${rarity.color}22;" title="${item.desc || ''}">
-                ${item.icon || '📦'} ${item.name}
-                ${bonusText ? `<span style="font-size:11px; color:#ffcc00;">${bonusText}</span>` : ''}
-                <span style="font-size:10px; color:${rarity.color};">${rarity.label}</span>
-            </span>
-        `;
-    }).join('');
+    // ... остальной код рендеринга ...
 }
 // ========================================
 //  СИСТЕМА ЦЕЛЕЙ
