@@ -46,7 +46,7 @@ const EXP = 250;
 const SOCIAL_XP_PER_LEVEL = 100;
 
 // ========================================
-//  БАЗЫ ДАННЫХ (НАГРАДЫ, КВЕСТЫ, ЛУТ)
+//  БАЗЫ ДАННЫХ
 // ========================================
 
 const RARITY_CONFIG = {
@@ -65,10 +65,6 @@ const STAT_LABELS = {
     per: '👁 Дисциплина',
     luck: '🍀 Удача'
 };
-
-// ========================================
-//  НОВАЯ СИСТЕМА РЕДКОСТЕЙ И ВЕЩЕЙ
-// ========================================
 
 const RARITIES = {
     common: { label: '📦 Обычное', color: '#8e8e93', weight: 40, emoji: '📦' },
@@ -107,74 +103,80 @@ const ITEMS_POOL = [
 ];
 
 // ========================================
-//  СОЦИАЛЬНЫЕ КВЕСТЫ (60 штук, 6 рангов)
+//  СОЦИАЛЬНЫЕ КВЕСТЫ (с доп. полями для рулетки)
 // ========================================
 
 const SOCIAL_QUESTS_DB = [
-    { id: 's1', title: '👀 Контакт установлен', desc: 'Поймай взгляд случайного прохожего и не отводи его первым ровно 2 секунды.', rank: 1, xpReward: 15, socialBonus: 1 },
-    { id: 's2', title: '🧍 Бафф осанки', desc: 'Пройди 10 минут по улице с максимально прямой спиной и расправленными плечами.', rank: 1, xpReward: 15, socialBonus: 1 },
-    { id: 's3', title: '🗣️ Голос из таверны', desc: 'Скажи «Здравствуйте» кассиру или курьеру на 10% громче, чем обычно.', rank: 1, xpReward: 15, socialBonus: 1 },
-    { id: 's4', title: '😊 Оружие к бою', desc: 'Искренне улыбнись одному незнакомому человеку за день.', rank: 1, xpReward: 15, socialBonus: 1 },
-    { id: 's5', title: '🛡️ Открытый щит', desc: 'Проведи 15 минут в людном месте, сознательно не скрещивая руки и ноги.', rank: 1, xpReward: 15, socialBonus: 1 },
-    { id: 's6', title: '⏳ Мастер времени', desc: 'Подойди к незнакомцу на улице и спроси, который час.', rank: 1, xpReward: 20, socialBonus: 1 },
-    { id: 's7', title: '🤝 Вежливый NPC', desc: 'Поблагодари обслуживающий персонал, обязательно посмотрев при этом в глаза.', rank: 1, xpReward: 15, socialBonus: 1 },
-    { id: 's8', title: '📱 Анти-стелс', desc: 'Зайди в лифт с другими людьми и не доставай телефон.', rank: 1, xpReward: 15, socialBonus: 1 },
-    { id: 's9', title: '👂 Эффект присутствия', desc: 'Во время разговора со знакомым кивни минимум 3 раза, показывая, что ты слушаешь.', rank: 1, xpReward: 15, socialBonus: 1 },
-    { id: 's10', title: '📖 Четкая дикция', desc: 'Прочитай вслух любой текст (1 страница), чётко проговаривая каждое слово, чтобы разогреть речевой аппарат.', rank: 1, xpReward: 20, socialBonus: 1 },
-    { id: 's11', title: '💎 Нежданный лут', desc: 'Сделай искренний комплимент внешности или одежде малознакомого человека.', rank: 2, xpReward: 25, socialBonus: 2 },
-    { id: 's12', title: '✨ Магия имени', desc: 'Узнай имя нового собеседника и назови его по имени минимум 2 раза за диалог.', rank: 2, xpReward: 25, socialBonus: 2 },
-    { id: 's13', title: '🔀 Разрыв шаблона', desc: 'На дежурное «Как дела?» ответь не «нормально», а интересной деталью (например: «Отлично, пью вкусный кофе»).', rank: 2, xpReward: 25, socialBonus: 2 },
-    { id: 's14', title: '🗺️ Следопыт', desc: 'Спроси дорогу у прохожего, даже если точно знаешь, куда идти.', rank: 2, xpReward: 25, socialBonus: 2 },
-    { id: 's15', title: '📡 Эхолокация', desc: 'Повтори последние 3 слова собеседника с вопросительной интонацией, чтобы он продолжил рассказ.', rank: 2, xpReward: 30, socialBonus: 2 },
-    { id: 's16', title: '🤝 Общий знаменатель', desc: 'Найди одну общую деталь с человеком, с которым раньше почти не общался (музыка, нелюбовь к пробкам, хобби).', rank: 2, xpReward: 25, socialBonus: 2 },
-    { id: 's17', title: '☕ Светская беседа', desc: 'Перекинься парой фраз о погоде или ситуации с соседом/коллегой.', rank: 2, xpReward: 25, socialBonus: 2 },
-    { id: 's18', title: '🚮 Без мусора', desc: 'Поговори с кем-то 5 минут, сознательно избегая слов-паразитов («типа», «короче», «ну»).', rank: 2, xpReward: 30, socialBonus: 2 },
-    { id: 's19', title: '📢 Развернутый ответ', desc: 'Ни разу за день не ответь на вопросы односложно («да»/«нет») — добавляй минимум одно предложение.', rank: 2, xpReward: 25, socialBonus: 2 },
-    { id: 's20', title: '👋 Новый союзник', desc: 'Подойди к человеку на мероприятии/учебе/работе и первым представься: «Привет, я [Имя], мы еще не знакомы».', rank: 2, xpReward: 30, socialBonus: 2 },
-    { id: 's21', title: '🧘 Безмолвный монах', desc: 'Выслушай человека в течение 5 минут, ни разу его не перебив.', rank: 3, xpReward: 35, socialBonus: 3 },
-    { id: 's22', title: '🔍 Глубокий зонд', desc: 'Задай открытый вопрос, требующий размышления (например: «Что тебе больше всего нравится в твоей работе?»).', rank: 3, xpReward: 35, socialBonus: 3 },
-    { id: 's23', title: '📡 Тонкая настройка', desc: 'Заметь изменение настроения собеседника и аккуратно спроси об этом («Ты кажешься уставшим, всё ок?»).', rank: 3, xpReward: 35, socialBonus: 3 },
-    { id: 's24', title: '🏅 Высокоуровневый комплимент', desc: 'Похвали не внешность, а навык, характер или поступок человека.', rank: 3, xpReward: 35, socialBonus: 3 },
-    { id: 's25', title: '🎁 Достойная награда', desc: 'В ответ на похвалу скажи только «Спасибо, мне очень приятно», не принижая своих заслуг.', rank: 3, xpReward: 35, socialBonus: 3 },
-    { id: 's26', title: '📚 Архивариус', desc: 'Вспомни в разговоре мелкую деталь, которую человек упоминал несколько дней назад.', rank: 3, xpReward: 40, socialBonus: 3 },
-    { id: 's27', title: '🪞 Отзеркаливание', desc: 'В течение 3 минут незаметно копируй позу собеседника для повышения доверия.', rank: 3, xpReward: 35, socialBonus: 3 },
-    { id: 's28', title: '⏸️ Тяжеловесная пауза', desc: 'Выдержи паузу в 2 секунды перед ответом на важный вопрос, глядя человеку в глаза.', rank: 3, xpReward: 35, socialBonus: 3 },
-    { id: 's29', title: '🛡️ Снятие брони', desc: 'Расскажи собеседнику небольшую, но искреннюю историю о своей недавней мелкой неудаче (повышает доверие).', rank: 3, xpReward: 40, socialBonus: 4 },
-    { id: 's30', title: '👁️ Удержание фокуса', desc: 'Смотри в глаза собеседнику не только когда он говорит, но и когда говоришь ты сам.', rank: 3, xpReward: 35, socialBonus: 3 },
-    { id: 's31', title: '🔥 Байки у костра', desc: 'Заранее вспомни, отрепетируй и расскажи в компании забавную историю на 1-2 минуты.', rank: 4, xpReward: 45, socialBonus: 5 },
-    { id: 's32', title: '⚔️ Изящное парирование', desc: 'Вежливо, но твердо не согласись с чужим мнением, начав с «Я понимаю твою мысль, но...»', rank: 4, xpReward: 45, socialBonus: 5 },
-    { id: 's33', title: '🎮 Врыв в пати', desc: 'Успешно вклинись в уже идущий разговор группы людей, не нарушив его динамику.', rank: 4, xpReward: 50, socialBonus: 5 },
-    { id: 's34', title: '🕊️ Уютная тишина', desc: 'Переживи неловкую паузу в разговоре, не пытаясь судорожно заполнить её болтовней, сохраняя спокойную улыбку.', rank: 4, xpReward: 45, socialBonus: 5 },
-    { id: 's35', title: '🤲 Плавный жест', desc: 'Рассказывая что-то, осознанно используй открытые жесты руками (ладонями вверх).', rank: 4, xpReward: 45, socialBonus: 5 },
-    { id: 's36', title: '☕ Инвайт', desc: 'Пригласи малознакомого, но интересного тебе человека выпить кофе или пообедать вместе.', rank: 4, xpReward: 50, socialBonus: 5 },
-    { id: 's37', title: '🎬 Режиссёр', desc: 'Увидев, что кого-то в компании перебили, верни ему слово («Так что ты там говорил про...?»).', rank: 4, xpReward: 50, socialBonus: 6 },
-    { id: 's38', title: '🎙️ Прокачка голоса', desc: 'Говори более низким и грудным голосом, чем обычно, в течение одного разговора.', rank: 4, xpReward: 50, socialBonus: 6 },
-    { id: 's39', title: '😂 Шутка в тему', desc: 'Сделай уместное ироничное замечание, заставив улыбнуться хотя бы одного человека.', rank: 4, xpReward: 50, socialBonus: 6 },
-    { id: 's40', title: '🎯 Центр притяжения', desc: 'Удержи на себе внимание группы из 3+ человек в течение хотя бы минуты.', rank: 4, xpReward: 55, socialBonus: 6 },
-    { id: 's41', title: '🔗 Связующее звено', desc: 'Познакомь двух людей, рассказав им по одному крутому факту друг о друге.', rank: 5, xpReward: 65, socialBonus: 7 },
-    { id: 's42', title: '🛡️ Сбор рейда', desc: 'Выступи инициатором: собери группу из 3+ друзей/коллег и организуй совместный поход куда-либо.', rank: 5, xpReward: 70, socialBonus: 8 },
-    { id: 's43', title: '🤝 Дипломат', desc: 'Успокой расстроенного или раздражённого человека, используя только эмпатию и слушание.', rank: 5, xpReward: 70, socialBonus: 8 },
-    { id: 's44', title: '👔 Разговор с боссом', desc: 'Уверенно и на равных заведи смолл-ток с человеком, который выше тебя по статусу или должности.', rank: 5, xpReward: 75, socialBonus: 8 },
-    { id: 's45', title: '📢 Глас глашатая', desc: 'Произнеси тост или возьми вступительное слово на встрече/празднике.', rank: 5, xpReward: 75, socialBonus: 9 },
-    { id: 's46', title: '🔄 Перелом хода', desc: 'Мягко переведи негативное обсуждение (жалобы, сплетни) в позитивное или нейтральное русло.', rank: 5, xpReward: 75, socialBonus: 9 },
-    { id: 's47', title: '💼 Торговец', desc: 'Попроси о небольшой скидке, бонусе или лучшем столике в заведении с дружелюбной улыбкой.', rank: 5, xpReward: 80, socialBonus: 9 },
-    { id: 's48', title: '💪 Уверенная просьба', desc: 'Попроси человека об одолжении прямо, без извиняющегося тона («Мне нужна твоя помощь с...»).', rank: 5, xpReward: 80, socialBonus: 10 },
-    { id: 's49', title: '🧠 Память на имена', desc: 'Попав в новую компанию, запомни и используй в разговоре имена минимум троих людей.', rank: 5, xpReward: 80, socialBonus: 10 },
-    { id: 's50', title: '🎭 Эмоциональные качели', desc: 'Расскажи историю так, чтобы слушатели испытали сначала напряжение, а затем смех или облегчение.', rank: 5, xpReward: 85, socialBonus: 10 },
-    { id: 's51', title: '🏠 Хост (Хозяин таверны)', desc: 'Прими гостей у себя (или организуй вечеринку), лично следя за тем, чтобы всем было комфортно и никто не скучал.', rank: 6, xpReward: 100, socialBonus: 12 },
-    { id: 's52', title: '🕊️ Миротворец', desc: 'Выступи медиатором в споре двух людей и помоги им прийти к компромиссу без ссоры.', rank: 6, xpReward: 105, socialBonus: 13 },
-    { id: 's53', title: '💡 Презентация идеи', desc: 'Успешно «продай» свою идею группе людей (от выбора фильма до рабочего проекта).', rank: 6, xpReward: 105, socialBonus: 13 },
-    { id: 's54', title: '⚡ Бафф вдохновения', desc: 'Скажи человеку такие слова поддержки, после которых он сразу пойдёт что-то делать или воспрянет духом.', rank: 6, xpReward: 100, socialBonus: 12 },
-    { id: 's55', title: '😂 Массовый смех', desc: 'Рассмеши аудиторию от 5 и более человек одной историей или шуткой.', rank: 6, xpReward: 110, socialBonus: 14 },
-    { id: 's56', title: '🛡️ Очарование стражи', desc: 'Выйди из проблемной ситуации (опоздание, мелкий штраф, ошибка) исключительно за счёт обаяния и умения договариваться.', rank: 6, xpReward: 115, socialBonus: 14 },
-    { id: 's57', title: '🧙 Наставник', desc: 'Объясни сложную концепцию или научи навыку человека так, чтобы он почувствовал себя умным, а не глупым.', rank: 6, xpReward: 115, socialBonus: 15 },
-    { id: 's58', title: '👑 Властелин зала', desc: 'Войди в помещение, где сидят люди, и своим языком тела и приветствием заставь всех обратить на тебя позитивное внимание.', rank: 6, xpReward: 120, socialBonus: 15 },
-    { id: 's59', title: '🤝 Мгновенный траст', desc: 'Установи глубокий, доверительный раппорт с новым человеком менее чем за 10 минут.', rank: 6, xpReward: 130, socialBonus: 16 },
-    { id: 's60', title: '🏆 Ачивка «Легенда»', desc: 'Получи от кого-то искреннюю, невынужденную обратную связь в стиле: «С тобой так круто общаться» или «У тебя потрясающая энергетика».', rank: 6, xpReward: 150, socialBonus: 20 }
+    // РАНГ 1 (уровни 1–5) – easy
+    { id: 's1', title: '👀 Контакт установлен', desc: 'Поймай взгляд случайного прохожего и не отводи его первым ровно 2 секунды.', rank: 1, xpReward: 15, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    { id: 's2', title: '🧍 Бафф осанки', desc: 'Пройди 10 минут по улице с максимально прямой спиной и расправленными плечами.', rank: 1, xpReward: 15, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    { id: 's3', title: '🗣️ Голос из таверны', desc: 'Скажи «Здравствуйте» кассиру или курьеру на 10% громче, чем обычно.', rank: 1, xpReward: 15, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    { id: 's4', title: '😊 Оружие к бою', desc: 'Искренне улыбнись одному незнакомому человеку за день.', rank: 1, xpReward: 15, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    { id: 's5', title: '🛡️ Открытый щит', desc: 'Проведи 15 минут в людном месте, сознательно не скрещивая руки и ноги.', rank: 1, xpReward: 15, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    { id: 's6', title: '⏳ Мастер времени', desc: 'Подойди к незнакомцу на улице и спроси, который час.', rank: 1, xpReward: 20, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    { id: 's7', title: '🤝 Вежливый NPC', desc: 'Поблагодари обслуживающий персонал, обязательно посмотрев при этом в глаза.', rank: 1, xpReward: 15, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    { id: 's8', title: '📱 Анти-стелс', desc: 'Зайди в лифт с другими людьми и не доставай телефон.', rank: 1, xpReward: 15, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    { id: 's9', title: '👂 Эффект присутствия', desc: 'Во время разговора со знакомым кивни минимум 3 раза, показывая, что ты слушаешь.', rank: 1, xpReward: 15, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    { id: 's10', title: '📖 Четкая дикция', desc: 'Прочитай вслух любой текст (1 страница), чётко проговаривая каждое слово.', rank: 1, xpReward: 20, socialBonus: 1, minSocialLevel: 1, difficulty: 'easy' },
+    // РАНГ 2 (уровни 6–10) – medium
+    { id: 's11', title: '💎 Нежданный лут', desc: 'Сделай искренний комплимент внешности или одежде малознакомого человека.', rank: 2, xpReward: 25, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    { id: 's12', title: '✨ Магия имени', desc: 'Узнай имя нового собеседника и назови его по имени минимум 2 раза за диалог.', rank: 2, xpReward: 25, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    { id: 's13', title: '🔀 Разрыв шаблона', desc: 'На дежурное «Как дела?» ответь не «нормально», а интересной деталью.', rank: 2, xpReward: 25, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    { id: 's14', title: '🗺️ Следопыт', desc: 'Спроси дорогу у прохожего, даже если точно знаешь, куда идти.', rank: 2, xpReward: 25, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    { id: 's15', title: '📡 Эхолокация', desc: 'Повтори последние 3 слова собеседника с вопросительной интонацией, чтобы он продолжил рассказ.', rank: 2, xpReward: 30, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    { id: 's16', title: '🤝 Общий знаменатель', desc: 'Найди одну общую деталь с человеком, с которым раньше почти не общался.', rank: 2, xpReward: 25, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    { id: 's17', title: '☕ Светская беседа', desc: 'Перекинься парой фраз о погоде или ситуации с соседом/коллегой.', rank: 2, xpReward: 25, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    { id: 's18', title: '🚮 Без мусора', desc: 'Поговори с кем-то 5 минут, сознательно избегая слов-паразитов.', rank: 2, xpReward: 30, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    { id: 's19', title: '📢 Развернутый ответ', desc: 'Ни разу за день не ответь на вопросы односложно — добавляй минимум одно предложение.', rank: 2, xpReward: 25, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    { id: 's20', title: '👋 Новый союзник', desc: 'Подойди к человеку на мероприятии и первым представься.', rank: 2, xpReward: 30, socialBonus: 2, minSocialLevel: 2, difficulty: 'medium' },
+    // РАНГ 3 (уровни 11–15) – medium/hard
+    { id: 's21', title: '🧘 Безмолвный монах', desc: 'Выслушай человека в течение 5 минут, ни разу его не перебив.', rank: 3, xpReward: 35, socialBonus: 3, minSocialLevel: 3, difficulty: 'medium' },
+    { id: 's22', title: '🔍 Глубокий зонд', desc: 'Задай открытый вопрос, требующий размышления.', rank: 3, xpReward: 35, socialBonus: 3, minSocialLevel: 3, difficulty: 'medium' },
+    { id: 's23', title: '📡 Тонкая настройка', desc: 'Заметь изменение настроения собеседника и аккуратно спроси об этом.', rank: 3, xpReward: 35, socialBonus: 3, minSocialLevel: 3, difficulty: 'medium' },
+    { id: 's24', title: '🏅 Высокоуровневый комплимент', desc: 'Похвали не внешность, а навык, характер или поступок человека.', rank: 3, xpReward: 35, socialBonus: 3, minSocialLevel: 3, difficulty: 'medium' },
+    { id: 's25', title: '🎁 Достойная награда', desc: 'В ответ на похвалу скажи только «Спасибо, мне очень приятно», не принижая своих заслуг.', rank: 3, xpReward: 35, socialBonus: 3, minSocialLevel: 3, difficulty: 'medium' },
+    { id: 's26', title: '📚 Архивариус', desc: 'Вспомни в разговоре мелкую деталь, которую человек упоминал несколько дней назад.', rank: 3, xpReward: 40, socialBonus: 3, minSocialLevel: 3, difficulty: 'medium' },
+    { id: 's27', title: '🪞 Отзеркаливание', desc: 'В течение 3 минут незаметно копируй позу собеседника для повышения доверия.', rank: 3, xpReward: 35, socialBonus: 3, minSocialLevel: 3, difficulty: 'medium' },
+    { id: 's28', title: '⏸️ Тяжеловесная пауза', desc: 'Выдержи паузу в 2 секунды перед ответом на важный вопрос, глядя человеку в глаза.', rank: 3, xpReward: 35, socialBonus: 3, minSocialLevel: 3, difficulty: 'medium' },
+    { id: 's29', title: '🛡️ Снятие брони', desc: 'Расскажи собеседнику небольшую, но искреннюю историю о своей недавней мелкой неудаче.', rank: 3, xpReward: 40, socialBonus: 4, minSocialLevel: 3, difficulty: 'medium' },
+    { id: 's30', title: '👁️ Удержание фокуса', desc: 'Смотри в глаза собеседнику не только когда он говорит, но и когда говоришь ты сам.', rank: 3, xpReward: 35, socialBonus: 3, minSocialLevel: 3, difficulty: 'medium' },
+    // РАНГ 4 (уровни 16–20) – hard
+    { id: 's31', title: '🔥 Байки у костра', desc: 'Заранее вспомни, отрепетируй и расскажи в компании забавную историю на 1-2 минуты.', rank: 4, xpReward: 45, socialBonus: 5, minSocialLevel: 4, difficulty: 'hard' },
+    { id: 's32', title: '⚔️ Изящное парирование', desc: 'Вежливо, но твердо не согласись с чужим мнением, начав с «Я понимаю твою мысль, но...»', rank: 4, xpReward: 45, socialBonus: 5, minSocialLevel: 4, difficulty: 'hard' },
+    { id: 's33', title: '🎮 Врыв в пати', desc: 'Успешно вклинись в уже идущий разговор группы людей, не нарушив его динамику.', rank: 4, xpReward: 50, socialBonus: 5, minSocialLevel: 4, difficulty: 'hard' },
+    { id: 's34', title: '🕊️ Уютная тишина', desc: 'Переживи неловкую паузу в разговоре, не пытаясь судорожно заполнить её болтовней.', rank: 4, xpReward: 45, socialBonus: 5, minSocialLevel: 4, difficulty: 'hard' },
+    { id: 's35', title: '🤲 Плавный жест', desc: 'Рассказывая что-то, осознанно используй открытые жесты руками (ладонями вверх).', rank: 4, xpReward: 45, socialBonus: 5, minSocialLevel: 4, difficulty: 'hard' },
+    { id: 's36', title: '☕ Инвайт', desc: 'Пригласи малознакомого, но интересного тебе человека выпить кофе или пообедать вместе.', rank: 4, xpReward: 50, socialBonus: 5, minSocialLevel: 4, difficulty: 'hard' },
+    { id: 's37', title: '🎬 Режиссёр', desc: 'Увидев, что кого-то в компании перебили, верни ему слово («Так что ты там говорил про...?»).', rank: 4, xpReward: 50, socialBonus: 6, minSocialLevel: 4, difficulty: 'hard' },
+    { id: 's38', title: '🎙️ Прокачка голоса', desc: 'Говори более низким и грудным голосом, чем обычно, в течение одного разговора.', rank: 4, xpReward: 50, socialBonus: 6, minSocialLevel: 4, difficulty: 'hard' },
+    { id: 's39', title: '😂 Шутка в тему', desc: 'Сделай уместное ироничное замечание, заставив улыбнуться хотя бы одного человека.', rank: 4, xpReward: 50, socialBonus: 6, minSocialLevel: 4, difficulty: 'hard' },
+    { id: 's40', title: '🎯 Центр притяжения', desc: 'Удержи на себе внимание группы из 3+ человек в течение хотя бы минуты.', rank: 4, xpReward: 55, socialBonus: 6, minSocialLevel: 4, difficulty: 'hard' },
+    // РАНГ 5 (уровни 21–25) – hard
+    { id: 's41', title: '🔗 Связующее звено', desc: 'Познакомь двух людей, рассказав им по одному крутому факту друг о друге.', rank: 5, xpReward: 65, socialBonus: 7, minSocialLevel: 5, difficulty: 'hard' },
+    { id: 's42', title: '🛡️ Сбор рейда', desc: 'Выступи инициатором: собери группу из 3+ друзей/коллег и организуй совместный поход куда-либо.', rank: 5, xpReward: 70, socialBonus: 8, minSocialLevel: 5, difficulty: 'hard' },
+    { id: 's43', title: '🤝 Дипломат', desc: 'Успокой расстроенного или раздражённого человека, используя только эмпатию и слушание.', rank: 5, xpReward: 70, socialBonus: 8, minSocialLevel: 5, difficulty: 'hard' },
+    { id: 's44', title: '👔 Разговор с боссом', desc: 'Уверенно и на равных заведи смолл-ток с человеком, который выше тебя по статусу или должности.', rank: 5, xpReward: 75, socialBonus: 8, minSocialLevel: 5, difficulty: 'hard' },
+    { id: 's45', title: '📢 Глас глашатая', desc: 'Произнеси тост или возьми вступительное слово на встрече/празднике.', rank: 5, xpReward: 75, socialBonus: 9, minSocialLevel: 5, difficulty: 'hard' },
+    { id: 's46', title: '🔄 Перелом хода', desc: 'Мягко переведи негативное обсуждение (жалобы, сплетни) в позитивное или нейтральное русло.', rank: 5, xpReward: 75, socialBonus: 9, minSocialLevel: 5, difficulty: 'hard' },
+    { id: 's47', title: '💼 Торговец', desc: 'Попроси о небольшой скидке, бонусе или лучшем столике в заведении с дружелюбной улыбкой.', rank: 5, xpReward: 80, socialBonus: 9, minSocialLevel: 5, difficulty: 'hard' },
+    { id: 's48', title: '💪 Уверенная просьба', desc: 'Попроси человека об одолжении прямо, без извиняющегося тона («Мне нужна твоя помощь с...»).', rank: 5, xpReward: 80, socialBonus: 10, minSocialLevel: 5, difficulty: 'hard' },
+    { id: 's49', title: '🧠 Память на имена', desc: 'Попав в новую компанию, запомни и используй в разговоре имена минимум троих людей.', rank: 5, xpReward: 80, socialBonus: 10, minSocialLevel: 5, difficulty: 'hard' },
+    { id: 's50', title: '🎭 Эмоциональные качели', desc: 'Расскажи историю так, чтобы слушатели испытали сначала напряжение, а затем смех или облегчение.', rank: 5, xpReward: 85, socialBonus: 10, minSocialLevel: 5, difficulty: 'hard' },
+    // РАНГ 6 (уровни 26–30) – hard
+    { id: 's51', title: '🏠 Хост (Хозяин таверны)', desc: 'Прими гостей у себя (или организуй вечеринку), лично следя за тем, чтобы всем было комфортно и никто не скучал.', rank: 6, xpReward: 100, socialBonus: 12, minSocialLevel: 6, difficulty: 'hard' },
+    { id: 's52', title: '🕊️ Миротворец', desc: 'Выступи медиатором в споре двух людей и помоги им прийти к компромиссу без ссоры.', rank: 6, xpReward: 105, socialBonus: 13, minSocialLevel: 6, difficulty: 'hard' },
+    { id: 's53', title: '💡 Презентация идеи', desc: 'Успешно «продай» свою идею группе людей (от выбора фильма до рабочего проекта).', rank: 6, xpReward: 105, socialBonus: 13, minSocialLevel: 6, difficulty: 'hard' },
+    { id: 's54', title: '⚡ Бафф вдохновения', desc: 'Скажи человеку такие слова поддержки, после которых он сразу пойдёт что-то делать или воспрянет духом.', rank: 6, xpReward: 100, socialBonus: 12, minSocialLevel: 6, difficulty: 'hard' },
+    { id: 's55', title: '😂 Массовый смех', desc: 'Рассмеши аудиторию от 5 и более человек одной историей или шуткой.', rank: 6, xpReward: 110, socialBonus: 14, minSocialLevel: 6, difficulty: 'hard' },
+    { id: 's56', title: '🛡️ Очарование стражи', desc: 'Выйди из проблемной ситуации (опоздание, мелкий штраф, ошибка) исключительно за счёт обаяния и умения договариваться.', rank: 6, xpReward: 115, socialBonus: 14, minSocialLevel: 6, difficulty: 'hard' },
+    { id: 's57', title: '🧙 Наставник', desc: 'Объясни сложную концепцию или научи навыку человека так, чтобы он почувствовал себя умным, а не глупым.', rank: 6, xpReward: 115, socialBonus: 15, minSocialLevel: 6, difficulty: 'hard' },
+    { id: 's58', title: '👑 Властелин зала', desc: 'Войди в помещение, где сидят люди, и своим языком тела и приветствием заставь всех обратить на тебя позитивное внимание.', rank: 6, xpReward: 120, socialBonus: 15, minSocialLevel: 6, difficulty: 'hard' },
+    { id: 's59', title: '🤝 Мгновенный траст', desc: 'Установи глубокий, доверительный раппорт с новым человеком менее чем за 10 минут.', rank: 6, xpReward: 130, socialBonus: 16, minSocialLevel: 6, difficulty: 'hard' },
+    { id: 's60', title: '🏆 Ачивка «Легенда»', desc: 'Получи от кого-то искреннюю, невынужденную обратную связь в стиле: «С тобой так круто общаться» или «У тебя потрясающая энергетика».', rank: 6, xpReward: 150, socialBonus: 20, minSocialLevel: 6, difficulty: 'hard' }
 ];
 
 // ========================================
-//  ОСТАЛЬНЫЕ БАЗЫ ДАННЫХ И НАСТРОЙКИ
+//  ОСТАЛЬНЫЕ БАЗЫ
 // ========================================
 
 const TITLES_DATABASE = [
@@ -300,7 +302,11 @@ async function createUser(username, password, email = '') {
         total_social_quests_completed: 0,
         total_chests_opened: 0,
         total_goals_completed: 0,
-        achievements: []
+        achievements: [],
+        last_weekly_date: '',
+        // Поля для рулетки
+        randomQuest: null,
+        lastRandomDate: ''
     };
     const result = await supabaseRequest('POST', TABLE_NAME, newUser);
     return result && result.length > 0 ? result[0] : null;
@@ -312,14 +318,13 @@ async function updateUser(username, data) {
 }
 
 // ========================================
-//  ВАЖНЕЙШАЯ ФУНКЦИЯ: НОРМАЛИЗАЦИЯ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
+//  НОРМАЛИЗАЦИЯ ДАННЫХ
 // ========================================
 
 function normalizeUserData(user) {
     if (!user) return user;
     const normalized = JSON.parse(JSON.stringify(user));
 
-    // Нормализация stats
     if (!normalized.stats || typeof normalized.stats !== 'object') {
         normalized.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
     } else {
@@ -327,7 +332,6 @@ function normalizeUserData(user) {
         normalized.stats = { ...defaultStats, ...normalized.stats };
     }
 
-    // Нормализация инвентаря — САМОЕ ВАЖНОЕ
     if (!normalized.inventory) {
         normalized.inventory = [];
     } else if (typeof normalized.inventory === 'string') {
@@ -335,14 +339,12 @@ function normalizeUserData(user) {
             const parsed = JSON.parse(normalized.inventory);
             normalized.inventory = Array.isArray(parsed) ? parsed : [];
         } catch (e) {
-            console.error('Ошибка парсинга инвентаря из строки:', e);
             normalized.inventory = [];
         }
     } else if (!Array.isArray(normalized.inventory)) {
         normalized.inventory = [];
     }
 
-    // Остальные массивы
     const arrayFields = ['completed_quests', 'current_quests', 'goals', 'socialQuests', 'achievements'];
     arrayFields.forEach(field => {
         if (!normalized[field]) {
@@ -359,7 +361,6 @@ function normalizeUserData(user) {
         }
     });
 
-    // Числовые поля
     const numberFields = ['socialLevel', 'socialXP', 'total_quests_completed', 'total_social_quests_completed', 'total_chests_opened', 'total_goals_completed'];
     numberFields.forEach(field => {
         if (normalized[field] === undefined || normalized[field] === null) {
@@ -369,13 +370,26 @@ function normalizeUserData(user) {
         }
     });
 
-    // Строковые поля
-    const stringFields = ['last_quest_date', 'last_sleep_date', 'lastSocialDate'];
+    const stringFields = ['last_quest_date', 'last_sleep_date', 'lastSocialDate', 'last_weekly_date', 'lastRandomDate'];
     stringFields.forEach(field => {
         if (typeof normalized[field] !== 'string') {
             normalized[field] = '';
         }
     });
+
+    // Нормализация randomQuest
+    if (normalized.randomQuest && typeof normalized.randomQuest === 'string') {
+        try {
+            normalized.randomQuest = JSON.parse(normalized.randomQuest);
+        } catch (e) {
+            normalized.randomQuest = null;
+        }
+    }
+    if (normalized.randomQuest && typeof normalized.randomQuest === 'object') {
+        // просто оставляем как есть
+    } else {
+        normalized.randomQuest = null;
+    }
 
     return normalized;
 }
@@ -470,12 +484,11 @@ async function loginUser() {
             errorEl.textContent = '❌ Неверный пароль!';
             return;
         }
-
+        
         currentUsername = username;
         currentUserData = normalizeUserData(user);
-        console.log('✅ Пользователь загружен. Инвентарь:', currentUserData.inventory);
-
         saveSession(username);
+        
         showGameScreen();
         document.getElementById('user-nick').textContent = username;
         await checkDailyRotation();
@@ -487,6 +500,8 @@ async function loginUser() {
         renderSocialQuests();
         renderAchievements();
         renderRouletteResult('');
+        renderRandomQuestDisplay();
+        toast('✅ Добро пожаловать, ' + username + '!', 'success');
     } catch (e) {
         errorEl.textContent = '❌ Ошибка: ' + e.message;
     }
@@ -498,6 +513,7 @@ function logoutUser() {
         currentUserData = null;
         clearSession();
         showAuthScreen();
+        toast('👋 До встречи!', 'info');
     }
 }
 
@@ -528,8 +544,6 @@ async function restoreSession() {
 
         currentUsername = session.username;
         currentUserData = normalizeUserData(user);
-        console.log('✅ Сессия восстановлена. Инвентарь:', currentUserData.inventory);
-
         showGameScreen();
         document.getElementById('user-nick').textContent = currentUsername;
         await checkDailyRotation();
@@ -541,6 +555,10 @@ async function restoreSession() {
         renderSocialQuests();
         renderAchievements();
         renderRouletteResult('');
+        renderRandomQuestDisplay();
+        initRoulette();
+        toast('🔁 Сессия восстановлена', 'info');
+        switchTab('main-screen', document.querySelector('.tab-btn'));
         return true;
     } catch (e) {
         console.error('Session restore error:', e);
@@ -548,6 +566,24 @@ async function restoreSession() {
         showAuthScreen();
         return false;
     }
+}
+
+// ========================================
+//  TOAST-УВЕДОМЛЕНИЯ
+// ========================================
+
+function toast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast ${type}`;
+    toastEl.textContent = message;
+    container.appendChild(toastEl);
+    setTimeout(() => {
+        toastEl.style.opacity = '0';
+        toastEl.style.transform = 'translateY(10px)';
+        setTimeout(() => toastEl.remove(), 300);
+    }, 3500);
 }
 
 // ========================================
@@ -560,7 +596,10 @@ function switchTab(id, btn) {
     document.getElementById(id).classList.add('active');
     if (btn) btn.classList.add('active');
     if (id === 'goals-screen') renderGoals();
-    if (id === 'main-screen') renderHotbar();
+    if (id === 'main-screen') {
+        renderHotbar();
+        renderRandomQuestDisplay();
+    }
     if (id === 'quests-screen') {
         renderQuests();
         renderSocialQuests();
@@ -568,6 +607,7 @@ function switchTab(id, btn) {
     if (id === 'shop-screen') {
         renderRouletteResult('');
         renderInventory();
+        drawWheel(currentAngle || 0);
     }
     if (id === 'achieve-screen') renderAchievements();
 }
@@ -578,7 +618,7 @@ async function checkDailyRotation() {
     if (currentUserData.last_quest_date !== today || !currentUserData.current_quests?.length) {
         const shuffled = [...QUESTS_DATABASE].sort(() => 0.5 - Math.random());
         currentUserData.current_quests = shuffled.slice(0, 3);
-        currentUserData.completed_quests = currentUserData.completed_quests?.filter(id => id.startsWith('w')) || [];
+        currentUserData.completed_quests = currentUserData.completed_quests?.filter(id => id === 'w1') || [];
         currentUserData.last_quest_date = today;
         await saveUserData();
     }
@@ -588,7 +628,7 @@ function renderQuests() {
     const container = document.getElementById('quests-container');
     if (!container) return;
     if (!currentUserData?.current_quests?.length) {
-        container.innerHTML = `<div style="color:#9893a8; text-align:center; padding:20px;">Нет активных квестов. Зайдите завтра!</div>`;
+        container.innerHTML = `<div style="color:var(--text-secondary); text-align:center; padding:20px;">Нет активных квестов. Зайдите завтра!</div>`;
         return;
     }
     container.innerHTML = '';
@@ -600,11 +640,7 @@ function renderQuests() {
             <div class="quest-title">${q.title}</div>
             <div class="quest-desc">${q.desc}</div>
             <div class="quest-reward">➕ +${q.points} XP / +${q.gold} 🪙</div>
-            <button class="quest-btn ${q.type || ''} ${isDone ? 'done' : ''}" 
-                    onclick="completeQuest('${q.id}', '${q.stat}', ${q.points}, ${q.gold})"
-                    ${isDone ? 'disabled' : ''}>
-                ${isDone ? '✅ Выполнено' : 'Выполнить'}
-            </button>
+            <button class="action-btn ${q.type || ''}" id="${q.id}" ${isDone ? 'disabled' : ''} onclick="completeQuest('${q.id}', '${q.stat}', ${q.points}, ${q.gold})">${isDone ? 'Выполнено' : 'Выполнить'}</button>
         `;
         container.appendChild(card);
     });
@@ -648,36 +684,44 @@ function updateUI() {
     document.getElementById('social-bar').style.width = socialProgress + '%';
 
     const socialBadge = document.getElementById('social-level-badge');
-    if (socialBadge) socialBadge.textContent = 'Соц.' + socialLevel;
+    if (socialBadge) {
+        socialBadge.textContent = 'Соц.' + socialLevel;
+    }
 
     renderAchievements();
 
     const wBtn = document.getElementById('w1');
     if (wBtn) {
-        if (currentUserData.completed_quests.includes('w1')) {
-            wBtn.disabled = true;
-            wBtn.textContent = '✅ Выполнено';
+        const isDone = currentUserData.completed_quests.includes('w1');
+        if (isDone) {
+            wBtn.style.background = '#2c2c2e';
             wBtn.style.opacity = '0.4';
+            wBtn.style.pointerEvents = 'none';
+            wBtn.textContent = 'Выполнено';
         } else {
-            wBtn.disabled = false;
-            wBtn.textContent = 'Выполнить';
+            wBtn.style.background = 'linear-gradient(135deg, #ff5e00, #ff9500)';
             wBtn.style.opacity = '1';
+            wBtn.style.pointerEvents = 'auto';
+            wBtn.textContent = 'Выполнить';
         }
     }
 
     const sBtn = document.getElementById('sleep-action-btn');
     if (sBtn) {
         if (currentUserData.last_sleep_date === new Date().toDateString()) {
-            sBtn.disabled = true;
+            sBtn.style.background = '#2c2c2e';
+            sBtn.style.opacity = '0.4';
             sBtn.textContent = '💤 Отмечено';
         } else {
-            sBtn.disabled = false;
+            sBtn.style.background = 'linear-gradient(135deg, #0055ff, #0a84ff)';
+            sBtn.style.opacity = '1';
             sBtn.textContent = '🛌 Лечь спать';
         }
     }
 
     renderInventory();
     renderHotbar();
+    renderRandomQuestDisplay();
 }
 
 // ========================================
@@ -688,10 +732,10 @@ function renderInventory() {
     const container = document.getElementById('inventory-list');
     if (!container) return;
     if (!currentUserData) {
-        container.innerHTML = `<span style="color:#63606e;font-style:italic;">Войдите в игру...</span>`;
+        container.innerHTML = `<span style="color:var(--text-secondary); font-style: italic;">Войдите в игру...</span>`;
         return;
     }
-
+    
     if (!Array.isArray(currentUserData.inventory)) {
         if (typeof currentUserData.inventory === 'string') {
             try {
@@ -704,14 +748,14 @@ function renderInventory() {
             currentUserData.inventory = [];
         }
     }
-
+    
     const inventory = currentUserData.inventory;
     if (inventory.length === 0) {
-        container.innerHTML = `<span style="color:#63606e;font-style:italic;">У вас пока нет снаряжения...</span>`;
+        container.innerHTML = `<span style="color:var(--text-secondary); font-style: italic;">У вас пока нет снаряжения...</span>`;
         return;
     }
-
-    container.innerHTML = inventory.map((item, index) => {
+    
+    container.innerHTML = inventory.map((item) => {
         if (typeof item === 'string') {
             return `<span class="inv-item">📦 ${item}</span>`;
         }
@@ -720,13 +764,11 @@ function renderInventory() {
             const statLabel = STAT_LABELS[item.stat] || '';
             const bonusText = item.stat && item.bonus ? `+${item.bonus} ${statLabel}` : '';
             return `
-                <span class="inv-item" 
-                      style="border-color:${rarity.color}; background:${rarity.color}22;"
-                      title="${item.desc || ''}">
+                <span class="inv-item" style="border-color: ${rarity.color}; background: ${rarity.color}22;" title="${item.desc || ''}">
                     <span style="font-size:18px;">${item.icon || '📦'}</span>
                     <span style="font-weight:600;">${item.name || 'Предмет'}</span>
-                    ${bonusText ? `<span style="font-size:11px;color:#ffcc00;margin-left:4px;">${bonusText}</span>` : ''}
-                    <span style="font-size:10px;color:${rarity.color};padding:2px 8px;background:${rarity.color}33;border-radius:8px;">${rarity.label}</span>
+                    ${bonusText ? `<span style="font-size:11px; color:#ffcc00;">${bonusText}</span>` : ''}
+                    <span style="font-size:10px; color:${rarity.color}; padding:2px 8px; background:${rarity.color}33; border-radius:8px;">${rarity.label}</span>
                 </span>
             `;
         }
@@ -739,12 +781,12 @@ function renderInventory() {
 // ========================================
 
 async function saveUserData() {
-    if (!currentUserData || !currentUsername) return;
-
-    if (!Array.isArray(currentUserData.inventory)) {
-        currentUserData.inventory = [];
+    if (!currentUserData || !currentUsername) {
+        console.error('❌ Нечего сохранять');
+        return;
     }
-
+    currentUserData = normalizeUserData(currentUserData);
+    
     const dataToSave = {
         stats: currentUserData.stats,
         inventory: currentUserData.inventory,
@@ -761,14 +803,17 @@ async function saveUserData() {
         total_social_quests_completed: currentUserData.total_social_quests_completed || 0,
         total_chests_opened: currentUserData.total_chests_opened || 0,
         total_goals_completed: currentUserData.total_goals_completed || 0,
-        achievements: currentUserData.achievements || []
+        achievements: currentUserData.achievements || [],
+        last_weekly_date: currentUserData.last_weekly_date || '',
+        randomQuest: currentUserData.randomQuest || null,
+        lastRandomDate: currentUserData.lastRandomDate || ''
     };
-
+    
     try {
         await updateUser(currentUsername, dataToSave);
-        console.log('✅ Данные сохранены');
     } catch (e) {
         console.error('❌ Ошибка сохранения:', e);
+        toast('⚠️ Ошибка сохранения!', 'error');
     }
 }
 
@@ -780,7 +825,7 @@ async function train(type) {
     if (!currentUserData) return;
     const now = Date.now();
     if (now - lastTrainTime < 1000) {
-        alert('Подожди секунду!');
+        toast('⏳ Подожди секунду!', 'warning');
         return;
     }
     lastTrainTime = now;
@@ -795,17 +840,17 @@ async function checkSleepTime() {
     const now = new Date();
     const today = now.toDateString();
     if (currentUserData.last_sleep_date === today) {
-        alert('Вы уже отметили сон сегодня!');
+        toast('💤 Вы уже отметили сон сегодня!', 'info');
         return;
     }
     const hours = now.getHours();
-    if (hours >= 0 && hours < 1) {
+    if (hours >= 0 && hours < 6) {
         currentUserData.stats.per = Math.max(0, (currentUserData.stats.per || 0) - 10);
-        alert('⚠️ Вы легли после полуночи! -10 Дисциплина.');
+        toast('⚠️ Вы легли после полуночи! -10 Дисциплина.', 'error');
     } else {
         currentUserData.stats.per = (currentUserData.stats.per || 0) + 10;
         currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 15;
-        alert('🏆 Отличный режим! +10 Дисциплина / +15 🪙');
+        toast('🏆 Отличный режим! +10 Дисциплина / +15 🪙', 'success');
     }
     currentUserData.last_sleep_date = today;
     await saveUserData();
@@ -826,26 +871,40 @@ async function completeQuest(id, type, points, gold) {
     updateUI();
     renderQuests();
     renderAchievements();
+    toast(`✅ Квест выполнен! +${points} XP, +${gold} 🪙`, 'success');
 }
 
 async function completeWeeklyChallenge(btn) {
-    if (!currentUserData || currentUserData.completed_quests.includes('w1')) {
-        alert('Вы уже выполнили вызов!');
+    if (!currentUserData) return;
+    const today = new Date().toDateString();
+    const lastWeekly = currentUserData.last_weekly_date || '';
+    if (lastWeekly === today) {
+        toast('⏳ Вы уже выполнили вызов сегодня!', 'warning');
         return;
     }
+    if (lastWeekly) {
+        const lastDate = new Date(lastWeekly);
+        const diffDays = Math.floor((new Date() - lastDate) / (1000 * 60 * 60 * 24));
+        if (diffDays < 7) {
+            toast('⏳ Выполнить вызов можно раз в неделю!', 'warning');
+            return;
+        }
+    }
+
     ['str', 'end', 'agi', 'int', 'cha', 'per'].forEach(id => {
         currentUserData.stats[id] = (currentUserData.stats[id] || 0) + 8;
     });
     currentUserData.stats.luck = (currentUserData.stats.luck || 0) + 15;
     currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 100;
     currentUserData.completed_quests.push('w1');
+    currentUserData.last_weekly_date = today;
     await saveUserData();
     updateUI();
-    alert('⭐ Вызов выполнен!');
+    toast('⭐ Вызов выполнен! Награда получена!', 'success');
 }
 
 // ========================================
-//  СИСТЕМА СУНДУКОВ И РУЛЕТКИ
+//  СИСТЕМА СУНДУКОВ
 // ========================================
 
 function getRandomItem() {
@@ -860,75 +919,161 @@ function getRandomItem() {
         }
     }
     const pool = ITEMS_POOL.filter(item => item.rarity === selectedRarity);
-    if (pool.length === 0) return ITEMS_POOL[Math.floor(Math.random() * ITEMS_POOL.length)];
+    if (pool.length === 0) {
+        return ITEMS_POOL[Math.floor(Math.random() * ITEMS_POOL.length)];
+    }
     return JSON.parse(JSON.stringify(pool[Math.floor(Math.random() * pool.length)]));
 }
+
+// ── CHEST ANIMATION ──────────────────────────────────────────────────────
+
+const RARITY_GLOW = {
+    legendary: '#ffe600',
+    epic:       '#cc44ff',
+    rare:       '#4488ff',
+    uncommon:   '#00ff88',
+    common:     '#aaaacc',
+};
+
+const CHEST_EMOJI_MAP = {
+    common: '📦',
+    epic:   '👑',
+};
+
+function spawnParticles(color) {
+    const container = document.getElementById('chest-particles');
+    container.innerHTML = '';
+    const count = 28;
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'chest-particle';
+        const angle = (i / count) * 360;
+        const dist  = 80 + Math.random() * 100;
+        const rad   = angle * Math.PI / 180;
+        const tx    = Math.cos(rad) * dist + 'px';
+        const ty    = Math.sin(rad) * dist + 'px';
+        const size  = 4 + Math.random() * 7;
+        const delay = Math.random() * 0.15;
+        const dur   = 0.5 + Math.random() * 0.4;
+        p.style.cssText = `
+            background: ${color};
+            width: ${size}px; height: ${size}px;
+            --tx: ${tx}; --ty: ${ty};
+            box-shadow: 0 0 6px ${color};
+            animation: particle-fly ${dur}s ease-out ${delay}s forwards;
+        `;
+        container.appendChild(p);
+    }
+}
+
+function flashRing(color) {
+    const ring = document.getElementById('chest-ring');
+    ring.style.border = `3px solid ${color}`;
+    ring.style.boxShadow = `0 0 30px ${color}, inset 0 0 20px ${color}`;
+    ring.classList.remove('pop');
+    void ring.offsetWidth; // reflow
+    ring.classList.add('pop');
+}
+
+function showChestModal(tier, item) {
+    const modal     = document.getElementById('chest-modal');
+    const emojiEl   = document.getElementById('chest-emoji');
+    const labelEl   = document.getElementById('chest-label');
+    const revealEl  = document.getElementById('chest-item-reveal');
+    const iconEl    = document.getElementById('chest-item-icon');
+    const nameEl    = document.getElementById('chest-item-name');
+    const rarityEl  = document.getElementById('chest-item-rarity');
+    const bonusEl   = document.getElementById('chest-item-bonus');
+    const closeBtn  = document.getElementById('chest-close-btn');
+
+    const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
+    const glowColor    = RARITY_GLOW[item.rarity] || '#aaaacc';
+    const chestEmoji   = CHEST_EMOJI_MAP[tier] || '📦';
+
+    // Reset state
+    emojiEl.className   = 'chest-emoji idle';
+    emojiEl.textContent = chestEmoji;
+    emojiEl.style.setProperty('--burst-color', glowColor);
+    labelEl.textContent   = 'Нажмите, чтобы открыть';
+    revealEl.classList.remove('visible');
+    closeBtn.classList.remove('visible');
+    iconEl.textContent    = item.icon || '🎁';
+    nameEl.textContent    = item.name;
+    rarityEl.textContent  = rarityConfig.label || item.rarity;
+    rarityEl.style.background = glowColor;
+    rarityEl.style.color      = '#000';
+    bonusEl.textContent = `+${item.bonus} к ${STAT_LABELS[item.stat] || 'характеристике'}`;
+    iconEl.style.filter = `drop-shadow(0 0 16px ${glowColor})`;
+
+    modal.classList.add('active');
+
+    // Make chest clickable to open
+    let opened = false;
+    function doOpen() {
+        if (opened) return;
+        opened = true;
+        emojiEl.removeEventListener('click', doOpen);
+        labelEl.textContent = '...';
+
+        // 1. Shake phase
+        emojiEl.className = 'chest-emoji shaking';
+
+        setTimeout(() => {
+            // 2. Burst
+            emojiEl.className = 'chest-emoji burst';
+            emojiEl.textContent = tier === 'epic' ? '🎁' : '📬';
+            spawnParticles(glowColor);
+            flashRing(glowColor);
+            labelEl.textContent = 'Вы получили...';
+        }, 600);
+
+        setTimeout(() => {
+            // 3. Show item
+            revealEl.classList.add('visible');
+        }, 1100);
+
+        setTimeout(() => {
+            // 4. Show close button
+            closeBtn.classList.add('visible');
+        }, 1600);
+    }
+
+    emojiEl.style.cursor = 'pointer';
+    emojiEl.addEventListener('click', doOpen);
+
+    // Also auto-open after 2s if user doesn't click
+    setTimeout(() => doOpen(), 2000);
+}
+
+function closeChestModal() {
+    document.getElementById('chest-modal').classList.remove('active');
+    document.getElementById('chest-particles').innerHTML = '';
+}
+
+// ── OPEN CHEST (main function) ────────────────────────────────────────────
 
 async function openChest(tier, price) {
     if (!currentUserData) return;
     if ((currentUserData.stats.gold || 0) < price) {
-        alert('Недостаточно монет!');
+        toast('❌ Недостаточно монет!', 'error');
         return;
     }
     currentUserData.stats.gold -= price;
     const item = getRandomItem();
-
-    if (!Array.isArray(currentUserData.inventory)) currentUserData.inventory = [];
+    if (!Array.isArray(currentUserData.inventory)) {
+        currentUserData.inventory = [];
+    }
     currentUserData.inventory.push(item);
     if (item.stat && item.bonus) {
         currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
     }
     currentUserData.total_chests_opened = (currentUserData.total_chests_opened || 0) + 1;
-
     await saveUserData();
     updateUI();
     renderInventory();
     renderAchievements();
-
-    const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
-    alert(`🎉 Вы выбили: ${item.icon} ${item.name} (${rarityConfig.label})!\n+${item.bonus} к ${STAT_LABELS[item.stat] || 'стату'}`);
-}
-
-async function spinRoulette() {
-    if (!currentUserData) {
-        alert('Сначала войдите в игру!');
-        return;
-    }
-    if ((currentUserData.stats.gold || 0) < 50) {
-        alert('Недостаточно монет! Нужно 50 🪙');
-        return;
-    }
-    currentUserData.stats.gold -= 50;
-    const wheel = document.getElementById('roulette-wheel');
-    const emojis = ['🎁', '🎰', '💎', '⭐', '🏆', '🎯', '🎲', '🌀'];
-    let count = 0;
-    const interval = setInterval(() => {
-        wheel.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        count++;
-        if (count > 8) {
-            clearInterval(interval);
-            const item = getRandomItem();
-            if (!Array.isArray(currentUserData.inventory)) currentUserData.inventory = [];
-            currentUserData.inventory.push(item);
-            if (item.stat && item.bonus) {
-                currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
-            }
-            saveUserData().then(() => {
-                const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
-                wheel.textContent = item.icon || '🎁';
-                renderRouletteResult(`${rarityConfig.label}: ${item.name} (+${item.bonus} ${STAT_LABELS[item.stat] || 'все статы'})`);
-                updateUI();
-                renderInventory();
-                renderAchievements();
-                alert(`🎡 Вы выиграли: ${rarityConfig.label}\n${item.icon} ${item.name}\n+${item.bonus} ${STAT_LABELS[item.stat] || 'всем статам'}`);
-            });
-        }
-    }, 150);
-}
-
-function renderRouletteResult(text) {
-    const resultEl = document.getElementById('roulette-result');
-    if (resultEl) resultEl.textContent = text || '';
+    // Show animated modal instead of plain toast
+    showChestModal(tier, item);
 }
 
 // ========================================
@@ -948,7 +1093,7 @@ function updateRewardPreview() {
         previewEl.innerHTML = `
             🎁 Награда: <span style="color:#ffcc00;">+${config.xp} XP</span> + 
             <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[stat]}</span>
-            <span style="color:#9893a8;font-size:11px;margin-left:8px;">(${config.label})</span>
+            <span style="color:var(--text-secondary); font-size:11px; margin-left:8px;">(${config.label})</span>
         `;
     }
 }
@@ -978,11 +1123,11 @@ async function addGoal() {
     const config = getRarityConfig(rarity);
 
     if (!title) {
-        alert('Введите название цели!');
+        toast('❌ Введите название цели!', 'error');
         return;
     }
     if (!target || target <= 0) {
-        alert('Введите целевое значение (число > 0)!');
+        toast('❌ Введите целевое значение (число > 0)!', 'error');
         return;
     }
 
@@ -1001,13 +1146,15 @@ async function addGoal() {
         createdAt: new Date().toISOString()
     };
 
-    if (!Array.isArray(currentUserData.goals)) currentUserData.goals = [];
+    if (!Array.isArray(currentUserData.goals)) {
+        currentUserData.goals = [];
+    }
     currentUserData.goals.push(newGoal);
     await saveUserData();
     closeGoalModal();
     renderGoals();
     renderHotbar();
-    alert(`🎯 Цель "${title}" добавлена! (${config.label})`);
+    toast(`🎯 Цель "${title}" добавлена! (${config.label})`, 'success');
 }
 
 function renderHotbar() {
@@ -1025,13 +1172,17 @@ function renderHotbar() {
     container.innerHTML = activeGoals.map(g => {
         const config = getRarityConfig(g.rarity);
         const progress = g.target > 0 ? Math.min(100, (g.current || 0) / g.target * 100) : 0;
+        const isDone = progress >= 100;
         return `
-            <div class="hotbar-goal" style="border-left-color:${config.color};">
+            <div class="hotbar-goal" style="border-left-color: ${config.color};">
                 <div>
-                    <div class="goal-title">${g.title}</div>
-                    <div class="goal-progress">${g.current || 0} / ${g.target} ${g.unit || ''}</div>
+                    <div class="title">${g.title}</div>
+                    <div class="progress">${g.current || 0} / ${g.target} ${g.unit || ''}</div>
                 </div>
-                <span style="background:${config.color};color:#fff;padding:2px 8px;border-radius:8px;font-size:10px;">${config.label}</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="rarity-badge" style="background:${config.color};">${config.label}</span>
+                    ${isDone ? '<span class="done">✅</span>' : ''}
+                </div>
             </div>
         `;
     }).join('');
@@ -1041,7 +1192,7 @@ function renderGoals() {
     const container = document.getElementById('goals-container');
     if (!container) return;
     if (!currentUserData?.goals?.length) {
-        container.innerHTML = '<div style="color:#9893a8;text-align:center;padding:20px;">У вас пока нет целей. Добавьте первую!</div>';
+        container.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding:20px;">У вас пока нет целей. Добавьте первую!</div>';
         return;
     }
     container.innerHTML = currentUserData.goals.map((g, index) => {
@@ -1049,21 +1200,21 @@ function renderGoals() {
         const progress = g.target > 0 ? Math.min(100, (g.current || 0) / g.target * 100) : 0;
         const isCompleted = g.completed || progress >= 100;
         return `
-            <div class="goal-card ${isCompleted ? 'completed' : ''}" style="border-color:${isCompleted ? '#30d158' : config.color};">
+            <div class="goal-card ${isCompleted ? 'completed' : ''}" style="border-color: ${isCompleted ? '#30d158' : config.color};">
                 <div class="goal-header">
-                    <div class="goal-title" style="color:${isCompleted ? '#30d158' : config.color};">${g.title}</div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="background:${config.color};color:#fff;padding:2px 10px;border-radius:8px;font-size:10px;">${config.label}</span>
-                        <div style="font-size:13px;color:#9893a8;">${Math.round(progress)}%</div>
+                    <div class="goal-title" style="color: ${isCompleted ? '#30d158' : config.color};">${g.title}</div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="rarity-badge" style="background:${config.color};">${config.label}</span>
+                        <div style="font-size:13px; color:var(--text-secondary);">${Math.round(progress)}%</div>
                     </div>
                 </div>
                 ${g.description ? `<div class="goal-desc">${g.description}</div>` : ''}
                 <div class="goal-progress">
-                    <span style="font-size:13px;color:#9893a8;">${g.current || 0}</span>
+                    <span style="font-size:13px; color:var(--text-secondary);">${g.current || 0}</span>
                     <div class="goal-progress-bar">
-                        <div class="fill" style="width:${progress}%;background:${config.color};"></div>
+                        <div class="fill" style="width:${progress}%; background: ${config.color};"></div>
                     </div>
-                    <span style="font-size:13px;color:#9893a8;">${g.target} ${g.unit || ''}</span>
+                    <span style="font-size:13px; color:var(--text-secondary);">${g.target} ${g.unit || ''}</span>
                 </div>
                 <div class="goal-reward">
                     🎁 Награда: <span>+${config.xp} XP</span> + <span style="color:${config.color};">+${config.statBonus} ${STAT_LABELS[g.stat] || '💪 Сила'}</span>
@@ -1075,7 +1226,7 @@ function renderGoals() {
                         <button onclick="updateGoalProgress(${index}, 10)">➕ +10</button>
                         <button onclick="setGoalComplete(${index})" class="done-btn">✅ Выполнено</button>
                     ` : `
-                        <span style="color:#30d158;font-weight:600;">✅ Выполнено!</span>
+                        <span style="color:#30d158; font-weight:600;">✅ Выполнено!</span>
                     `}
                     <button onclick="deleteGoal(${index})" class="delete-btn">🗑️</button>
                 </div>
@@ -1093,7 +1244,7 @@ async function updateGoalProgress(index, amount) {
         goal.current = goal.target;
         goal.completed = true;
         await claimGoalReward(index);
-        alert(`🎉 Цель "${goal.title}" выполнена! Молодец!`);
+        toast(`🎉 Цель "${goal.title}" выполнена! Молодец!`, 'success');
     }
     await saveUserData();
     renderGoals();
@@ -1115,7 +1266,7 @@ async function setGoalComplete(index) {
     renderHotbar();
     updateUI();
     renderAchievements();
-    alert('✅ Цель отмечена как выполненная! Награда получена!');
+    toast('✅ Цель отмечена как выполненная! Награда получена!', 'success');
 }
 
 async function claimGoalReward(index) {
@@ -1173,9 +1324,9 @@ function renderSocialQuests() {
     }
     container.innerHTML = '';
     currentUserData.socialQuests.forEach((q, index) => {
-        const isDone = q.completed;
         const card = document.createElement('div');
         card.className = 'social-quest-card';
+        const isDone = q.completed;
         card.innerHTML = `
             <div class="social-quest-rank">Ранг ${q.rank}</div>
             <div class="title">${q.title}</div>
@@ -1194,7 +1345,7 @@ async function completeSocialQuest(index) {
     if (!currentUserData?.socialQuests?.[index]) return;
     const quest = currentUserData.socialQuests[index];
     if (quest.completed) {
-        alert('Этот квест уже выполнен!');
+        toast('Этот квест уже выполнен!', 'warning');
         return;
     }
     quest.completed = true;
@@ -1212,9 +1363,9 @@ async function completeSocialQuest(index) {
     renderSocialQuests();
     renderAchievements();
     if (leveledUp) {
-        alert(`🎉 Социальный уровень повышен! Теперь ты ${currentUserData.socialLevel} уровень!`);
+        toast(`🎉 Социальный уровень повышен! Теперь ты ${currentUserData.socialLevel} уровень!`, 'success');
     } else {
-        alert(`✅ Квест выполнен! +${quest.xpReward} XP, +${quest.socialBonus} к харизме.`);
+        toast(`✅ Квест выполнен! +${quest.xpReward} XP, +${quest.socialBonus} к харизме.`, 'success');
     }
     await refreshSocialQuests();
 }
@@ -1242,14 +1393,19 @@ function renderAchievements() {
     const container = document.getElementById('achievements-container');
     if (!container) return;
     if (!currentUserData) {
-        container.innerHTML = '<div style="color:#9893a8;text-align:center;">Войдите, чтобы видеть достижения</div>';
+        container.innerHTML = '<div style="color:var(--text-secondary); text-align:center;">Войдите, чтобы видеть достижения</div>';
         return;
     }
-    if (!Array.isArray(currentUserData.achievements)) currentUserData.achievements = [];
-
+    
+    if (!Array.isArray(currentUserData.achievements)) {
+        currentUserData.achievements = [];
+    }
+    
     let anyUnlocked = false;
+    const toUnlock = [];
     ACHIEVEMENTS_DB.forEach(ach => {
         if (!currentUserData.achievements.includes(ach.id) && ach.check()) {
+            toUnlock.push(ach);
             currentUserData.achievements.push(ach.id);
             if (ach.reward.stats) {
                 Object.keys(ach.reward.stats).forEach(stat => {
@@ -1260,14 +1416,16 @@ function renderAchievements() {
                 currentUserData.stats.gold = (currentUserData.stats.gold || 0) + ach.reward.gold;
             }
             anyUnlocked = true;
-            setTimeout(() => alert(`🏆 Достижение разблокировано: ${ach.title}!`), 100);
         }
     });
-
+    
     if (anyUnlocked) {
-        saveUserData().then(() => updateUI());
+        saveUserData().then(() => {
+            updateUI();
+            toUnlock.forEach(ach => toast(`🏆 Достижение разблокировано: ${ach.title}!`, 'success'));
+        });
     }
-
+    
     container.innerHTML = ACHIEVEMENTS_DB.map(ach => {
         const unlocked = currentUserData.achievements.includes(ach.id);
         const progress = ach.check() ? 1 : 0;
@@ -1280,6 +1438,7 @@ function renderAchievements() {
                 </div>
                 <div class="achieve-desc">${ach.desc}</div>
                 <div class="achieve-progress-bar"><div class="fill" style="width:${progressPercent}%;"></div></div>
+                <div class="achieve-progress">${unlocked ? 'Выполнено!' : 'Не выполнено'}</div>
                 <div class="achieve-reward">
                     🎁 Награда: 
                     ${ach.reward.stats ? Object.entries(ach.reward.stats).map(([s, v]) => `+${v} ${STAT_LABELS[s]}`).join(', ') : ''}
@@ -1291,13 +1450,495 @@ function renderAchievements() {
 }
 
 // ========================================
+//  НОВАЯ РУЛЕТКА (КАЗИНО-СТИЛЬ)
+// ========================================
+
+const ROULETTE_SECTORS = [
+    { emoji: '🎁', label: 'Подарок', color: '#ff6b6b' },
+    { emoji: '💰', label: 'Монеты', color: '#feca57' },
+    { emoji: '💎', label: 'Алмаз', color: '#48dbfb' },
+    { emoji: '⭐', label: 'Звезда', color: '#ff9ff3' },
+    { emoji: '🏆', label: 'Трофей', color: '#f368e0' },
+    { emoji: '🎯', label: 'Мишень', color: '#ff9f43' },
+    { emoji: '🎲', label: 'Кубик', color: '#00d2d3' },
+    { emoji: '🌀', label: 'Циклон', color: '#54a0ff' }
+];
+
+let rouletteCanvas = null;
+let ctx = null;
+let isSpinning = false;
+let currentAngle = 0;
+let spinVelocity = 0;
+let animationId = null;
+
+function initRoulette() {
+    const canvas = document.getElementById('roulette-canvas');
+    if (!canvas) return;
+    // Fix canvas resolution to match its CSS display size
+    const size = Math.min(canvas.parentElement?.offsetWidth || 320, 320);
+    canvas.width  = size;
+    canvas.height = size;
+    rouletteCanvas = canvas;
+    ctx = canvas.getContext('2d');
+    drawWheel(currentAngle);
+}
+
+function drawWheel(angle) {
+    if (!ctx || !rouletteCanvas) return;
+    const canvas = rouletteCanvas;
+    const W = canvas.width;
+    const H = canvas.height;
+    const cx = W / 2;
+    const cy = H / 2;
+    const R  = Math.min(W, H) * 0.46;   // outer edge of sectors
+
+    ctx.clearRect(0, 0, W, H);
+
+    const count = ROULETTE_SECTORS.length;
+    const arc   = (2 * Math.PI) / count;
+
+    // ── Dark sector colours (desaturated, cyberpunk) ──
+    const DARK_COLORS = [
+        { bg: '#1a0a2e', neon: '#cc44ff' },  // deep purple / violet
+        { bg: '#0a1a2e', neon: '#00ccff' },  // deep blue   / cyan
+        { bg: '#1a1a0a', neon: '#ffcc00' },  // dark olive  / gold
+        { bg: '#2e0a1a', neon: '#ff2277' },  // deep rose   / magenta
+        { bg: '#0a2e1a', neon: '#00ff88' },  // dark green  / lime
+        { bg: '#1a0e0a', neon: '#ff6633' },  // dark rust   / orange
+        { bg: '#0e0a2e', neon: '#8866ff' },  // indigo      / lavender
+        { bg: '#2e2a0a', neon: '#ffee44' },  // dark amber  / yellow
+    ];
+
+    // ── 1. Outer decorative ring tick-marks ──────────
+    const tickCount = count * 6;
+    const tickInner = R + 4;
+    const tickOuter = R + 14;
+    for (let i = 0; i < tickCount; i++) {
+        const a = (i / tickCount) * 2 * Math.PI + angle;
+        const isMajor = i % 6 === 0;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * tickInner, cy + Math.sin(a) * tickInner);
+        ctx.lineTo(cx + Math.cos(a) * (isMajor ? tickOuter : tickOuter - 4), cy + Math.sin(a) * (isMajor ? tickOuter : tickOuter - 4));
+        ctx.strokeStyle = isMajor ? 'rgba(255,0,204,0.8)' : 'rgba(255,0,204,0.3)';
+        ctx.lineWidth = isMajor ? 1.5 : 0.8;
+        ctx.stroke();
+    }
+
+    // ── 2. Draw sectors ──────────────────────────────
+    ROULETTE_SECTORS.forEach((sector, i) => {
+        const col = DARK_COLORS[i % DARK_COLORS.length];
+        const startAngle = angle + i * arc;
+        const endAngle   = startAngle + arc;
+
+        // Sector fill — radial gradient dark→slightly lighter
+        const grad = ctx.createRadialGradient(cx, cy, R * 0.18, cx, cy, R);
+        grad.addColorStop(0,   col.bg);
+        grad.addColorStop(0.6, col.bg);
+        grad.addColorStop(1,   col.neon + '33');
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, R, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Sector border — neon line
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, R, startAngle, endAngle);
+        ctx.closePath();
+        ctx.strokeStyle = col.neon + '55';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Neon arc on outer edge of sector
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, startAngle + 0.04, endAngle - 0.04);
+        ctx.strokeStyle = col.neon;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = col.neon;
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Divider lines
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(startAngle) * R * 0.2, cy + Math.sin(startAngle) * R * 0.2);
+        ctx.lineTo(cx + Math.cos(startAngle) * R,       cy + Math.sin(startAngle) * R);
+        ctx.strokeStyle = col.neon + '88';
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = col.neon;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Emoji icon
+        const midAngle  = startAngle + arc / 2;
+        const textR     = R * 0.68;
+        const x = cx + Math.cos(midAngle) * textR;
+        const y = cy + Math.sin(midAngle) * textR;
+        ctx.font = `${Math.round(R * 0.2)}px sans-serif`;
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle    = '#fff';
+        ctx.shadowColor  = col.neon;
+        ctx.shadowBlur   = 12;
+        ctx.fillText(sector.emoji, x, y);
+        ctx.shadowBlur = 0;
+
+        // Small sector label
+        const labelR = R * 0.88;
+        const lx = cx + Math.cos(midAngle) * labelR;
+        const ly = cy + Math.sin(midAngle) * labelR;
+        ctx.save();
+        ctx.translate(lx, ly);
+        ctx.rotate(midAngle + Math.PI / 2);
+        ctx.font = `bold ${Math.round(R * 0.07)}px 'JetBrains Mono', monospace`;
+        ctx.fillStyle = col.neon;
+        ctx.shadowColor = col.neon;
+        ctx.shadowBlur  = 6;
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(sector.label.toUpperCase(), 0, 0);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    });
+
+    // ── 3. Outer ring border ─────────────────────────
+    // Dark ring gap
+    ctx.beginPath();
+    ctx.arc(cx, cy, R + 2, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#0a0a18';
+    ctx.lineWidth = 8;
+    ctx.stroke();
+
+    // Neon outer ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, R + 6, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#ff00cc';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#ff00cc';
+    ctx.shadowBlur = 18;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Second neon ring (thinner, cyan)
+    ctx.beginPath();
+    ctx.arc(cx, cy, R + 12, 0, 2 * Math.PI);
+    ctx.strokeStyle = 'rgba(0,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.shadowColor = '#00ffff';
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // ── 4. Inner hub ─────────────────────────────────
+    const hubR = R * 0.16;
+
+    // Hub glow base
+    const hubGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, hubR);
+    hubGrad.addColorStop(0,   '#3a1a4a');
+    hubGrad.addColorStop(0.6, '#1a0a2e');
+    hubGrad.addColorStop(1,   '#0d0018');
+    ctx.beginPath();
+    ctx.arc(cx, cy, hubR, 0, 2 * Math.PI);
+    ctx.fillStyle = hubGrad;
+    ctx.fill();
+
+    // Hub neon ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, hubR, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#bf5af2';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = '#bf5af2';
+    ctx.shadowBlur = 14;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Inner spike / rivet effect
+    for (let s = 0; s < 4; s++) {
+        const sa = (s / 4) * Math.PI * 2 + angle * 0.3;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(sa) * hubR * 0.4, cy + Math.sin(sa) * hubR * 0.4);
+        ctx.lineTo(cx + Math.cos(sa) * hubR * 0.9, cy + Math.sin(sa) * hubR * 0.9);
+        ctx.strokeStyle = 'rgba(191,90,242,0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    }
+
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, hubR * 0.28, 0, 2 * Math.PI);
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = '#bf5af2';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
+
+async function spinRoulette() {
+    if (!currentUserData) {
+        toast('❌ Сначала войдите в игру!', 'error');
+        return;
+    }
+    if ((currentUserData.stats.gold || 0) < 50) {
+        toast('❌ Недостаточно монет! Нужно 50 🪙', 'error');
+        return;
+    }
+    if (isSpinning) return;
+    isSpinning = true;
+    document.getElementById('roulette-spin-btn').disabled = true;
+
+    currentUserData.stats.gold -= 50;
+    await saveUserData();
+
+    const totalRotation = 4 * 2 * Math.PI + Math.random() * 2 * Math.PI;
+    const startAngle = currentAngle;
+    const targetAngle = startAngle + totalRotation;
+    const duration = 4000;
+    const startTime = performance.now();
+
+    function animateSpin(time) {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = startAngle + totalRotation * eased;
+        drawWheel(current);
+        if (progress < 1) {
+            requestAnimationFrame(animateSpin);
+        } else {
+            currentAngle = targetAngle;
+            drawWheel(currentAngle);
+            isSpinning = false;
+            document.getElementById('roulette-spin-btn').disabled = false;
+            // Выбор сектора
+            const normalized = ((targetAngle % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+            const sectorIndex = Math.floor(normalized / (2*Math.PI / ROULETTE_SECTORS.length)) % ROULETTE_SECTORS.length;
+            const sector = ROULETTE_SECTORS[sectorIndex];
+            // Здесь можно использовать выбранный сектор для награды, но мы используем предметную систему
+            const item = getRandomItem();
+            if (!Array.isArray(currentUserData.inventory)) {
+                currentUserData.inventory = [];
+            }
+            currentUserData.inventory.push(item);
+            if (item.stat && item.bonus) {
+                currentUserData.stats[item.stat] = (currentUserData.stats[item.stat] || 0) + item.bonus;
+            }
+            saveUserData().then(() => {
+                const rarityConfig = RARITIES[item.rarity] || RARITIES.common;
+                renderRouletteResult(`✦ ${rarityConfig.label}: ${item.name}  +${item.bonus} ${STAT_LABELS[item.stat] || 'все статы'}`);
+                updateUI();
+                renderInventory();
+                renderAchievements();
+                // Flash effect
+                const flash = document.getElementById('roulette-flash');
+                if (flash) { flash.classList.add('active'); setTimeout(() => flash.classList.remove('active'), 700); }
+                // Result text colour
+                const resultEl = document.getElementById('roulette-result');
+                if (resultEl) { resultEl.style.color = rarityConfig.color || '#00ffff'; setTimeout(() => { resultEl.style.color = ''; }, 4000); }
+                toast(`🎡 Вы выиграли: ${rarityConfig.label}\n${item.icon} ${item.name}\n+${item.bonus} ${STAT_LABELS[item.stat] || 'всем статам'}`, 'success');
+            });
+        }
+    }
+    requestAnimationFrame(animateSpin);
+}
+
+function renderRouletteResult(text) {
+    const resultEl = document.getElementById('roulette-result');
+    if (resultEl) {
+        resultEl.textContent = text || '';
+    }
+}
+
+// ========================================
+//  РУЛЕТКА ЗАДАНИЙ (RANDOM QUEST)
+// ========================================
+
+// Получить доступные задания по социальному уровню
+function getAvailableRandomQuests() {
+    const socialLevel = currentUserData?.socialLevel || 1;
+    return SOCIAL_QUESTS_DB.filter(q => q.minSocialLevel <= socialLevel);
+}
+
+// Отображение принятого квеста на главном экране
+function renderRandomQuestDisplay() {
+    const container = document.getElementById('random-quest-display');
+    if (!container) return;
+    if (!currentUserData) {
+        container.innerHTML = 'Нажмите «Крутить», чтобы получить случайное задание.';
+        return;
+    }
+    const quest = currentUserData.randomQuest;
+    if (!quest) {
+        container.innerHTML = 'Нажмите «Крутить», чтобы получить случайное задание.';
+        return;
+    }
+    // Проверяем, не выполнен ли уже
+    if (quest.completed) {
+        container.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 8px 12px; border-radius: 6px; border-left: 3px solid var(--accent-green);">
+                <div>
+                    <span style="font-weight: 600; color: var(--text-primary);">${quest.title}</span>
+                    <span style="font-size: 12px; color: var(--text-secondary); margin-left: 8px;">(выполнено)</span>
+                </div>
+                <span style="color: var(--accent-green);">✅</span>
+            </div>
+        `;
+        return;
+    }
+    const difficultyLabel = { easy: '🌱 Легко', medium: '⚡ Средне', hard: '🔥 Хардкор' }[quest.difficulty] || '';
+    container.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 8px 12px; border-radius: 6px; border-left: 3px solid var(--accent-magenta); flex-wrap: wrap; gap: 8px;">
+            <div>
+                <div style="font-weight: 600; color: var(--text-primary);">${quest.title}</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">${difficultyLabel} • +${quest.xpReward} XP соц. • +${quest.socialBonus} харизмы</div>
+            </div>
+            <button class="action-btn" style="background: var(--accent-green); width: auto; padding: 6px 16px; font-size: 13px;" onclick="completeRandomQuest()">✅ Выполнить</button>
+        </div>
+    `;
+}
+
+// Запуск рулетки заданий (вызов из кнопки)
+function startRandomQuest() {
+    if (!currentUserData) {
+        toast('❌ Войдите в игру!', 'error');
+        return;
+    }
+    // Проверка, не использовали ли сегодня
+    const today = new Date().toDateString();
+    if (currentUserData.lastRandomDate === today) {
+        toast('⏳ Вы уже крутили сегодня! Завтра будет новый шанс.', 'warning');
+        return;
+    }
+    // Проверка, есть ли уже активный невыполненный квест
+    if (currentUserData.randomQuest && !currentUserData.randomQuest.completed) {
+        toast('⚠️ У вас уже есть активный случайный квест! Выполните его или дождитесь завтра.', 'warning');
+        return;
+    }
+
+    // Фильтруем доступные задания
+    const available = getAvailableRandomQuests();
+    if (available.length === 0) {
+        toast('❌ Нет доступных заданий для вашего уровня.', 'error');
+        return;
+    }
+
+    // Показываем модалку с анимацией
+    const modal = document.getElementById('roulette-modal');
+    modal.classList.add('active');
+    const spinText = document.getElementById('roulette-spin-text');
+    const resultText = document.getElementById('roulette-result-text');
+    const actionsDiv = document.getElementById('roulette-actions');
+    const acceptBtn = document.getElementById('roulette-accept-btn');
+    const skipBtn = document.getElementById('roulette-skip-btn');
+    const closeBtn = document.getElementById('roulette-close-btn');
+
+    // Сброс
+    spinText.textContent = '🎰';
+    resultText.textContent = '';
+    actionsDiv.style.display = 'none';
+    acceptBtn.disabled = false;
+    skipBtn.disabled = false;
+
+    // Эффект крутящегося барабана (смена эмодзи)
+    let count = 0;
+    const emojis = ['🎲', '🎰', '🌀', '⚡', '🔥', '✨', '💫', '🌟'];
+    const interval = setInterval(() => {
+        spinText.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        count++;
+        if (count > 15) { // примерно 2 секунды (15*130ms ≈ 2с)
+            clearInterval(interval);
+            // Выбираем задание
+            const chosen = available[Math.floor(Math.random() * available.length)];
+            // Сохраняем выбранное задание в модалке (временно)
+            const questCopy = { ...chosen, completed: false };
+            spinText.textContent = chosen.emoji || '🎯';
+            resultText.textContent = `«${chosen.title}» — ${chosen.desc}`;
+            actionsDiv.style.display = 'flex';
+
+            // Обработчики
+            acceptBtn.onclick = function() {
+                if (currentUserData.randomQuest && !currentUserData.randomQuest.completed) {
+                    toast('⚠️ У вас уже есть активный квест!', 'warning');
+                    return;
+                }
+                // Сохраняем квест в данные
+                currentUserData.randomQuest = { ...questCopy };
+                currentUserData.lastRandomDate = new Date().toDateString();
+                saveUserData().then(() => {
+                    modal.classList.remove('active');
+                    renderRandomQuestDisplay();
+                    updateUI();
+                    toast(`✅ Квест «${questCopy.title}» принят! Выполняйте!`, 'success');
+                });
+                acceptBtn.disabled = true;
+                skipBtn.disabled = true;
+            };
+
+            skipBtn.onclick = function() {
+                // Можно крутить дальше только если сегодня ещё не крутили
+                if (currentUserData.lastRandomDate === new Date().toDateString()) {
+                    toast('⏳ Сегодня вы уже использовали попытку. Хотите сбросить?', 'warning');
+                    // Можно разрешить повторно, но за плату или без - оставим как есть, но дадим второй шанс за 10 монет?
+                    // По условию - один бесплатный в день. Поэтому предложим пропустить и закрыть модалку.
+                    modal.classList.remove('active');
+                    toast('🔄 Вы пропустили задание. Приходите завтра!', 'info');
+                } else {
+                    // Можно перекрутить, но это будет считаться использованием попытки? Сделаем так: повторный клик "Крутить дальше" закрывает модалку и даёт шанс снова, но уже с пометкой использовано.
+                    // Но чтобы не нарушать логику, мы уже записали lastRandomDate? Нет, мы ещё не записали. Поэтому если пропустить, то даём возможность попробовать снова, но только если не принимали.
+                    // При пропуске мы просто закрываем модалку, и пользователь может нажать снова, но тогда он потратит попытку.
+                    // Поскольку мы ещё не сохранили lastRandomDate, то можно закрыть и дать попробовать снова.
+                    modal.classList.remove('active');
+                    toast('🔄 Вы пропустили это задание. Попробуйте снова!', 'info');
+                }
+                skipBtn.disabled = true;
+                acceptBtn.disabled = true;
+            };
+
+            closeBtn.onclick = function() {
+                modal.classList.remove('active');
+            };
+        }
+    }, 130);
+}
+
+// Выполнение случайного квеста
+async function completeRandomQuest() {
+    if (!currentUserData || !currentUserData.randomQuest || currentUserData.randomQuest.completed) {
+        toast('❌ Нет активного случайного квеста.', 'error');
+        return;
+    }
+    const quest = currentUserData.randomQuest;
+    // Начисляем награду
+    currentUserData.socialXP = (currentUserData.socialXP || 0) + quest.xpReward;
+    currentUserData.stats.cha = (currentUserData.stats.cha || 0) + quest.socialBonus;
+    quest.completed = true;
+    // Повышение соц. уровня
+    let leveledUp = false;
+    while (currentUserData.socialXP >= SOCIAL_XP_PER_LEVEL) {
+        currentUserData.socialXP -= SOCIAL_XP_PER_LEVEL;
+        currentUserData.socialLevel = (currentUserData.socialLevel || 1) + 1;
+        leveledUp = true;
+    }
+    await saveUserData();
+    updateUI();
+    renderRandomQuestDisplay();
+    renderAchievements();
+    if (leveledUp) {
+        toast(`🎉 Социальный уровень повышен! Теперь ты ${currentUserData.socialLevel} уровень!`, 'success');
+    } else {
+        toast(`✅ Случайный квест выполнен! +${quest.xpReward} XP, +${quest.socialBonus} к харизме.`, 'success');
+    }
+}
+
+// ========================================
 //  СБРОС ПРОГРЕССА
 // ========================================
 
 async function resetProgress() {
     if (!currentUserData) return;
     if (!confirm('Сбросить прогресс?')) return;
-
+    
     currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0, gold: 0 };
     currentUserData.completed_quests = [];
     currentUserData.inventory = [];
@@ -1314,10 +1955,14 @@ async function resetProgress() {
     currentUserData.total_chests_opened = 0;
     currentUserData.total_goals_completed = 0;
     currentUserData.achievements = [];
-
+    currentUserData.last_weekly_date = '';
+    currentUserData.randomQuest = null;
+    currentUserData.lastRandomDate = '';
+    
     await saveUserData();
     await checkDailyRotation();
     await refreshSocialQuests();
+    
     updateUI();
     renderInventory();
     renderQuests();
@@ -1326,7 +1971,9 @@ async function resetProgress() {
     renderSocialQuests();
     renderAchievements();
     renderRouletteResult('');
-    alert('🗑️ Прогресс сброшен!');
+    renderRandomQuestDisplay();
+    
+    toast('🗑️ Прогресс сброшен!', 'info');
 }
 
 // ========================================
@@ -1338,12 +1985,12 @@ setInterval(() => {
     let h = 23 - n.getHours(), m = 59 - n.getMinutes(), s = 59 - n.getSeconds();
     const dailyTimer = document.getElementById('daily-timer');
     if (dailyTimer) {
-        dailyTimer.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        dailyTimer.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
     const daysLeft = 6 - (n.getDay() % 7);
     const weeklyTimer = document.getElementById('weekly-timer');
     if (weeklyTimer) {
-        weeklyTimer.textContent = `${daysLeft}д ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        weeklyTimer.textContent = `${daysLeft}д ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
     if (h === 0 && m === 0 && s === 0 && currentUserData) {
         checkDailyRotation();
@@ -1357,6 +2004,9 @@ setInterval(() => {
 
 document.getElementById('goal-rarity')?.addEventListener('change', updateRewardPreview);
 document.getElementById('goal-stat')?.addEventListener('change', updateRewardPreview);
+
+// Кнопка рулетки заданий
+document.getElementById('random-quest-btn')?.addEventListener('click', startRandomQuest);
 
 console.log('✅ Игра запущена! Все системы работают.');
 restoreSession();
