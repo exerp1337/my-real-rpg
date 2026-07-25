@@ -112,7 +112,7 @@ html, body {
     display: flex; flex-direction: column;
     justify-content: center; align-items: center;
     gap: 0;
-    padding: 32px 24px;
+    padding: max(env(safe-area-inset-top), 32px) 24px max(env(safe-area-inset-bottom), 32px);
     overflow-y: auto;
 }
 
@@ -265,7 +265,8 @@ textarea { resize: vertical; }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 16px;
+    /* safe-area-inset-top покрывает Dynamic Island / notch на всех айфонах */
+    padding: max(env(safe-area-inset-top), 10px) 16px 10px;
     background: rgba(4,4,12,0.9);
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(10px);
@@ -321,9 +322,10 @@ textarea { resize: vertical; }
     display: flex;
     background: rgba(4,4,12,0.95);
     border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
+    /* safe-area-inset-bottom = home indicator на iPhone */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     flex-shrink: 0;
-    order: 10; /* push to bottom via flexbox */
+    order: 10;
 }
 
 /* reorder: tabs go below screens */
@@ -994,11 +996,51 @@ textarea { resize: vertical; }
 /* ══════════════════════════════════════════════
    RESPONSIVE / MOBILE POLISH
 ══════════════════════════════════════════════ */
-@media (max-width: 420px) {
+@media (max-width: 480px) {
     #level-display { font-size: 52px; }
     #profile-avatar { font-size: 52px; }
     .header-title { display: none; }
     .tab-btn .tab-icon { font-size: 16px; }
+
+    /* На узких экранах хедер компактнее */
+    .header-bar {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .header-right {
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+    .user-badge {
+        gap: 5px;
+        padding: 4px 8px;
+    }
+    #user-nick {
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #header-avatar { font-size: 15px; }
+    #user-level-badge, #social-level-badge { font-size: 9px; }
+    .gold-badge { padding: 4px 8px; font-size: 12px; }
+
+    /* Tabs: меньше шрифт, чуть меньше отступы */
+    .tab-btn { font-size: 8px; padding: 8px 2px 6px; }
+    .tab-btn .tab-icon { font-size: 17px; }
+
+    /* screens-wrapper: учитываем боковые safe-area */
+    .screens-wrapper {
+        padding: 12px max(env(safe-area-inset-right), 12px) 0 max(env(safe-area-inset-left), 12px);
+    }
+}
+
+/* Landscape на телефоне */
+@media (max-height: 500px) and (orientation: landscape) {
+    .header-bar { padding-top: 8px; padding-bottom: 8px; }
+    #profile-avatar { font-size: 40px; }
+    #level-display  { font-size: 40px; }
 }
 
 /* ══════════════════════════════════════════════

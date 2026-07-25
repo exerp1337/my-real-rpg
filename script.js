@@ -270,16 +270,24 @@ async function supabaseRequest(method, endpoint, body = null) {
     if (body) options.body = JSON.stringify(body);
 
     const response = await fetch(url, options);
+
+    // 204 No Content — успех без тела
+    if (response.status === 204) return null;
+
+    const text = await response.text();
+
     if (!response.ok) {
-        const text = await response.text();
         throw new Error(`HTTP ${response.status}: ${text}`);
     }
-    return await response.json();
+
+    if (!text || text.trim() === '') return null;
+
+    try { return JSON.parse(text); } catch (e) { return null; }
 }
 
 async function getUser(username) {
     const result = await supabaseRequest('GET', `${TABLE_NAME}?username=eq.${encodeURIComponent(username)}`);
-    return result && result.length > 0 ? result[0] : null;
+    return Array.isArray(result) && result.length > 0 ? result[0] : null;
 }
 
 async function createUser(username, password, email = '') {
@@ -304,17 +312,17 @@ async function createUser(username, password, email = '') {
         total_goals_completed: 0,
         achievements: [],
         last_weekly_date: '',
-        // Поля для рулетки
         randomQuest: null,
         lastRandomDate: ''
     };
     const result = await supabaseRequest('POST', TABLE_NAME, newUser);
-    return result && result.length > 0 ? result[0] : null;
+    return Array.isArray(result) && result.length > 0 ? result[0] : null;
 }
 
 async function updateUser(username, data) {
+    // PATCH: Supabase может вернуть [] или 204 — оба варианта успех
     const result = await supabaseRequest('PATCH', `${TABLE_NAME}?username=eq.${encodeURIComponent(username)}`, data);
-    return result && result.length > 0 ? result[0] : null;
+    return Array.isArray(result) && result.length > 0 ? result[0] : null;
 }
 
 // ========================================
