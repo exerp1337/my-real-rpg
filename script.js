@@ -46,6 +46,97 @@ const EXP = 250;
 const SOCIAL_XP_PER_LEVEL = 100;
 
 // ========================================
+//  НОВЫЕ СИСТЕМЫ: HP / ДЕБАФФЫ / ВЕТКИ / СТРИК / ГАЧА / АРТЕФАКТЫ
+// ========================================
+
+const HP_CONFIG = {
+    max: 100,
+    damage: {
+        sleep_late:   15,
+        missed_daily: 10,
+        missed_weekly: 25,
+    },
+    regen: {
+        per_day: 5,
+        on_streak_5: 10,
+    }
+};
+
+const DEBUFF_DEFINITIONS = {
+    cortisol: {
+        id: 'cortisol', name: '🧪 Кортизол',
+        desc: 'Сон < 7ч. −20% EXP за физические квесты.',
+        duration: 1,
+        apply: (u, exp, branch) => branch === 'athletics' ? Math.round(exp * 0.8) : exp
+    },
+    brain_fog: {
+        id: 'brain_fog', name: '🌫️ Туман разума',
+        desc: 'Менее 6ч. сна. −15% EXP за Интеллект-квесты.',
+        duration: 1,
+        apply: (u, exp, branch) => branch === 'intellect' ? Math.round(exp * 0.85) : exp
+    },
+    overload: {
+        id: 'overload', name: '⚡ Перегруз',
+        desc: '3 пропущенных дейлика подряд. −10% EXP во всех ветках.',
+        duration: 2,
+        apply: (u, exp) => Math.round(exp * 0.9)
+    }
+};
+
+const SKILL_BRANCHES = {
+    athletics:  { id: 'athletics',  name: '💪 Атлетика',    stat: 'str', color: '#ff6b35' },
+    intellect:  { id: 'intellect',  name: '📚 Интеллект/IT', stat: 'int', color: '#0a84ff' },
+    discipline: { id: 'discipline', name: '🎯 Дисциплина',   stat: 'per', color: '#bf5af2' }
+};
+
+// Маппинг stat → ветка (используется в completeQuest)
+const STAT_TO_BRANCH = {
+    str: 'athletics', end: 'athletics', agi: 'athletics',
+    int: 'intellect',
+    per: 'discipline', cha: 'discipline', luck: 'discipline'
+};
+
+const QUEST_RANKS = {
+    D: { label: 'D', name: 'Дейлики',    streakImpact: true,  expMult: 1.0 },
+    B: { label: 'B', name: 'Недельные',  streakImpact: true,  expMult: 2.0 },
+    S: { label: 'S', name: 'Глобальные', streakImpact: false, expMult: 5.0 }
+};
+
+const STREAK_MULTIPLIERS = [
+    { days: 10, mult: 2.0, label: '🔥×2' },
+    { days:  5, mult: 1.5, label: '⚡×1.5' },
+    { days:  0, mult: 1.0, label: '×1' }
+];
+
+const ARTIFACT_DEFINITIONS = {
+    time_scroll: {
+        id: 'time_scroll', name: '📜 Свиток Искажения Времени',
+        desc: 'Сдвигает дедлайн задачи на 1 день без сброса стрика.',
+        icon: '📜', rarity: 'epic', shopCost: 200, dropChance: 0.05
+    },
+    dodge_shield: {
+        id: 'dodge_shield', name: '🛡️ Щит Уклонения',
+        desc: 'Блокирует следующий урон по HP (1 раз).',
+        icon: '🛡️', rarity: 'epic', shopCost: 150, dropChance: 0.07
+    },
+    tavern_pass: {
+        id: 'tavern_pass', name: '🍺 Пропуск Таверны',
+        desc: 'Активирует режим паузы — HP не падает, EXP заморожено.',
+        icon: '🍺', rarity: 'rare', shopCost: 100, dropChance: 0.08
+    }
+};
+
+const GACHA_POOL = [
+    { id: 'g_gold_100',    name: '💰 +100 Голды',         weight: 30, effect: 'gold_100' },
+    { id: 'g_exp_200',     name: '✨ +200 EXP в ветку',   weight: 25, effect: 'exp_200' },
+    { id: 'g_hp_30',       name: '❤️ +30 HP',             weight: 20, effect: 'hp_30' },
+    { id: 'g_dodge_shield',name: '🛡️ Щит Уклонения',     weight: 10, effect: 'artifact_dodge_shield' },
+    { id: 'g_time_scroll', name: '📜 Свиток Времени',     weight: 8,  effect: 'artifact_time_scroll' },
+    { id: 'g_tavern_pass', name: '🍺 Пропуск Таверны',   weight: 5,  effect: 'artifact_tavern_pass' },
+    { id: 'g_hp_full',     name: '💊 Полное восстановление HP', weight: 2, effect: 'hp_full' }
+];
+
+// ========================================
 //  БАЗЫ ДАННЫХ
 // ========================================
 
@@ -385,6 +476,21 @@ function normalizeUserData(user) {
         }
     });
 
+    // ── Новые поля RPG-систем ──
+    if (normalized.hp === undefined || normalized.hp === null) normalized.hp = HP_CONFIG.max;
+    if (!normalized.maxHp) normalized.maxHp = HP_CONFIG.max;
+    if (!Array.isArray(normalized.debuffs)) normalized.debuffs = [];
+    if (!normalized.branchExp || typeof normalized.branchExp !== 'object')
+        normalized.branchExp = { athletics: 0, intellect: 0, discipline: 0 };
+    ['athletics','intellect','discipline'].forEach(b => { if (!normalized.branchExp[b]) normalized.branchExp[b] = 0; });
+    if (normalized.streak === undefined) normalized.streak = 0;
+    if (!normalized.lastStreakDate) normalized.lastStreakDate = '';
+    if (normalized.gachaTokens === undefined) normalized.gachaTokens = 0;
+    if (!Array.isArray(normalized.artifacts)) normalized.artifacts = [];
+    if (normalized.tavernMode === undefined) normalized.tavernMode = false;
+    if (!normalized.tavernStart) normalized.tavernStart = '';
+    if (!normalized.missedDaysInRow) normalized.missedDaysInRow = 0;
+
     // Нормализация randomQuest
     if (normalized.randomQuest && typeof normalized.randomQuest === 'string') {
         try {
@@ -624,6 +730,15 @@ async function checkDailyRotation() {
     if (!currentUserData) return;
     const today = new Date().toDateString();
     if (currentUserData.last_quest_date !== today || !currentUserData.current_quests?.length) {
+        // Обработка смены дня
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yDate = yesterday.toDateString();
+        const yesterdayDone = currentUserData.last_quest_date === yDate
+            && (currentUserData.completed_quests || []).filter(id => id !== 'w1').length
+               >= (currentUserData.current_quests?.length || 0);
+        await processDayChange(yesterdayDone);
+
         const shuffled = [...QUESTS_DATABASE].sort(() => 0.5 - Math.random());
         currentUserData.current_quests = shuffled.slice(0, 3);
         currentUserData.completed_quests = currentUserData.completed_quests?.filter(id => id === 'w1') || [];
@@ -730,6 +845,17 @@ function updateUI() {
     renderInventory();
     renderHotbar();
     renderRandomQuestDisplay();
+
+    // ── Новые системы ──
+    renderHpBar();
+    renderDebuffs();
+    renderSkillBranches();
+    renderStreakInfo();
+    renderArtifacts();
+    renderArtifactShop();
+    renderTavernStatus();
+    const gachaLabel = document.getElementById('gacha-tokens-label');
+    if (gachaLabel) gachaLabel.textContent = `🎰 Гача-токены: ${currentUserData?.gachaTokens || 0}`;
 }
 
 // ========================================
@@ -814,7 +940,19 @@ async function saveUserData() {
         achievements: currentUserData.achievements || [],
         last_weekly_date: currentUserData.last_weekly_date || '',
         randomQuest: currentUserData.randomQuest || null,
-        lastRandomDate: currentUserData.lastRandomDate || ''
+        lastRandomDate: currentUserData.lastRandomDate || '',
+        // Новые поля
+        hp: currentUserData.hp ?? HP_CONFIG.max,
+        maxHp: currentUserData.maxHp ?? HP_CONFIG.max,
+        debuffs: currentUserData.debuffs || [],
+        branchExp: currentUserData.branchExp || { athletics: 0, intellect: 0, discipline: 0 },
+        streak: currentUserData.streak || 0,
+        lastStreakDate: currentUserData.lastStreakDate || '',
+        gachaTokens: currentUserData.gachaTokens || 0,
+        artifacts: currentUserData.artifacts || [],
+        tavernMode: currentUserData.tavernMode || false,
+        tavernStart: currentUserData.tavernStart || '',
+        missedDaysInRow: currentUserData.missedDaysInRow || 0
     };
     
     try {
@@ -851,15 +989,27 @@ async function checkSleepTime() {
         toast('💤 Вы уже отметили сон сегодня!', 'info');
         return;
     }
+
     const hours = now.getHours();
-    if (hours >= 0 && hours < 6) {
+    const isSleepLate = hours >= 0 && hours < 6;  // после полуночи
+
+    if (isSleepLate) {
+        applyDamage(HP_CONFIG.damage.sleep_late, 'Отбой после полуночи');
         currentUserData.stats.per = Math.max(0, (currentUserData.stats.per || 0) - 10);
-        toast('⚠️ Вы легли после полуночи! -10 Дисциплина.', 'error');
     } else {
-        currentUserData.stats.per = (currentUserData.stats.per || 0) + 10;
+        // Хороший режим сна — бонусы + EXP в ветку Дисциплина
+        currentUserData.stats.per  = (currentUserData.stats.per || 0) + 10;
         currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 15;
-        toast('🏆 Отличный режим! +10 Дисциплина / +15 🪙', 'success');
+        addBranchExp('discipline', 30);
+        regenHp(5);
+        toast('🏆 Отличный режим! +10 Дисциплина / +15 🪙 / +30 EXP', 'success');
     }
+
+    // Дебафф кортизола: если менее 8ч до сейчас (примерно — по часу)
+    // Для точной версии используй processSleepData(bedtime, hours) из модуля
+    if (hours >= 0 && hours < 3) applyDebuff('cortisol');  // очень поздно
+    if (hours >= 3 && hours < 6) { applyDebuff('cortisol'); applyDebuff('brain_fog'); }
+
     currentUserData.last_sleep_date = today;
     await saveUserData();
     updateUI();
@@ -871,15 +1021,27 @@ async function checkSleepTime() {
 
 async function completeQuest(id, type, points, gold) {
     if (!currentUserData || currentUserData.completed_quests.includes(id)) return;
+
+    // Определяем ветку и начисляем branch EXP (с дебаффами и стриком)
+    const branch = STAT_TO_BRANCH[type] || 'discipline';
+    const earnedExp = addBranchExp(branch, points * 10);
+
+    // Обычные статы (совместимость с существующим кодом)
     currentUserData.stats[type] = (currentUserData.stats[type] || 0) + points;
-    currentUserData.stats.gold = (currentUserData.stats.gold || 0) + gold;
+    currentUserData.stats.gold  = (currentUserData.stats.gold  || 0) + gold;
     currentUserData.completed_quests.push(id);
     currentUserData.total_quests_completed = (currentUserData.total_quests_completed || 0) + 1;
+
+    // Проверяем — все ли дейлики выполнены сегодня
+    const allDone = currentUserData.current_quests.every(q =>
+        currentUserData.completed_quests.includes(q.id));
+    if (allDone) updateStreak(true);
+
     await saveUserData();
     updateUI();
     renderQuests();
     renderAchievements();
-    toast(`✅ Квест выполнен! +${points} XP, +${gold} 🪙`, 'success');
+    toast(`✅ Квест выполнен! +${points} XP / +${earnedExp} ветка, +${gold} 🪙`, 'success');
 }
 
 async function completeWeeklyChallenge(btn) {
@@ -1966,7 +2128,18 @@ async function resetProgress() {
     currentUserData.last_weekly_date = '';
     currentUserData.randomQuest = null;
     currentUserData.lastRandomDate = '';
-    
+    // Новые поля
+    currentUserData.hp = HP_CONFIG.max;
+    currentUserData.debuffs = [];
+    currentUserData.branchExp = { athletics: 0, intellect: 0, discipline: 0 };
+    currentUserData.streak = 0;
+    currentUserData.lastStreakDate = '';
+    currentUserData.gachaTokens = 0;
+    currentUserData.artifacts = [];
+    currentUserData.tavernMode = false;
+    currentUserData.tavernStart = '';
+    currentUserData.missedDaysInRow = 0;
+
     await saveUserData();
     await checkDailyRotation();
     await refreshSocialQuests();
@@ -1982,6 +2155,388 @@ async function resetProgress() {
     renderRandomQuestDisplay();
     
     toast('🗑️ Прогресс сброшен!', 'info');
+}
+
+// ========================================
+//  HP СИСТЕМА
+// ========================================
+
+function applyDamage(amount, reason = '') {
+    if (!currentUserData) return;
+    const shieldIdx = findArtifactIndex('dodge_shield');
+    if (shieldIdx !== -1) {
+        consumeArtifact('dodge_shield');
+        toast('🛡️ Щит Уклонения заблокировал урон!', 'success');
+        return;
+    }
+    if (currentUserData.tavernMode) {
+        toast('🍺 Отдых в Таверне: HP защищён.', 'info');
+        return;
+    }
+    currentUserData.hp = Math.max(0, (currentUserData.hp ?? HP_CONFIG.max) - amount);
+    if (currentUserData.hp <= 0) {
+        currentUserData.hp = 0;
+        resetStreak();
+        toast(`💀 HP упало до нуля! Стрик сброшен. (${reason})`, 'error');
+    } else {
+        toast(`❤️ −${amount} HP. ${reason}`, 'warning');
+    }
+}
+
+function regenHp(amount = HP_CONFIG.regen.per_day) {
+    if (!currentUserData || currentUserData.tavernMode) return;
+    currentUserData.hp = Math.min(
+        currentUserData.maxHp || HP_CONFIG.max,
+        (currentUserData.hp ?? HP_CONFIG.max) + amount
+    );
+}
+
+// ========================================
+//  ДЕБАФФЫ
+// ========================================
+
+function applyDebuff(debuffId) {
+    if (!currentUserData || currentUserData.tavernMode) return;
+    if (!DEBUFF_DEFINITIONS[debuffId]) return;
+    if (currentUserData.debuffs.some(d => d.id === debuffId)) return;
+    const def = DEBUFF_DEFINITIONS[debuffId];
+    const d = new Date();
+    d.setDate(d.getDate() + def.duration);
+    currentUserData.debuffs.push({ id: debuffId, expiresDate: d.toISOString().split('T')[0] });
+    toast(`${def.name} — дебафф активирован! ${def.desc}`, 'warning');
+}
+
+function cleanExpiredDebuffs() {
+    if (!currentUserData?.debuffs) return;
+    const today = new Date().toISOString().split('T')[0];
+    currentUserData.debuffs = currentUserData.debuffs.filter(d => d.expiresDate >= today);
+}
+
+function applyDebuffsToExp(exp, branch) {
+    let result = exp;
+    for (const active of (currentUserData?.debuffs || [])) {
+        const def = DEBUFF_DEFINITIONS[active.id];
+        if (def) result = def.apply(currentUserData, result, branch);
+    }
+    return result;
+}
+
+// ========================================
+//  ВЕТКИ НАВЫКОВ
+// ========================================
+
+function addBranchExp(branch, rawExp) {
+    if (!currentUserData) return 0;
+    if (currentUserData.tavernMode) return 0;
+    if (!SKILL_BRANCHES[branch]) return 0;
+    let exp = applyDebuffsToExp(rawExp, branch);
+    exp = applyStreakMultiplier(exp);
+    exp = Math.round(exp);
+    currentUserData.branchExp[branch] = (currentUserData.branchExp[branch] || 0) + exp;
+    return exp;
+}
+
+function getBranchLevel(branch) {
+    return Math.floor((currentUserData?.branchExp?.[branch] || 0) / 500) + 1;
+}
+
+// ========================================
+//  СТРИК И МНОЖИТЕЛЬ
+// ========================================
+
+function updateStreak(success) {
+    if (!currentUserData) return;
+    const today = new Date().toDateString();
+    if (success) {
+        if (currentUserData.lastStreakDate !== today) {
+            currentUserData.streak = (currentUserData.streak || 0) + 1;
+            currentUserData.lastStreakDate = today;
+            currentUserData.missedDaysInRow = 0;
+            if (currentUserData.streak === 5) {
+                regenHp(HP_CONFIG.regen.on_streak_5);
+                toast('🔥 Стрик 5 дней! +10 HP бонус!', 'success');
+            }
+            const mult = getStreakMultiplier();
+            if (mult.mult > 1) toast(`${mult.label} Стрик-множитель активен! (${currentUserData.streak} дн.)`, 'success');
+        }
+    } else {
+        resetStreak();
+        currentUserData.missedDaysInRow = (currentUserData.missedDaysInRow || 0) + 1;
+        if (currentUserData.missedDaysInRow >= 3) applyDebuff('overload');
+    }
+}
+
+function resetStreak() {
+    if (!currentUserData) return;
+    if (currentUserData.streak > 0) {
+        currentUserData.streak = 0;
+        currentUserData.lastStreakDate = '';
+        toast('💔 Стрик сброшен до 0.', 'error');
+    }
+}
+
+function getStreakMultiplier() {
+    const streak = currentUserData?.streak || 0;
+    for (const tier of STREAK_MULTIPLIERS) {
+        if (streak >= tier.days) return tier;
+    }
+    return { days: 0, mult: 1.0, label: '×1' };
+}
+
+function applyStreakMultiplier(exp) {
+    return Math.round(exp * getStreakMultiplier().mult);
+}
+
+// ========================================
+//  СМЕНА ДНЯ
+// ========================================
+
+async function processDayChange(yesterdayCompleted) {
+    if (!currentUserData) return;
+    cleanExpiredDebuffs();
+    regenHp(HP_CONFIG.regen.per_day);
+    updateStreak(yesterdayCompleted);
+    if (!yesterdayCompleted && currentUserData.last_quest_date) {
+        applyDamage(HP_CONFIG.damage.missed_daily, 'Дейлики не выполнены вчера');
+    }
+}
+
+// ========================================
+//  ГАЧА-ТОКЕНЫ И СПИН
+// ========================================
+
+async function spinGacha() {
+    if (!currentUserData) return;
+    if ((currentUserData.gachaTokens || 0) < 1) {
+        toast('❌ Нет Гача-токенов! Закрой S-цель или идеальную неделю.', 'error');
+        return;
+    }
+    currentUserData.gachaTokens -= 1;
+    const item = weightedRandom(GACHA_POOL);
+    applyGachaEffect(item);
+    await saveUserData();
+    updateUI();
+    return item;
+}
+
+function applyGachaEffect(item) {
+    switch (item.effect) {
+        case 'gold_100':
+            currentUserData.stats.gold = (currentUserData.stats.gold || 0) + 100;
+            toast(`🎰 ${item.name}`, 'success'); break;
+        case 'exp_200': {
+            const branches = Object.keys(SKILL_BRANCHES);
+            const branch = branches[Math.floor(Math.random() * branches.length)];
+            addBranchExp(branch, 200);
+            toast(`🎰 ${item.name} → ${SKILL_BRANCHES[branch].name}`, 'success'); break;
+        }
+        case 'hp_30':
+            regenHp(30);
+            toast(`🎰 ${item.name}`, 'success'); break;
+        case 'hp_full':
+            currentUserData.hp = currentUserData.maxHp || HP_CONFIG.max;
+            toast(`🎰 ${item.name}`, 'success'); break;
+        default:
+            if (item.effect.startsWith('artifact_')) {
+                grantArtifact(item.effect.replace('artifact_', ''));
+                toast(`🎰 Артефакт выпал: ${item.name}!`, 'success');
+            }
+    }
+}
+
+function weightedRandom(items) {
+    const total = items.reduce((s, i) => s + i.weight, 0);
+    let rand = Math.random() * total;
+    for (const item of items) { rand -= item.weight; if (rand <= 0) return item; }
+    return items[items.length - 1];
+}
+
+// ========================================
+//  АРТЕФАКТЫ
+// ========================================
+
+function grantArtifact(artifactId) {
+    if (!ARTIFACT_DEFINITIONS[artifactId]) return;
+    const existing = currentUserData.artifacts.find(a => a.id === artifactId);
+    if (existing) existing.qty = (existing.qty || 1) + 1;
+    else currentUserData.artifacts.push({ id: artifactId, qty: 1 });
+    toast(`📦 Артефакт "${ARTIFACT_DEFINITIONS[artifactId].name}" получен!`, 'success');
+}
+
+async function buyArtifact(artifactId) {
+    if (!currentUserData) return;
+    const def = ARTIFACT_DEFINITIONS[artifactId];
+    if (!def) return;
+    const gold = currentUserData.stats?.gold || 0;
+    if (gold < def.shopCost) { toast(`❌ Нужно ${def.shopCost} 🪙, у тебя ${gold}.`, 'error'); return; }
+    currentUserData.stats.gold -= def.shopCost;
+    grantArtifact(artifactId);
+    await saveUserData();
+    updateUI();
+}
+
+async function useArtifact(artifactId) {
+    if (!currentUserData) return;
+    const idx = findArtifactIndex(artifactId);
+    if (idx === -1) { toast('❌ Артефакта нет в инвентаре.', 'error'); return; }
+    switch (artifactId) {
+        case 'time_scroll':
+            toast('📜 Свиток активирован! Дедлайн активной цели сдвинут на 1 день. Стрик сохранён.', 'info');
+            consumeArtifact(artifactId);
+            break;
+        case 'dodge_shield':
+            toast('🛡️ Щит активирован! Следующий урон будет заблокирован.', 'success');
+            // Не расходуем — расходуется при блоке в applyDamage
+            break;
+        case 'tavern_pass':
+            activateTavernMode();
+            consumeArtifact(artifactId);
+            break;
+    }
+    await saveUserData();
+    updateUI();
+}
+
+function consumeArtifact(artifactId) {
+    const idx = findArtifactIndex(artifactId);
+    if (idx === -1) return;
+    currentUserData.artifacts[idx].qty -= 1;
+    if (currentUserData.artifacts[idx].qty <= 0) currentUserData.artifacts.splice(idx, 1);
+}
+
+function findArtifactIndex(artifactId) {
+    return (currentUserData?.artifacts || []).findIndex(a => a.id === artifactId);
+}
+
+// ========================================
+//  ТАВЕРНА
+// ========================================
+
+function activateTavernMode() {
+    if (!currentUserData) return;
+    if (currentUserData.tavernMode) { toast('🍺 Таверна уже активна.', 'info'); return; }
+    currentUserData.tavernMode = true;
+    currentUserData.tavernStart = new Date().toISOString().split('T')[0];
+    toast('🍺 Режим "Отдых в Таверне" активирован. HP и стрик заморожены.', 'info');
+}
+
+async function deactivateTavernMode() {
+    if (!currentUserData) return;
+    currentUserData.tavernMode = false;
+    currentUserData.tavernStart = '';
+    toast('⚔️ Отдых завершён. Добро пожаловать обратно!', 'success');
+    await saveUserData();
+    updateUI();
+}
+
+// ========================================
+//  РЕНДЕР НОВЫХ UI-БЛОКОВ
+// ========================================
+
+function renderHpBar() {
+    const fill  = document.getElementById('hp-bar-fill');
+    const label = document.getElementById('hp-label');
+    if (!fill || !currentUserData) return;
+    const hp    = currentUserData.hp    ?? HP_CONFIG.max;
+    const maxHp = currentUserData.maxHp ?? HP_CONFIG.max;
+    const pct   = Math.round((hp / maxHp) * 100);
+    fill.style.width      = pct + '%';
+    fill.style.background = pct > 50 ? '#30d158' : pct > 25 ? '#ffd60a' : '#ff453a';
+    fill.style.boxShadow  = pct > 50 ? '0 0 8px #30d158' : pct > 25 ? '0 0 8px #ffd60a' : '0 0 8px #ff453a';
+    if (label) label.textContent = `❤️ ${hp} / ${maxHp}`;
+}
+
+function renderDebuffs() {
+    const container = document.getElementById('debuffs-container');
+    if (!container || !currentUserData) return;
+    container.innerHTML = '';
+    (currentUserData.debuffs || []).forEach(d => {
+        const def = DEBUFF_DEFINITIONS[d.id];
+        if (!def) return;
+        const chip = document.createElement('div');
+        chip.className = 'debuff-chip';
+        chip.title = def.desc;
+        chip.textContent = `${def.name} до ${d.expiresDate}`;
+        container.appendChild(chip);
+    });
+}
+
+function renderSkillBranches() {
+    const container = document.getElementById('skill-branches-container');
+    if (!container || !currentUserData) return;
+    container.innerHTML = '';
+    Object.values(SKILL_BRANCHES).forEach(branch => {
+        const exp = currentUserData.branchExp?.[branch.id] || 0;
+        const lvl = getBranchLevel(branch.id);
+        const pct = Math.round(((exp % 500) / 500) * 100);
+        container.innerHTML += `
+        <div class="branch-card" style="border-left:3px solid ${branch.color}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span class="branch-name">${branch.name}</span>
+                <span style="color:${branch.color};font-family:var(--font-mono);font-size:11px;font-weight:700;">Lv.${lvl}</span>
+            </div>
+            <div class="branch-bar-wrap">
+                <div class="branch-bar-fill" style="width:${pct}%;background:${branch.color};box-shadow:0 0 6px ${branch.color};"></div>
+            </div>
+            <div class="branch-exp-label">${exp % 500} / 500 EXP</div>
+        </div>`;
+    });
+}
+
+function renderStreakInfo() {
+    const el = document.getElementById('streak-info');
+    if (!el || !currentUserData) return;
+    const streak = currentUserData.streak || 0;
+    const mult   = getStreakMultiplier();
+    el.innerHTML = `🔥 Стрик: <b>${streak}</b> дн. &nbsp;|&nbsp; Множитель: <b style="color:var(--yellow)">${mult.label}</b>`;
+}
+
+function renderArtifacts() {
+    const container = document.getElementById('artifacts-container');
+    if (!container || !currentUserData) return;
+    if (!currentUserData.artifacts?.length) {
+        container.innerHTML = '<div style="color:var(--text-mid);font-size:13px;font-style:italic;">Нет артефактов</div>';
+        return;
+    }
+    container.innerHTML = currentUserData.artifacts.map(a => {
+        const def = ARTIFACT_DEFINITIONS[a.id];
+        if (!def) return '';
+        return `<div class="artifact-card">
+            <span class="artifact-icon">${def.icon}</span>
+            <div style="flex:1">
+                <div class="artifact-name">${def.name} <span style="color:var(--text-mid)">×${a.qty}</span></div>
+                <div class="artifact-desc">${def.desc}</div>
+            </div>
+            <button onclick="useArtifact('${a.id}')" style="background:transparent;border:1px solid var(--cyan);color:var(--cyan);padding:6px 12px;border-radius:6px;cursor:pointer;font-family:var(--font-hud);font-size:10px;letter-spacing:1px;text-transform:uppercase;">Исп.</button>
+        </div>`;
+    }).join('');
+}
+
+function renderArtifactShop() {
+    const container = document.getElementById('artifact-shop-container');
+    if (!container) return;
+    container.innerHTML = Object.values(ARTIFACT_DEFINITIONS).map(def => `
+        <div class="artifact-card">
+            <span class="artifact-icon">${def.icon}</span>
+            <div style="flex:1">
+                <div class="artifact-name">${def.name}</div>
+                <div class="artifact-desc">${def.desc}</div>
+                <div style="color:var(--yellow);font-family:var(--font-mono);font-size:11px;margin-top:4px;">💰 ${def.shopCost} голды</div>
+            </div>
+            <button onclick="buyArtifact('${def.id}')" style="background:transparent;border:1px solid var(--yellow);color:var(--yellow);padding:6px 12px;border-radius:6px;cursor:pointer;font-family:var(--font-hud);font-size:10px;letter-spacing:1px;text-transform:uppercase;">Купить</button>
+        </div>`).join('');
+}
+
+function renderTavernStatus() {
+    const el = document.getElementById('tavern-status');
+    if (!el || !currentUserData) return;
+    if (currentUserData.tavernMode) {
+        el.style.display = 'flex';
+        el.innerHTML = `<span>🍺 <b>Отдых в Таверне</b> (с ${currentUserData.tavernStart}) — HP и стрик заморожены</span>
+            <button onclick="deactivateTavernMode()" style="background:transparent;border:1px solid var(--yellow);color:var(--yellow);padding:6px 14px;border-radius:6px;cursor:pointer;font-family:var(--font-hud);font-size:10px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">Вернуться ⚔️</button>`;
+    } else {
+        el.style.display = 'none';
+    }
 }
 
 // ========================================

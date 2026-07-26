@@ -85,6 +85,26 @@
                     <div class="hotbar-goals" id="hotbar-goals"></div>
                 </div>
 
+                <!-- ── HP / ДЕБАФФЫ / СТРИК ── -->
+                <div class="card hp-card">
+                    <div class="card-label">❤️ Здоровье персонажа</div>
+                    <div id="tavern-status" style="display:none;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px;background:rgba(255,230,0,0.06);border:1px solid rgba(255,230,0,0.3);border-radius:8px;padding:8px 12px;font-size:13px;"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <span id="hp-label" style="font-family:var(--font-mono);font-size:12px;color:var(--text-mid);">❤️ 100 / 100</span>
+                        <span id="streak-info" style="font-family:var(--font-mono);font-size:11px;color:var(--text-mid);"></span>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.5);border-radius:20px;height:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:8px;">
+                        <div id="hp-bar-fill" style="height:100%;border-radius:20px;width:100%;transition:width 0.5s,background 0.5s;"></div>
+                    </div>
+                    <div id="debuffs-container" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+                </div>
+
+                <!-- ── ВЕТКИ НАВЫКОВ ── -->
+                <div class="card">
+                    <div class="card-label">🌿 Ветки развития</div>
+                    <div id="skill-branches-container"></div>
+                </div>
+
                 <div class="card random-quest-card">
                     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
                         <div class="card-label" style="margin:0;">🎲 Рандомный квест</div>
@@ -197,6 +217,35 @@
                             За 100 🪙
                         </button>
                     </div>
+                </div>
+
+                <!-- ── ГАЧА-ТОКЕНЫ ── -->
+                <div class="card" style="border-color:rgba(191,90,242,0.3);">
+                    <div class="card-label">🎰 Гача-система</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                        <div>
+                            <div id="gacha-tokens-label" style="font-family:var(--font-mono);font-size:13px;color:var(--text-hi);margin-bottom:4px;">🎰 Гача-токены: 0</div>
+                            <div style="font-size:12px;color:var(--text-mid);">Токены = за S-цели и идеальную неделю</div>
+                        </div>
+                        <button onclick="spinGacha().then(r => r && renderArtifacts())"
+                            style="background:transparent;border:1px solid #bf5af2;color:#bf5af2;padding:10px 20px;border-radius:8px;cursor:pointer;font-family:var(--font-hud);font-size:11px;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;transition:all 0.25s;"
+                            onmouseover="this.style.background='rgba(191,90,242,0.15)'"
+                            onmouseout="this.style.background='transparent'">
+                            🎲 КРУТИТЬ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── МАГАЗИН АРТЕФАКТОВ ── -->
+                <div class="card" style="border-color:rgba(255,149,0,0.3);">
+                    <div class="card-label">🏺 Магазин артефактов (Форс-мажор)</div>
+                    <div id="artifact-shop-container"></div>
+                </div>
+
+                <!-- ── ИНВЕНТАРЬ АРТЕФАКТОВ ── -->
+                <div class="card" style="border-color:rgba(0,255,136,0.2);">
+                    <div class="card-label">🎒 Ваши артефакты</div>
+                    <div id="artifacts-container"></div>
                 </div>
 
                 <div class="roulette-container">
