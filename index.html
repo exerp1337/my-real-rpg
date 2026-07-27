@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RPG Жизнь</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- ===== TOAST-КОНТЕЙНЕР ===== -->
+    <div id="toast-container"></div>
+
+    <!-- ===== ЭКРАН АВТОРИЗАЦИИ ===== -->
+    <div id="auth-screen">
+        <div class="auth-container">
+            <h1>⚔️ RPG Жизнь</h1>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="login-tab" onclick="switchAuthTab('login')">Вход</button>
+                <button class="auth-tab" id="register-tab" onclick="switchAuthTab('register')">Регистрация</button>
+            </div>
+
+            <!-- Форма входа -->
+            <div class="auth-form active" id="login-form">
+                <h2>Вход</h2>
+                <p id="login-error" class="auth-error"></p>
+                <input type="text" id="login-username" placeholder="Имя пользователя" />
+                <input type="password" id="login-password" placeholder="Пароль" />
+                <button onclick="loginUser()">Войти</button>
+            </div>
+
+            <!-- Форма регистрации -->
+            <div class="auth-form" id="register-form">
+                <h2>Регистрация</h2>
+                <p id="register-error" class="auth-error"></p>
+                <p id="register-success" class="auth-success"></p>
+                <input type="text" id="reg-username" placeholder="Имя (мин. 2 символа)" />
+                <input type="email" id="reg-email" placeholder="Email (необязательно)" />
+                <input type="password" id="reg-password" placeholder="Пароль (мин. 4)" />
+                <input type="password" id="reg-password2" placeholder="Повторите пароль" />
+                <button onclick="registerUser()">Создать аккаунт</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ИГРОВОЙ КОНТЕЙНЕР ===== -->
+    <div id="game-container">
+
+        <!-- Верхняя панель -->
+        <header id="game-header">
+            <div class="header-left">
+                <span id="header-avatar">🥚</span>
+                <span id="user-nick">Гость</span>
+                <span id="user-level-badge">Lv.1</span>
+                <span id="social-level-badge">Соц.1</span>
+            </div>
+            <div class="header-right">
+                <span id="gold-val">0</span> 🪙
+                <button onclick="logoutUser()" class="logout-btn">🚪 Выйти</button>
+            </div>
+        </header>
+
+        <!-- Навигация -->
+        <nav id="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('main-screen', this)">🏠 Главная</button>
+            <button class="tab-btn" onclick="switchTab('quests-screen', this)">📋 Квесты</button>
+            <button class="tab-btn" onclick="switchTab('goals-screen', this)">🎯 Цели</button>
+            <button class="tab-btn" onclick="switchTab('shop-screen', this)">🎰 Магазин</button>
+            <button class="tab-btn" onclick="switchTab('achieve-screen', this)">🏆 Достижения</button>
+        </nav>
+
+        <!-- ===== ГЛАВНАЯ ===== -->
+        <div class="screen active" id="main-screen">
+            <div class="profile-card">
+                <div class="profile-avatar" id="profile-avatar">🥚</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="user-nick-main">Гость</div>
+                    <div class="profile-title" id="title-display">🥚 Обыватель</div>
+                    <div class="profile-level">
+                        Уровень <span id="level-display">1</span>
+                        <span id="exp-display">0 / 250 XP</span>
+                        <div class="exp-bar"><div id="exp-bar" style="width:0%"></div></div>
+                    </div>
+                    <div class="social-level">
+                        Социальный уровень <span id="social-level-display">1</span>
+                        <span id="social-xp-display">0 / 100 XP</span>
+                        <div class="exp-bar"><div id="social-bar" style="width:0%"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item"><span>💪 Сила</span> <span id="str-val">0</span></div>
+                <div class="stat-item"><span>🏃 Выносливость</span> <span id="end-val">0</span></div>
+                <div class="stat-item"><span>🎯 Ловкость</span> <span id="agi-val">0</span></div>
+                <div class="stat-item"><span>📚 Интеллект</span> <span id="int-val">0</span></div>
+                <div class="stat-item"><span>🗣 Харизма</span> <span id="cha-val">0</span></div>
+                <div class="stat-item"><span>👁 Дисциплина</span> <span id="per-val">0</span></div>
+                <div class="stat-item"><span>🍀 Удача</span> <span id="luck-val">0</span></div>
+            </div>
+
+            <div class="action-panel">
+                <button onclick="train('str')">💪 Тренировать силу</button>
+                <button onclick="train('end')">🏃 Тренировать выносливость</button>
+                <button onclick="train('agi')">🎯 Тренировать ловкость</button>
+                <button onclick="train('int')">📚 Тренировать интеллект</button>
+                <button onclick="train('cha')">🗣 Тренировать харизму</button>
+                <button onclick="train('per')">👁 Тренировать дисциплину</button>
+                <button onclick="train('luck')">🍀 Тренировать удачу</button>
+                <button id="sleep-action-btn" onclick="checkSleepTime()">🛌 Лечь спать</button>
+                <button id="w1" onclick="completeWeeklyChallenge(this)">⭐ Недельный вызов</button>
+                <button onclick="resetProgress()" style="background:#b00020;">🗑️ Сбросить прогресс</button>
+            </div>
+
+            <div class="hotbar-section">
+                <h3>🎯 Активные цели</h3>
+                <div id="hotbar-goals"></div>
+            </div>
+
+            <div class="random-quest-section">
+                <h3>🎲 Случайное задание</h3>
+                <div id="random-quest-display">Нажмите «Крутить», чтобы получить случайное задание.</div>
+                <button id="random-quest-btn">🎲 Крутить задание</button>
+            </div>
+        </div>
+
+        <!-- ===== КВЕСТЫ ===== -->
+        <div class="screen" id="quests-screen">
+            <div class="quest-header">
+                <h2>📋 Ежедневные квесты</h2>
+                <span id="daily-timer">23:59:59</span>
+            </div>
+            <div id="quests-container"></div>
+
+            <div class="quest-header" style="margin-top:30px;">
+                <h2>🤝 Социальные квесты</h2>
+                <span id="social-timer">23:59:59</span>
+            </div>
+            <div id="social-quests-container"></div>
+        </div>
+
+        <!-- ===== ЦЕЛИ ===== -->
+        <div class="screen" id="goals-screen">
+            <div class="goal-header">
+                <h2>🎯 Мои цели</h2>
+                <button onclick="showAddGoalModal()">➕ Добавить цель</button>
+            </div>
+            <div id="goals-container"></div>
+        </div>
+
+        <!-- ===== МАГАЗИН / РУЛЕТКА ===== -->
+        <div class="screen" id="shop-screen">
+            <h2>🎰 Колесо удачи</h2>
+            <div id="roulette-result" style="font-size:18px; min-height:30px;"></div>
+            <div id="roulette-flash" class="flash"></div>
+            <canvas id="roulette-canvas"></canvas>
+            <button id="roulette-spin-btn" onclick="spinRoulette()">🎡 Крутить (50 🪙)</button>
+
+            <h2 style="margin-top:30px;">📦 Сундуки</h2>
+            <div class="chest-buttons">
+                <button onclick="openChest('common', 30)">📦 Обычный сундук (30 🪙)</button>
+                <button onclick="openChest('epic', 100)">👑 Эпический сундук (100 🪙)</button>
+            </div>
+
+            <h2 style="margin-top:30px;">🎒 Инвентарь</h2>
+            <div id="inventory-list"></div>
+        </div>
+
+        <!-- ===== ДОСТИЖЕНИЯ ===== -->
+        <div class="screen" id="achieve-screen">
+            <h2>🏆 Достижения</h2>
+            <div id="achievements-container"></div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛ ДОБАВЛЕНИЯ ЦЕЛИ ===== -->
+    <div class="modal" id="goal-modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeGoalModal()">&times;</span>
+            <h3>🎯 Новая цель</h3>
+            <input type="text" id="goal-title" placeholder="Название цели" />
+            <input type="text" id="goal-desc" placeholder="Описание (необязательно)" />
+            <input type="number" id="goal-target" placeholder="Целевое значение" step="1" min="1" />
+            <input type="text" id="goal-unit" placeholder="Единица (например, км, раз, шт)" />
+            <select id="goal-rarity">
+                <option value="easy">🌱 Лёгкая</option>
+                <option value="common" selected>📦 Обычная</option>
+                <option value="epic">🔮 Эпическая</option>
+                <option value="legendary">⭐ Легендарная</option>
+            </select>
+            <select id="goal-stat">
+                <option value="str">💪 Сила</option>
+                <option value="end">🏃 Выносливость</option>
+                <option value="agi">🎯 Ловкость</option>
+                <option value="int">📚 Интеллект</option>
+                <option value="cha">🗣 Харизма</option>
+                <option value="per">👁 Дисциплина</option>
+                <option value="luck">🍀 Удача</option>
+            </select>
+            <div id="goal-reward-preview">🎁 Награда: +15 XP + +5 💪 Сила (📦 Обычная)</div>
+            <button onclick="addGoal()">✅ Добавить цель</button>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛ РУЛЕТКИ ЗАДАНИЙ ===== -->
+    <div class="modal" id="roulette-modal">
+        <div class="modal-content">
+            <span class="modal-close" id="roulette-close-btn">&times;</span>
+            <h3>🎲 Случайное задание</h3>
+            <div id="roulette-spin-text" style="font-size:80px; text-align:center;">🎰</div>
+            <div id="roulette-result-text" style="font-size:18px; text-align:center; min-height:50px;"></div>
+            <div id="roulette-actions" style="display:flex; gap:20px; justify-content:center; margin-top:20px;">
+                <button id="roulette-accept-btn">✅ Принять</button>
+                <button id="roulette-skip-btn">❌ Пропустить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛ СУНДУКА ===== -->
+    <div class="modal" id="chest-modal">
+        <div class="modal-content chest-modal-content">
+            <div id="chest-ring">
+                <div id="chest-emoji" class="chest-emoji idle">📦</div>
+            </div>
+            <div id="chest-particles"></div>
+            <div id="chest-label">Нажмите, чтобы открыть</div>
+            <div id="chest-item-reveal">
+                <div id="chest-item-icon" style="font-size:48px;">🎁</div>
+                <div id="chest-item-name" style="font-weight:bold;">Предмет</div>
+                <div id="chest-item-rarity" style="padding:4px 12px; border-radius:12px; background:#aaa; color:#000;">Обычное</div>
+                <div id="chest-item-bonus">+0 к характеристике</div>
+            </div>
+            <button id="chest-close-btn" onclick="closeChestModal()" class="chest-close-btn">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ===== ПОДКЛЮЧЕНИЕ МОДУЛЕЙ ===== -->
+    <script type="module" src="main.js"></script>
+
+</body>
+</html>
