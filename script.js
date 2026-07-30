@@ -1,4 +1,9 @@
 // ===========================
+// НАСТРОЙКИ ЗАКАЗА (ТЕЛЕГРАМ)
+// ===========================
+const TELEGRAM_USERNAME = 'ТВОЙ_ЮЗЕРНЕЙМ'; // <-- УКАЖИ СВОЙ ЮЗЕРНЕЙМ ЗДЕСЬ (Без знака @)
+
+// ===========================
 // TAB SWITCHING
 // ===========================
 const navBtns = document.querySelectorAll('.nav-btn');
@@ -31,6 +36,45 @@ document.addEventListener('click', e => {
     if (!picker) return;
     picker.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
     e.target.classList.add('active');
+  }
+});
+
+// ===========================
+// ORDER LOGIC (TELEGRAM)
+// ===========================
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('order-btn')) {
+    const card = e.target.closest('.card');
+    if (!card) return;
+
+    // Считываем название и цену
+    const name = card.querySelector('.card-name')?.innerText.trim() || 'Без названия';
+    const price = card.querySelector('.card-price')?.innerText.trim() || 'Не указана';
+
+    // Базовый текст сообщения
+    let message = `Привет! Хочу заказать:\nБлюдо: ${name}`;
+
+    // Ищем выбранный размер (кнопку с классом active)
+    const activeSizeBtn = card.querySelector('.size-btn.active');
+    
+    // Также проверим, есть ли просто статический текст веса (как в первой карточке "Новинка")
+    const staticWeight = card.querySelector('.card-weight');
+
+    if (activeSizeBtn) {
+      message += `\nРазмер: ${activeSizeBtn.innerText.trim()}`;
+    } else if (staticWeight) {
+      message += `\nРазмер: ${staticWeight.innerText.trim()}`;
+    }
+    // Если ни кнопок, ни статического веса нет, строка размера просто не добавится
+
+    message += `\nЦена: ${price}`;
+
+    // Кодируем текст для URL
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Формируем ссылку и открываем в новой вкладке
+    const telegramUrl = `https://t.me/${TELEGRAM_USERNAME}?text=${encodedMessage}`;
+    window.open(telegramUrl, '_blank');
   }
 });
 
