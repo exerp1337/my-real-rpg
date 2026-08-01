@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiR3JpdCBUcmFja2VyIFBybyIsInNob3J0X25hbWUiOiJHcml0Iiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwMDAwMDAiLCJ0aGVtZV9jb2xvciI6IiMwMDAwMDAiLCJpY29ucyI6W3sic3JjIjoiaHR0cHM6Ly91cGxvYWQud2lraW1lZGlhLm9yZy93aWtpcGVkaWEvY29tbW9ucy90aHVtYi9lL2UwL0NoZWNrX2dyZWVuX2ljb24uc3ZnLzUxMnB4LUNoZWNrX2dyZWVuX2ljb24uc3ZnLnBuZyIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
+    <title>Grit Habits Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="dark">
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- AUTH SCREEN -->
+    <div id="auth-screen" class="auth-container">
+        <div class="auth-inner">
+            <div class="auth-logo">
+                <i class="ph-fill ph-check-circle logo-icon"></i>
+                <h1>Grit Tracker</h1>
+                <div class="subtitle">Discipline & Consistency Pro</div>
+            </div>
+
+            <div class="auth-panel">
+                <div class="auth-tabs">
+                    <div class="auth-tab active" id="login-tab" onclick="switchAuthTab('login')">Login</div>
+                    <div class="auth-tab" id="register-tab" onclick="switchAuthTab('register')">Register</div>
+                </div>
+
+                <div class="auth-form active" id="login-form">
+                    <input type="text" id="login-username" placeholder="Username" autocomplete="username">
+                    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+                    <div class="auth-error" id="login-error"></div>
+                    <button class="auth-btn" onclick="loginUser()">Sign In</button>
+                    <div class="auth-hint">No account? <span onclick="switchAuthTab('register')">Create one</span></div>
+                </div>
+
+                <div class="auth-form" id="register-form">
+                    <input type="text" id="reg-username" placeholder="Username" autocomplete="username">
+                    <input type="password" id="reg-password" placeholder="Password (min 4 chars)" autocomplete="new-password">
+                    <div class="auth-error" id="register-error"></div>
+                    <div class="auth-success" id="register-success"></div>
+                    <button class="auth-btn" onclick="registerUser()">Sign Up</button>
+                    <div class="auth-hint">Have an account? <span onclick="switchAuthTab('login')">Log in</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="app-container" class="app-container">
+        
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-left">
+                <button class="icon-btn" onclick="logoutUser()"><i class="ph ph-sign-out"></i></button>
+            </div>
+            <div class="header-title" id="main-header-title">Today</div>
+            <div class="header-right">
+                <button class="icon-btn highlight" onclick="addHabitModal()"><i class="ph ph-plus"></i></button>
+            </div>
+        </header>
+
+        <!-- SCREENS WRAPPER -->
+        <div class="screens-wrapper">
+            
+            <!-- 1. HABITS SCREEN -->
+            <div id="habits-screen" class="screen active">
+                <div class="calendar-strip" id="calendar-strip"></div>
+                
+                <!-- TIME OF DAY FILTERS -->
+                <div class="time-filters" id="time-filters">
+                    <button class="time-btn active" data-time="any" onclick="filterTime('any')">All</button>
+                    <button class="time-btn" data-time="morning" onclick="filterTime('morning')">Morning</button>
+                    <button class="time-btn" data-time="afternoon" onclick="filterTime('afternoon')">Afternoon</button>
+                    <button class="time-btn" data-time="evening" onclick="filterTime('evening')">Evening</button>
+                </div>
+
+                <!-- GYM PRO LAUNCHER -->
+                <div style="padding: 0 20px 16px;">
+                    <div class="premium-banner" style="margin:0; background: linear-gradient(135deg, var(--color-orange-bg), #2a1506); border-color: var(--color-orange-border);" onclick="openGymPro()">
+                        <div class="banner-content">
+                            <i class="ph-fill ph-barbell banner-icon" style="color: var(--color-orange-accent);"></i>
+                            <div class="banner-text">
+                                <div class="banner-title" style="color: var(--color-orange-accent);">Gym Pro Module</div>
+                                <div class="banner-subtitle">Трекинг прогрессии нагрузок</div>
+                            </div>
+                        </div>
+                        <i class="ph ph-caret-right" style="color:var(--color-orange-accent)"></i>
+                    </div>
+                </div>
+
+                <!-- 3-DAY SOCIAL QUEST CONTAINER -->
+                <div id="weekly-social-container" style="padding: 0 20px;"></div>
+
+                <div class="content-wrapper" id="habits-list"></div>
+                
+                <div class="premium-banner">
+                    <div class="banner-content">
+                        <i class="ph-fill ph-crown banner-icon"></i>
+                        <div class="banner-text">
+                            <div class="banner-title">Unlock everything</div>
+                            <div class="banner-subtitle">With Grit Premium</div>
+                        </div>
+                    </div>
+                    <i class="ph ph-caret-right" style="color:var(--text-muted)"></i>
+                </div>
+                <div class="sync-status">Synced with cloud</div>
+            </div>
+
+            <!-- 2. STATISTICS / RPG SCREEN -->
+            <div id="stats-screen" class="screen">
+                <div class="profile-card">
+                    <div class="avatar-doll">
+                        <i class="ph ph-egg doll-base" id="profile-avatar-icon"></i>
+                    </div>
+                    <div class="profile-level-label">CHARACTER LEVEL</div>
+                    <div id="level-display">1</div>
+                    <div class="title-display" id="title-display">Apprentice</div>
+                    
+                    <div class="xp-row">
+                        <span id="xp-text">0 / 250 XP</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="exp-bar"></div>
+                    </div>
+                </div>
+
+                <!-- CHARISMA LEVEL BAR -->
+                <div class="settings-card" style="margin-bottom: 20px; border-color: var(--color-purple-border); box-shadow: 0 0 15px rgba(191,90,242,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h3 style="color: var(--color-purple-accent); margin: 0; display:flex; align-items:center; gap:6px;">
+                            <i class="ph-fill ph-star"></i> Charisma Level <span id="charisma-lvl-display">1</span>
+                        </h3>
+                        <span id="charisma-xp-display" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">0 / 100 XP</span>
+                    </div>
+                    <div class="progress-container" style="height: 6px; background:#1c0e26;">
+                        <div class="progress-bar" id="charisma-bar" style="background: var(--color-purple-accent); box-shadow: 0 0 8px var(--color-purple-accent);"></div>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-item"><span>💪 Strength</span><span id="stat-str" class="color-orange">0</span></div>
+                    <div class="stat-item"><span>🏃 Endurance</span><span id="stat-end" class="color-green">0</span></div>
+                    <div class="stat-item"><span>🎯 Agility</span><span id="stat-agi" class="color-blue">0</span></div>
+                    <div class="stat-item"><span>📚 Intellect</span><span id="stat-int" class="color-purple">0</span></div>
+                    <div class="stat-item"><span>👁 Discipline</span><span id="stat-per" class="color-blue">0</span></div>
+                    <div class="stat-item"><span>❄️ Freezes</span><span id="stat-freezes" class="color-blue">0</span></div>
+                </div>
+
+                <!-- GYM HISTORY -->
+                <div class="settings-card" style="margin-bottom: 20px; border-color: var(--color-orange-border);">
+                    <h3 style="color: var(--color-orange-accent); margin-bottom: 12px;">Gym History 📊</h3>
+                    <select id="gym-history-select" class="gym-select-input" onchange="renderGymHistory(this.value)"></select>
+                    <div id="gym-history-timeline" class="gym-timeline">
+                        <!-- Timeline items injected here -->
+                    </div>
+                </div>
+
+                <div class="settings-card" style="margin-bottom: 20px;">
+                    <h3>Activity Heatmap</h3>
+                    <p class="settings-desc" style="margin-bottom: 10px;">Last 60 Days</p>
+                    <div class="heatmap-scroll">
+                        <div class="heatmap-grid" id="heatmap-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. SETTINGS SCREEN -->
+            <div id="settings-screen" class="screen">
+                <div class="settings-card">
+                    <h3>Data & Backup</h3>
+                    <p class="settings-desc">Export your progress to a file or restore from a backup.</p>
+                    <div style="display:flex; gap:10px;">
+                        <button class="auth-btn" style="flex:1; font-size:14px; padding:10px;" onclick="exportData()">📥 Export JSON</button>
+                        <button class="auth-btn" style="flex:1; font-size:14px; padding:10px; background:#333; color:#fff;" onclick="document.getElementById('import-file').click()">📤 Import JSON</button>
+                        <input type="file" id="import-file" style="display:none;" accept=".json" onchange="importData(event)">
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>Sleep Schedule</h3>
+                    <p class="settings-desc">Set your ideal routine. Habits adapt to your schedule.</p>
+                    
+                    <div class="settings-row">
+                        <label>Target Bedtime</label>
+                        <input type="time" id="setting-bedtime" class="time-input">
+                    </div>
+                    <div class="settings-row">
+                        <label>Wake Up Time</label>
+                        <input type="time" id="setting-wakeup" class="time-input">
+                    </div>
+                    <button class="auth-btn" style="width:100%; margin-top:16px;" onclick="saveSettings()">Save Schedule</button>
+                </div>
+
+                <div class="settings-card danger-zone">
+                    <h3 style="color:var(--color-red)">Danger Zone</h3>
+                    <p class="settings-desc">This action cannot be undone.</p>
+                    <button class="danger-btn" onclick="resetProgress()">Reset All Progress</button>
+                </div>
+            </div>
+
+        </div> <!-- /screens-wrapper -->
+
+        <!-- BOTTOM NAV -->
+        <nav class="bottom-nav">
+            <div class="nav-pill">
+                <button class="nav-btn active" onclick="switchTab('habits', 'Today')">
+                    <i class="ph-fill ph-stack"></i>
+                    <span>Habits</span>
+                </button>
+                <button class="nav-btn" onclick="switchTab('stats', 'Statistics')">
+                    <i class="ph-fill ph-chart-bar"></i>
+                    <span>Statistics</span>
+                </button>
+                <button class="nav-btn" onclick="switchTab('settings', 'Settings')">
+                    <i class="ph-fill ph-gear"></i>
+                    <span>Settings</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ADD/EDIT HABIT MODAL -->
+    <div class="modal-overlay" id="add-habit-modal">
+        <div class="modal">
+            <h2>New Habit</h2>
+            <input type="text" id="habit-title" placeholder="Title (e.g., Deep Work)">
+            
+            <label>Icon</label>
+            <div class="emoji-grid">
+                <div class="emoji-option" onclick="selectEmoji('🏃', this)">🏃</div>
+                <div class="emoji-option" onclick="selectEmoji('🏋️', this)">🏋️</div>
+                <div class="emoji-option" onclick="selectEmoji('💧', this)">💧</div>
+                <div class="emoji-option" onclick="selectEmoji('🥗', this)">🥗</div>
+                <div class="emoji-option" onclick="selectEmoji('💪', this)">💪</div>
+                <div class="emoji-option" onclick="selectEmoji('📚', this)">📚</div>
+                <div class="emoji-option" onclick="selectEmoji('👨‍💻', this)">👨‍💻</div>
+                <input type="text" id="habit-emoji" placeholder="Or type..." maxlength="2" oninput="clearEmojiSelection()">
+            </div>
+            
+            <label>Type</label>
+            <select id="habit-type">
+                <option value="checkbox">Checkbox (Done/Not done)</option>
+                <option value="counter">Counter (e.g., 3 times)</option>
+                <option value="timer">Timer (e.g., 60 mins)</option>
+                <option value="checklist">Checklist (Subtasks)</option>
+            </select>
+            
+            <div id="target-wrapper" style="display:none;">
+                <label>Target Value</label>
+                <input type="number" id="habit-target" placeholder="Amount or Minutes">
+            </div>
+
+            <div id="subtasks-wrapper" style="display:none; margin-bottom:16px;">
+                <label>Checklist Items (one per line)</label>
+                <textarea id="habit-subtasks" rows="4" placeholder="Eggs\nMilk\nТворог\nBananas"></textarea>
+            </div>
+
+            <label>Schedule</label>
+            <select id="habit-schedule">
+                <option value="everyday">Every Day</option>
+                <option value="weekdays">Weekdays Only</option>
+            </select>
+
+            <label>Time of Day</label>
+            <select id="habit-time">
+                <option value="any">Any Time</option>
+                <option value="morning">Morning (06:00 - 12:00)</option>
+                <option value="afternoon">Afternoon (12:00 - 18:00)</option>
+                <option value="evening">Evening (18:00 - 00:00)</option>
+            </select>
+
+            <label>Color Category (Stat Bonus)</label>
+            <select id="habit-color" style="margin-bottom:0;">
+                <option value="green">Productivity / Green (+Intellect)</option>
+                <option value="purple">Routine / Purple (+Discipline)</option>
+                <option value="orange">Health / Orange (+Strength)</option>
+                <option value="blue">Learning / Blue (+Agility)</option>
+            </select>
+
+            <div class="modal-actions">
+                <button class="cancel" onclick="document.getElementById('add-habit-modal').classList.remove('active')">Cancel</button>
+                <button class="submit" onclick="saveNewHabit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSIGHT MODAL -->
+    <div class="modal-overlay" id="insight-modal">
+        <div class="modal">
+            <h2>Habit Completed! 🎉</h2>
+            <p class="settings-desc">Optionally, write down your thoughts or insights for today.</p>
+            <textarea id="insight-text" rows="3" placeholder="I felt really focused today..."></textarea>
+            <input type="hidden" id="insight-habit-id">
+            <div class="modal-actions">
+                <button class="cancel" onclick="closeInsightModal()">Skip</button>
+                <button class="submit" onclick="saveInsight()">Save Insight</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GYM PRO OVERLAY -->
+    <div class="focus-overlay" id="gym-focus-overlay" style="background: var(--bg-main);">
+        <div class="gym-header">
+            <button class="icon-btn" onclick="closeGym()"><i class="ph ph-x"></i></button>
+            <div id="gym-timer">00:00</div>
+            <button class="auth-btn" style="padding: 8px 16px; margin:0;" onclick="finishWorkout()">Finish</button>
+        </div>
+        
+        <div class="gym-content">
+            <h2 id="gym-exercise-name" style="font-size: 28px; text-align: center; margin-bottom: 8px; color: #fff;">Приседания со штангой</h2>
+            <div id="gym-ghost-text" class="ghost-text">Прошлый раз: 100 кг х 5 (14 дней назад) | Твой Максимум (1RM): 115 кг</div>
+            
+            <div class="gym-controls">
+                <div class="gym-control-group">
+                    <label>Weight (kg)</label>
+                    <div class="massive-input-row">
+                        <button class="massive-btn" onclick="adjGymVal('weight', -2.5)">-</button>
+                        <input type="number" id="gym-weight-input" value="100" class="massive-input">
+                        <button class="massive-btn" onclick="adjGymVal('weight', 2.5)">+</button>
+                    </div>
+                </div>
+                
+                <div class="gym-control-group">
+                    <label>Reps</label>
+                    <div class="massive-input-row">
+                        <button class="massive-btn" onclick="adjGymVal('reps', -1)">-</button>
+                        <input type="number" id="gym-reps-input" value="5" class="massive-input">
+                        <button class="massive-btn" onclick="adjGymVal('reps', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="gym-submit-btn" onclick="logSet()">Log Set</button>
+            
+            <div class="gym-sets-log" id="gym-sets-log">
+                <!-- Logged Sets -->
+            </div>
+        </div>
+        
+        <div class="gym-exercise-selector" id="gym-exercise-list">
+            <!-- Buttons dynamically generated -->
+        </div>
+    </div>
+
+    <!-- FULLSCREEN FOCUS TIMER OVERLAY -->
+    <div class="focus-overlay" id="focus-overlay">
+        <div class="focus-timer-container">
+            <h2 id="focus-title" style="font-size:28px; color:#fff; margin-bottom:40px; text-align:center;">Deep Work</h2>
+            <div class="focus-ring-wrapper">
+                <svg class="focus-ring" viewBox="0 0 100 100" style="width:100%; height:100%;">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#222" stroke-width="4"></circle>
+                    <circle id="focus-progress-circle" cx="50" cy="50" r="45" fill="none" stroke="var(--color-green-accent)" stroke-width="4" stroke-dasharray="283" stroke-dashoffset="0" stroke-linecap="round" style="transition: stroke-dashoffset 1s linear; transform: rotate(-90deg); transform-origin: 50% 50%;"></circle>
+                </svg>
+                <div class="focus-time-display" id="focus-time-display" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:48px; font-weight:800; font-family:var(--font-mono); color:#fff;">25:00</div>
+            </div>
+            <div style="display:flex; justify-content:center; gap:20px;">
+                <button class="icon-btn highlight" style="width:64px; height:64px; font-size:28px; background:rgba(255,255,255,0.1); border:none;" onclick="toggleFocusTimer()"><i id="focus-play-icon" class="ph-fill ph-pause"></i></button>
+                <button class="icon-btn" style="width:64px; height:64px; font-size:28px; background:rgba(255,69,58,0.2); color:var(--color-red); border:none;" onclick="stopFocusTimer()"><i class="ph-fill ph-stop"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
