@@ -14,6 +14,29 @@ let focusTimeLeft = 0;
 let currentFocusHabit = null;
 
 // ========================================
+// HAPTICS & SOUND (MICRO-INTERACTIONS)
+// ========================================
+function triggerFeedback() {
+    if (navigator.vibrate) navigator.vibrate(50);
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.05);
+    } catch(e) {}
+}
+
+// ========================================
 // SUPABASE & MIGRATION
 // ========================================
 
@@ -40,8 +63,8 @@ async function getUser(username) {
 
 const defaultHabits = [
     { id: Date.now(), title: 'Deep Work', emoji: '👨‍💻', type: 'timer', target: 60, current: 0, streak: -1, color: 'green', isRunning: false, lastUpdated: '', schedule: { type: 'weekdays' }, timeOfDay: 'morning', history: {} },
-    { id: Date.now()+1, title: 'Plan Tomorrow', emoji: '📋', type: 'checkbox', target: 1, current: 0, streak: -1, color: 'purple', lastUpdated: '', schedule: { type: 'everyday' }, timeOfDay: 'evening', history: {} },
-    { id: Date.now()+2, title: 'Workout', emoji: '🏋️', type: 'checkbox', target: 1, current: 0, streak: -1, color: 'orange', lastUpdated: '', schedule: { type: 'everyday' }, timeOfDay: 'any', history: {} }
+    { id: Date.now()+1, title: 'Nutrition Plan', emoji: '🍳', type: 'checklist', target: 4, current: 0, streak: -1, color: 'orange', lastUpdated: '', schedule: { type: 'everyday' }, timeOfDay: 'any', history: {}, subtasks: [{title: 'Eggs', done: false}, {title: 'Milk', done: false}, {title: 'Cottage cheese', done: false}, {title: 'Bananas', done: false}] },
+    { id: Date.now()+2, title: 'Plan Tomorrow', emoji: '📋', type: 'checkbox', target: 1, current: 0, streak: -1, color: 'purple', lastUpdated: '', schedule: { type: 'everyday' }, timeOfDay: 'evening', history: {} }
 ];
 
 async function createUser(username, password) {
@@ -68,6 +91,7 @@ function normalizeData(user) {
         if (!h.schedule) h.schedule = { type: 'everyday' };
         if (!h.timeOfDay) h.timeOfDay = 'any';
         if (!h.history) h.history = {};
+        if (h.type === 'checklist' && !h.subtasks) h.subtasks = [];
     });
     
     if (user.streak_freezes === undefined) user.streak_freezes = 2;
@@ -128,6 +152,46 @@ function logoutUser() {
     Object.values(activeTimers).forEach(clearInterval);
     activeTimers = {};
 }
+
+// ========================================
+// DATA IMPORT / EXPORT (BACKUP)
+// ========================================
+
+window.exportData = function() {
+    if(!currentUserData) return;
+    const dataStr = JSON.stringify(currentUserData, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `grit_backup_${getTodayString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('📦 Backup exported!');
+};
+
+window.importData = function(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            if(importedData.habits && importedData.stats) {
+                currentUserData = normalizeData(importedData);
+                await saveData();
+                initApp();
+                toast('🚀 Backup restored successfully!');
+            } else {
+                toast('❌ Invalid backup file format.', 'error');
+            }
+        } catch(err) {
+            toast('❌ Error parsing JSON file.', 'error');
+        }
+        event.target.value = ''; // reset input
+    };
+    reader.readAsText(file);
+};
 
 // ========================================
 // CORE APP LOGIC
@@ -191,8 +255,7 @@ function checkNewDay() {
         if (h.lastUpdated !== todayStr) {
             // Check yesterday
             if (h.current < h.target && h.lastUpdated !== '') {
-                // Determine if it was scheduled for the previous active day
-                // Simplified: if they missed it and it was active, use freeze.
+                // If it was active, deal with freeze/loss
                 if (currentUserData.streak_freezes > 0) {
                     currentUserData.streak_freezes--;
                     toast(`❄️ Streak frozen for: ${h.title}`);
@@ -202,6 +265,9 @@ function checkNewDay() {
             }
             h.current = 0;
             h.isRunning = false;
+            if(h.type === 'checklist' && h.subtasks) {
+                h.subtasks.forEach(s => s.done = false);
+            }
             h.lastUpdated = todayStr;
             needsSave = true;
         }
@@ -262,7 +328,7 @@ function renderHabits() {
         let actionIcon = '<i class="ph ph-plus"></i>';
         let btnAction = `incrementHabit(${h.id})`;
         
-        if (h.type === 'counter') {
+        if (h.type === 'counter' || h.type === 'checklist') {
             desc = `${scheduleText}, ${h.current}/${h.target}`;
         } else if (h.type === 'timer') {
             desc = `${scheduleText}, ${h.current}/${h.target} min`;
@@ -271,22 +337,41 @@ function renderHabits() {
         }
         
         if (isDone && h.type !== 'timer') {
-            actionIcon = '<i class="ph ph-check"></i>';
+            actionIcon = '<i class="ph-bold ph-check"></i>';
             btnAction = ''; 
+        }
+
+        let subtasksHTML = '';
+        if (h.type === 'checklist' && h.subtasks && h.subtasks.length > 0) {
+            subtasksHTML = '<div class="subtasks-container">';
+            h.subtasks.forEach((st, idx) => {
+                subtasksHTML += `
+                    <div class="subtask-item ${st.done ? 'done' : ''}" onclick="toggleSubtask(${h.id}, ${idx})">
+                        <div class="subtask-checkbox">${st.done ? '<i class="ph-bold ph-check"></i>' : ''}</div>
+                        <span>${st.title}</span>
+                    </div>
+                `;
+            });
+            subtasksHTML += '</div>';
         }
 
         const card = document.createElement('div');
         card.className = `habit-card card-${h.color}`;
         card.innerHTML = `
             ${streakHTML}
-            <div class="habit-icon">${h.emoji}</div>
-            <div class="habit-info">
-                <div class="habit-title">${h.title}</div>
-                <div class="habit-desc">${desc}</div>
+            <div style="display:flex; flex-direction:column; width:100%;">
+                <div class="habit-card-main">
+                    <div class="habit-icon">${h.emoji}</div>
+                    <div class="habit-info">
+                        <div class="habit-title">${h.title}</div>
+                        <div class="habit-desc">${desc}</div>
+                    </div>
+                    <button class="habit-action ${isDone ? 'done' : ''}" onclick="${btnAction}">
+                        ${actionIcon}
+                    </button>
+                </div>
+                ${subtasksHTML}
             </div>
-            <button class="habit-action ${isDone ? 'done' : ''}" onclick="${btnAction}">
-                ${actionIcon}
-            </button>
         `;
         container.appendChild(card);
     });
@@ -338,6 +423,7 @@ window.incrementHabit = function(id) {
     const h = currentUserData.habits.find(x => x.id === id);
     if (!h || h.current >= h.target) return;
     
+    triggerFeedback();
     h.current += 1;
     if (h.current === h.target) { 
         updateStreak(h);
@@ -346,6 +432,23 @@ window.incrementHabit = function(id) {
     
     renderHabits();
     saveData();
+};
+
+window.toggleSubtask = function(habitId, subtaskIdx) {
+    const h = currentUserData.habits.find(x => x.id === habitId);
+    if (!h || h.current >= h.target) return; // already done
+    
+    const st = h.subtasks[subtaskIdx];
+    st.done = !st.done;
+    triggerFeedback();
+    
+    h.current = h.subtasks.filter(x => x.done).length;
+    if (h.current >= h.target) {
+        updateStreak(h);
+        claimHabitReward(h);
+    }
+    saveData();
+    renderHabits();
 };
 
 // ========================================
@@ -563,9 +666,16 @@ window.addHabitModal = function() {
     document.getElementById('add-habit-modal').classList.add('active');
     document.getElementById('habit-type').onchange = (e) => {
         const tw = document.getElementById('target-wrapper');
-        if (e.target.value === 'checkbox') tw.style.display = 'none';
-        else {
+        const sw = document.getElementById('subtasks-wrapper');
+        if (e.target.value === 'checkbox') {
+            tw.style.display = 'none';
+            sw.style.display = 'none';
+        } else if (e.target.value === 'checklist') {
+            tw.style.display = 'none';
+            sw.style.display = 'block';
+        } else {
             tw.style.display = 'block';
+            sw.style.display = 'none';
             document.getElementById('habit-target').placeholder = e.target.value === 'timer' ? 'Minutes (e.g., 60)' : 'Amount (e.g., 3)';
         }
     };
@@ -583,7 +693,15 @@ window.saveNewHabit = function() {
     const timeOfDay = document.getElementById('habit-time').value;
 
     if (!title) return toast('Please enter a title');
+    
+    let subtasks = [];
     if (type === 'checkbox') target = 1;
+    if (type === 'checklist') {
+        const stText = document.getElementById('habit-subtasks').value.trim();
+        if (!stText) return toast('Please enter checklist items');
+        subtasks = stText.split('\n').map(s => ({ title: s.trim(), done: false })).filter(s => s.title !== '');
+        target = subtasks.length;
+    }
     if ((type === 'counter' || type === 'timer') && (!target || target <= 0)) return toast('Enter valid target');
     
     const newH = {
@@ -595,6 +713,8 @@ window.saveNewHabit = function() {
         history: {}
     };
     
+    if (type === 'checklist') newH.subtasks = subtasks;
+    
     currentUserData.habits.push(newH);
     saveData();
     renderHabits();
@@ -602,6 +722,7 @@ window.saveNewHabit = function() {
     
     document.getElementById('habit-title').value = '';
     document.getElementById('habit-emoji').value = '';
+    document.getElementById('habit-subtasks').value = '';
 };
 
 // Auto-login logic
