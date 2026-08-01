@@ -7,6 +7,7 @@ let currentUserData = null;
 let currentUsername = null;
 let activeTimers = {};
 let currentTimeFilter = 'any';
+let editingHabitId = null; 
 
 // Focus Timer State
 let focusInterval = null;
@@ -14,7 +15,7 @@ let focusTimeLeft = 0;
 let currentFocusHabit = null;
 
 // ========================================
-// HAPTICS & SOUND (MICRO-INTERACTIONS)
+// HAPTICS & SOUND
 // ========================================
 function triggerFeedback() {
     if (navigator.vibrate) navigator.vibrate(50);
@@ -37,20 +38,14 @@ function triggerFeedback() {
 }
 
 // ========================================
-// SUPABASE & MIGRATION
+// SUPABASE & DATA NORMALIZATION
 // ========================================
 
 async function supabaseRequest(method, endpoint, body = null) {
     const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
-    const headers = {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-    };
+    const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
     const options = { method, headers };
     if (body) options.body = JSON.stringify(body);
-
     const response = await fetch(url, options);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();
@@ -63,20 +58,17 @@ async function getUser(username) {
 
 const defaultHabits = [
     { id: Date.now(), title: 'Deep Work', emoji: '👨‍💻', type: 'timer', target: 60, current: 0, streak: -1, color: 'green', isRunning: false, lastUpdated: '', schedule: { type: 'weekdays' }, timeOfDay: 'morning', history: {} },
-    { id: Date.now()+1, title: 'Nutrition Plan', emoji: '🍳', type: 'checklist', target: 4, current: 0, streak: -1, color: 'orange', lastUpdated: '', schedule: { type: 'everyday' }, timeOfDay: 'any', history: {}, subtasks: [{title: 'Eggs', done: false}, {title: 'Milk', done: false}, {title: 'Cottage cheese', done: false}, {title: 'Bananas', done: false}] },
+    { id: Date.now()+1, title: 'Nutrition Plan', emoji: '🥗', type: 'checklist', target: 4, current: 0, streak: -1, color: 'orange', lastUpdated: '', schedule: { type: 'everyday' }, timeOfDay: 'any', history: {}, subtasks: [{title: 'Eggs', done: false}, {title: 'Milk', done: false}, {title: 'Творог', done: false}, {title: 'Bananas', done: false}] },
     { id: Date.now()+2, title: 'Plan Tomorrow', emoji: '📋', type: 'checkbox', target: 1, current: 0, streak: -1, color: 'purple', lastUpdated: '', schedule: { type: 'everyday' }, timeOfDay: 'evening', history: {} }
 ];
 
 async function createUser(username, password) {
     const newUser = {
-        username,
-        password,
-        xp: 0,
-        streak_freezes: 2,
+        username, password, xp: 0, streak_freezes: 2,
         stats: { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0 },
         settings: { target_bedtime: "23:00", target_wakeup: "08:30" },
         habits: JSON.parse(JSON.stringify(defaultHabits)),
-        social: { level: 1, xp: 0, currentQuest: null, lastWeek: null, isCompleted: false }
+        social: { level: 1, xp: 0, currentQuest: null, lastCycle: null, isCompleted: false }
     };
     const res = await supabaseRequest('POST', TABLE_NAME, newUser);
     return res && res.length > 0 ? res[0] : null;
@@ -87,7 +79,9 @@ async function updateUser(username, data) {
 }
 
 function normalizeData(user) {
-    if (!user.habits) user.habits = JSON.parse(JSON.stringify(defaultHabits));
+    if (typeof user.habits === 'string') { try { user.habits = JSON.parse(user.habits); } catch(e) { user.habits = []; } }
+    if (!Array.isArray(user.habits) || user.habits.length === 0) { user.habits = JSON.parse(JSON.stringify(defaultHabits)); }
+
     user.habits.forEach(h => {
         if (!h.schedule) h.schedule = { type: 'everyday' };
         if (!h.timeOfDay) h.timeOfDay = 'any';
@@ -95,19 +89,30 @@ function normalizeData(user) {
         if (h.type === 'checklist' && !h.subtasks) h.subtasks = [];
     });
     
-    if (user.streak_freezes === undefined) user.streak_freezes = 2;
-    if (!user.xp) user.xp = 0;
-    if (!user.stats) user.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0 };
+    if (typeof user.settings === 'string') { try { user.settings = JSON.parse(user.settings); } catch(e) { user.settings = null; } }
     if (!user.settings) user.settings = { target_bedtime: "23:00", target_wakeup: "08:30" };
-    if (!user.social) user.social = { level: 1, xp: 0, currentQuest: null, lastWeek: null, isCompleted: false };
+
+    if (typeof user.social === 'string') { try { user.social = JSON.parse(user.social); } catch(e) { user.social = null; } }
+    if (!user.social) user.social = { level: 1, xp: 0, currentQuest: null, lastCycle: null, isCompleted: false };
+    
+    // Migration: switch from lastWeek to lastCycle
+    if (user.social.lastCycle === undefined) {
+        user.social.lastCycle = user.social.lastWeek || null;
+        delete user.social.lastWeek;
+    }
+
+    if (typeof user.stats === 'string') { try { user.stats = JSON.parse(user.stats); } catch(e) { user.stats = null; } }
+    if (!user.stats) user.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0 };
+
+    if (user.streak_freezes === undefined || user.streak_freezes === null) user.streak_freezes = 2;
+    if (!user.xp) user.xp = 0;
     
     return user;
 }
 
 // ========================================
-// AUTH & SESSION
+// AUTH & APP INIT
 // ========================================
-
 function switchAuthTab(tab) {
     document.querySelectorAll('.auth-tab').forEach(e => e.classList.remove('active'));
     document.querySelectorAll('.auth-form').forEach(e => e.classList.remove('active'));
@@ -120,9 +125,9 @@ async function registerUser() {
     const pass = document.getElementById('reg-password').value;
     const err = document.getElementById('register-error');
     err.textContent = '';
-    if (username.length < 2 || pass.length < 4) { err.textContent = 'Invalid username/pass length.'; return; }
+    if (username.length < 2 || pass.length < 4) return err.textContent = 'Invalid username/pass length.';
     try {
-        if (await getUser(username)) { err.textContent = 'User exists!'; return; }
+        if (await getUser(username)) return err.textContent = 'User exists!';
         await createUser(username, pass);
         document.getElementById('register-success').textContent = 'Account created!';
         setTimeout(() => { switchAuthTab('login'); document.getElementById('login-username').value = username; }, 1000);
@@ -136,78 +141,25 @@ async function loginUser() {
     err.textContent = '';
     try {
         const user = await getUser(username);
-        if (!user || user.password !== pass) { err.textContent = 'Invalid credentials!'; return; }
+        if (!user || user.password !== pass) return err.textContent = 'Invalid credentials!';
         currentUsername = username;
         currentUserData = normalizeData(user);
         localStorage.setItem(SESSION_KEY, username);
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app-container').classList.add('active');
         initApp();
-    } catch (e) { err.textContent = 'Login failed.'; }
+    } catch (e) { err.textContent = 'Login failed. Check console.'; console.error(e); }
 }
 
 function logoutUser() {
-    currentUsername = null;
-    currentUserData = null;
-    localStorage.removeItem(SESSION_KEY);
+    currentUsername = null; currentUserData = null; localStorage.removeItem(SESSION_KEY);
     document.getElementById('app-container').classList.remove('active');
     document.getElementById('auth-screen').style.display = 'flex';
-    Object.values(activeTimers).forEach(clearInterval);
-    activeTimers = {};
+    Object.values(activeTimers).forEach(clearInterval); activeTimers = {};
 }
 
-// ========================================
-// DATA IMPORT / EXPORT (BACKUP)
-// ========================================
-
-window.exportData = function() {
-    if(!currentUserData) return;
-    const dataStr = JSON.stringify(currentUserData, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `grit_backup_${getTodayString()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('📦 Backup exported!');
-};
-
-window.importData = function(event) {
-    const file = event.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        try {
-            const importedData = JSON.parse(e.target.result);
-            if(importedData.habits && importedData.stats) {
-                currentUserData = normalizeData(importedData);
-                await saveData();
-                initApp();
-                toast('🚀 Backup restored successfully!');
-            } else {
-                toast('❌ Invalid backup file format.', 'error');
-            }
-        } catch(err) {
-            toast('❌ Error parsing JSON file.', 'error');
-        }
-        event.target.value = ''; // reset input
-    };
-    reader.readAsText(file);
-};
-
-// ========================================
-// CORE APP LOGIC
-// ========================================
-
 function initApp() {
-    initSocialData(); 
-    checkNewDay();
-    renderCalendar();
-    renderHabits();
-    renderSocialQuest();
-    updateStatsUI();
-    
+    initSocialData(); checkNewDay(); renderCalendar(); renderHabits(); renderSocialQuest(); updateStatsUI();
     document.getElementById('setting-bedtime').value = currentUserData.settings.target_bedtime;
     document.getElementById('setting-wakeup').value = currentUserData.settings.target_wakeup;
 }
@@ -236,19 +188,13 @@ window.filterTime = function(time) {
     renderHabits();
 };
 
-// ========================================
-// CALENDAR & SCHEDULES
-// ========================================
-
 function getTodayString() {
-    const d = new Date();
-    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
 }
 
 function isHabitActiveToday(habit, dateObj = new Date()) {
     const dayOfWeek = dateObj.getDay(); 
     const type = habit.schedule.type;
-    
     if (type === 'everyday') return true;
     if (type === 'weekdays') return dayOfWeek >= 1 && dayOfWeek <= 5;
     return true;
@@ -257,88 +203,90 @@ function isHabitActiveToday(habit, dateObj = new Date()) {
 function checkNewDay() {
     const todayStr = getTodayString();
     let needsSave = false;
-    
     currentUserData.habits.forEach(h => {
         if (h.lastUpdated !== todayStr) {
-            // Check yesterday
             if (h.current < h.target && h.lastUpdated !== '') {
-                // If it was active, deal with freeze/loss
                 if (currentUserData.streak_freezes > 0) {
-                    currentUserData.streak_freezes--;
-                    toast(`❄️ Streak frozen for: ${h.title}`);
-                } else {
-                    h.streak = -1; // Lost streak
-                }
+                    currentUserData.streak_freezes--; toast(`❄️ Streak frozen for: ${h.title}`);
+                } else { h.streak = -1; }
             }
-            h.current = 0;
-            h.isRunning = false;
-            if(h.type === 'checklist' && h.subtasks) {
-                h.subtasks.forEach(s => s.done = false);
-            }
-            h.lastUpdated = todayStr;
-            needsSave = true;
+            h.current = 0; h.isRunning = false;
+            if(h.type === 'checklist' && h.subtasks) h.subtasks.forEach(s => s.done = false);
+            h.lastUpdated = todayStr; needsSave = true;
         }
     });
-    
     if (needsSave) saveData();
 }
 
 function renderCalendar() {
-    const strip = document.getElementById('calendar-strip');
-    strip.innerHTML = '';
-    const today = new Date();
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const strip = document.getElementById('calendar-strip'); strip.innerHTML = '';
+    const today = new Date(); const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     for (let i = -3; i <= 3; i++) {
-        const d = new Date(today);
-        d.setDate(d.getDate() + i);
-        const isToday = i === 0;
-        const el = document.createElement('div');
-        el.className = `cal-day ${isToday ? 'active' : ''}`;
+        const d = new Date(today); d.setDate(d.getDate() + i);
+        const el = document.createElement('div'); el.className = `cal-day ${i === 0 ? 'active' : ''}`;
         el.innerHTML = `<span>${days[d.getDay()]}</span><span class="date">${d.getDate()}</span>`;
         strip.appendChild(el);
     }
 }
 
 // ========================================
-// SOCIAL SYSTEM (CHARISMA)
+// SOCIAL SYSTEM (CHARISMA) - 3-DAY CYCLE
 // ========================================
-
 const socialQuestsDB = [
-    { id: 'sq_1', minLvl: 1, maxLvl: 3, xp: 50, emoji: '👋', title: 'Микро-контакт', desc: 'Улыбнуться и поздороваться с администратором зала или заведения.' },
-    { id: 'sq_2', minLvl: 1, maxLvl: 3, xp: 50, emoji: '☕', title: 'Позитивный вайб', desc: 'Искренне пожелать хорошего дня кассиру или баристе.' },
-    { id: 'sq_3', minLvl: 4, maxLvl: 6, xp: 100, emoji: '🏋️', title: 'Small-talk в деле', desc: 'Попросить подстраховать на жиме/приседе и перекинуться парой слов.' },
-    { id: 'sq_4', minLvl: 4, maxLvl: 6, xp: 100, emoji: '♟️', title: 'GG WP', desc: 'Обсудить с оппонентом в чате недавнюю партию в шахматы или игру.' },
-    { id: 'sq_5', minLvl: 4, maxLvl: 6, xp: 100, emoji: '🤝', title: 'Признание заслуг', desc: 'Сделать искренний комплимент навыкам коллеги или тиммейта.' },
-    { id: 'sq_6', minLvl: 7, maxLvl: 10, xp: 180, emoji: '👂', title: 'Активное слушание', desc: 'Задать знакомому открытый вопрос о его увлечении и активно выслушать.' },
-    { id: 'sq_7', minLvl: 7, maxLvl: 10, xp: 180, emoji: '🔄', title: 'Разрыв шаблона', desc: 'Начать неформальный разговор с человеком, с которым раньше только здоровался.' },
-    { id: 'sq_8', minLvl: 11, maxLvl: 999, xp: 300, emoji: '🍕', title: 'Инициатор', desc: 'Предложить знакомому выпить кофе или перекусить вместе.' },
-    { id: 'sq_9', minLvl: 11, maxLvl: 999, xp: 300, emoji: '🌐', title: 'Расширение сети', desc: 'Начать диалог с новым человеком в общей компании.' }
+    // Tier 1 (Lvl 1-3) | +35 XP
+    { id: 'sq_1_1', minLvl: 1, maxLvl: 3, xp: 35, emoji: '👋', title: 'Микро-контакт', desc: 'Улыбнуться и поздороваться с администратором зала, охранником или соседом в лифте.' },
+    { id: 'sq_1_2', minLvl: 1, maxLvl: 3, xp: 35, emoji: '☕', title: 'Позитивный вайб', desc: 'Искренне пожелать хорошего дня кассиру, баристе или курьеру.' },
+    { id: 'sq_1_3', minLvl: 1, maxLvl: 3, xp: 35, emoji: '🎧', title: 'Вежливость в движении', desc: 'Попросить уступить дорогу или пропустить с искренним «спасибо» вместо молчаливого обхода.' },
+    { id: 'sq_1_4', minLvl: 1, maxLvl: 3, xp: 35, emoji: '👍', title: 'Фидбек в сети', desc: 'Отправить поддерживающий комментарий автору полезного контента или разработчику проекта.' },
+    { id: 'sq_1_5', minLvl: 1, maxLvl: 3, xp: 35, emoji: '👀', title: 'Визуальный контакт', desc: 'В процессе разговора (при покупке) удержать доброжелательный зрительный контакт на пару секунд дольше обычного.' },
+
+    // Tier 2 (Lvl 4-6) | +70 XP
+    { id: 'sq_2_1', minLvl: 4, maxLvl: 6, xp: 70, emoji: '🏋️', title: 'Small-talk в зале', desc: 'Попросить подстраховать на подходе или спросить, сколько подходов осталось, и перекинуться пару фраз.' },
+    { id: 'sq_2_2', minLvl: 4, maxLvl: 6, xp: 70, emoji: '♟️', title: 'GG WP', desc: 'Написать оппоненту/тиммейту в чате после хорошего матча, отметив конкретный сильный мув.' },
+    { id: 'sq_2_3', minLvl: 4, maxLvl: 6, xp: 70, emoji: '🤝', title: 'Признание заслуг', desc: 'Сделать искренний комплимент навыкам коллеги, знакомого или парня в зале.' },
+    { id: 'sq_2_4', minLvl: 4, maxLvl: 6, xp: 70, emoji: '❓', title: 'Быстрый совет', desc: 'Спросить у знакомого или коллеги рекомендацию по его теме.' },
+    { id: 'sq_2_5', minLvl: 4, maxLvl: 6, xp: 70, emoji: '📦', title: 'Ситуативный вопрос', desc: 'Задать уточняющий вопрос консультанту или мастеру, выйдя за рамки стандартного скрипта.' },
+
+    // Tier 3 (Lvl 7-10) | +130 XP
+    { id: 'sq_3_1', minLvl: 7, maxLvl: 10, xp: 130, emoji: '👂', title: 'Активное слушание', desc: 'Задать открытый вопрос знакомому о его увлечении и с интересом выслушать 2–3 минуты.' },
+    { id: 'sq_3_2', minLvl: 7, maxLvl: 10, xp: 130, emoji: '🔄', title: 'Разрыв шаблона', desc: 'Начать неформальный разговор на абстрактную тему с тем, с кем раньше только здоровался.' },
+    { id: 'sq_3_3', minLvl: 7, maxLvl: 10, xp: 130, emoji: '💬', title: 'Мост из прошлого', desc: 'Написать старому другу/знакомому без конкретного дела («Вспомнил про тебя, как дела?»).' },
+    { id: 'sq_3_4', minLvl: 7, maxLvl: 10, xp: 130, emoji: '🧠', title: 'Смена роли', desc: 'Спросить развернутое мнение человека по вопросу, в котором он считает себя экспертом.' },
+    { id: 'sq_3_5', minLvl: 7, maxLvl: 10, xp: 130, emoji: '🎯', title: 'Комплимент выбору', desc: 'Сделать редкий комплимент решению человека (вкусу в музыке, выбору экипировки).' },
+
+    // Tier 4 (Lvl 11-15) | +220 XP
+    { id: 'sq_4_1', minLvl: 11, maxLvl: 15, xp: 220, emoji: '🍕', title: 'Инициатор', desc: 'Предложить коллеге или знакомому выпить кофе или перекусить вместе.' },
+    { id: 'sq_4_2', minLvl: 11, maxLvl: 15, xp: 220, emoji: '🌐', title: 'Расширение сети', desc: 'Начать диалог и познакомиться с новым человеком в общей компании или на ивенте.' },
+    { id: 'sq_4_3', minLvl: 11, maxLvl: 15, xp: 220, emoji: '🎉', title: 'Мини-организатор', desc: 'Собрать 2–3 человек на совместную активность (настолки, зал, новая кофейня).' },
+    { id: 'sq_4_4', minLvl: 11, maxLvl: 15, xp: 220, emoji: '🛡️', title: 'Социальный буст', desc: 'Заметить скромного человека в компании и задать удобный вопрос, чтобы втянуть в разговор.' },
+    { id: 'sq_4_5', minLvl: 11, maxLvl: 15, xp: 220, emoji: '🚀', title: 'Смелый шаг', desc: 'Первым завести диалог в месте своих интересов с целью познакомиться.' },
+
+    // Tier 5 (Lvl 16+) | +400 XP
+    { id: 'sq_5_1', minLvl: 16, maxLvl: 999, xp: 400, emoji: '🎤', title: 'Публичный питчинг', desc: 'Рассказать о своем пет-проекте или концепции перед группой людей, отвечая на вопросы.' },
+    { id: 'sq_5_2', minLvl: 16, maxLvl: 999, xp: 400, emoji: '🏋️', title: 'Спортивный нетворк', desc: 'Договориться о совместной тяжелой тренировке по пауэрлифтингу с опытными атлетами.' },
+    { id: 'sq_5_3', minLvl: 16, maxLvl: 999, xp: 400, emoji: '🤝', title: 'Медиатор', desc: 'Выступить миротворцем в конфликтной ситуации, переведя эмоции в конструктивное русло.' },
+    { id: 'sq_5_4', minLvl: 16, maxLvl: 999, xp: 400, emoji: '🎮', title: 'Создатель комьюнити', desc: 'Инициировать сбор группы людей по интересам (Discord-сервер, турнир) и стать лидером.' },
+    { id: 'sq_5_5', minLvl: 16, maxLvl: 999, xp: 400, emoji: '❤️', title: 'Осознанная уязвимость', desc: 'Инициировать честный разговор на глубоко личную тему с близким человеком.' }
 ];
 
-function getRequiredCharismaXP(level) {
-    return Math.floor(100 * Math.pow(level, 1.2));
+function getRequiredCharismaXP(level) { 
+    return Math.floor(100 * Math.pow(level, 1.3)); 
 }
 
-function getCurrentWeekString() {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    return `${d.getUTCFullYear()}-W${weekNo}`;
+function getCurrentCycleString() {
+    const daysSinceEpoch = Math.floor(Date.now() / 86400000);
+    const cycleNo = Math.floor(daysSinceEpoch / 3); // 3-day cycle
+    return `Cycle-${cycleNo}`;
 }
 
 function initSocialData() {
-    const currentWeek = getCurrentWeekString();
-    
-    if (currentUserData.social.lastWeek !== currentWeek) {
+    const currentCycle = getCurrentCycleString();
+    if (currentUserData.social.lastCycle !== currentCycle) {
         const userLvl = currentUserData.social.level;
         const availableQuests = socialQuestsDB.filter(q => userLvl >= q.minLvl && userLvl <= q.maxLvl);
-        
-        const randomQuest = availableQuests[Math.floor(Math.random() * availableQuests.length)];
-        
-        currentUserData.social.currentQuest = randomQuest;
-        currentUserData.social.isCompleted = false;
-        currentUserData.social.lastWeek = currentWeek;
+        currentUserData.social.currentQuest = availableQuests[Math.floor(Math.random() * availableQuests.length)];
+        currentUserData.social.isCompleted = false; 
+        currentUserData.social.lastCycle = currentCycle;
         saveData(); 
     }
 }
@@ -346,21 +294,14 @@ function initSocialData() {
 function renderSocialQuest() {
     const container = document.getElementById('weekly-social-container');
     if (!container) return;
-
     const socData = currentUserData.social;
-    
-    if (socData.isCompleted || !socData.currentQuest) {
-        container.innerHTML = '';
-        return;
-    }
-
+    if (socData.isCompleted || !socData.currentQuest) { container.innerHTML = ''; return; }
     const q = socData.currentQuest;
-
     container.innerHTML = `
         <div class="social-quest-card">
             <div class="habit-icon" style="text-shadow: 0 0 12px var(--color-purple-accent);">${q.emoji}</div>
             <div class="habit-info">
-                <div class="social-badge">Weekly Social Quest</div>
+                <div class="social-badge">3-Day Social Quest</div>
                 <div class="habit-title">${q.title}</div>
                 <div class="habit-desc">${q.desc}</div>
                 <div class="social-reward">+${q.xp} Charisma XP</div>
@@ -374,111 +315,62 @@ function renderSocialQuest() {
 
 window.completeWeeklySocial = function() {
     triggerFeedback(); 
-    
-    const socData = currentUserData.social;
-    const q = socData.currentQuest;
-    
-    socData.isCompleted = true;
-    socData.xp += q.xp;
-
-    let reqXP = getRequiredCharismaXP(socData.level);
-    let leveledUp = false;
-
-    while (socData.xp >= reqXP) {
-        socData.xp -= reqXP;
-        socData.level++;
-        reqXP = getRequiredCharismaXP(socData.level);
-        leveledUp = true;
-    }
-
-    saveData();
-    renderSocialQuest(); 
-    updateStatsUI();    
-
-    if (leveledUp) {
-        toast(`🎉 Charisma Level Up! You are now Level ${socData.level}!`);
-    } else {
-        toast(`🤝 Social Quest Done! +${q.xp} XP`);
-    }
+    const socData = currentUserData.social; const q = socData.currentQuest;
+    socData.isCompleted = true; socData.xp += q.xp;
+    let reqXP = getRequiredCharismaXP(socData.level); let leveledUp = false;
+    while (socData.xp >= reqXP) { socData.xp -= reqXP; socData.level++; reqXP = getRequiredCharismaXP(socData.level); leveledUp = true; }
+    saveData(); renderSocialQuest(); updateStatsUI();    
+    if (leveledUp) toast(`🎉 Charisma Level Up! You are now Level ${socData.level}!`);
+    else toast(`🤝 Social Quest Done! +${q.xp} XP`);
 };
 
 // ========================================
 // HABITS RENDERING & ACTIONS
 // ========================================
-
 function renderHabits() {
-    const container = document.getElementById('habits-list');
-    container.innerHTML = '';
-    
-    const activeHabits = currentUserData.habits.filter(h => {
-        const timeMatch = currentTimeFilter === 'any' || h.timeOfDay === currentTimeFilter || h.timeOfDay === 'any';
-        const activeToday = isHabitActiveToday(h);
-        return timeMatch && activeToday;
-    });
-
-    if (activeHabits.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); margin-top: 20px;">No habits for this filter today.</div>`;
-        return;
-    }
+    const container = document.getElementById('habits-list'); container.innerHTML = '';
+    const activeHabits = currentUserData.habits.filter(h => (currentTimeFilter === 'any' || h.timeOfDay === currentTimeFilter || h.timeOfDay === 'any') && isHabitActiveToday(h));
+    if (activeHabits.length === 0) { container.innerHTML = `<div style="text-align:center; color:var(--text-muted); margin-top: 20px;">No habits for this filter today.</div>`; return; }
     
     activeHabits.forEach(h => {
         const isDone = h.current >= h.target;
-        
         let streakHTML = '';
-        if (h.streak > 0) {
-            streakHTML = `<div class="streak-badge fire">🔥 ${h.streak}</div>`;
-        } else if (h.streak < 0) {
-            streakHTML = `<div class="streak-badge negative">${h.streak}</div>`;
-        } else if (h.streak === 0 && currentUserData.streak_freezes > 0) {
-             streakHTML = `<div class="streak-badge frozen">❄️ Freeze</div>`;
-        }
+        if (h.streak > 0) streakHTML = `<div class="streak-badge fire">🔥 ${h.streak}</div>`;
+        else if (h.streak < 0) streakHTML = `<div class="streak-badge negative">${h.streak}</div>`;
+        else if (h.streak === 0 && currentUserData.streak_freezes > 0) streakHTML = `<div class="streak-badge frozen">❄️ Freeze</div>`;
         
-        let scheduleText = h.schedule.type === 'weekdays' ? 'Weekdays' : 'Every day';
-        let desc = scheduleText;
-        let actionIcon = '<i class="ph ph-plus"></i>';
-        let btnAction = `incrementHabit(${h.id})`;
+        let desc = h.schedule.type === 'weekdays' ? 'Weekdays' : 'Every day';
+        let actionIcon = '<i class="ph ph-plus"></i>'; let btnAction = `incrementHabit(${h.id})`;
         
-        if (h.type === 'counter' || h.type === 'checklist') {
-            desc = `${scheduleText}, ${h.current}/${h.target}`;
-        } else if (h.type === 'timer') {
-            desc = `${scheduleText}, ${h.current}/${h.target} min`;
-            actionIcon = '<i class="ph-fill ph-play"></i>';
-            btnAction = `openFocusTimer(${h.id})`;
-        }
+        if (h.type === 'counter' || h.type === 'checklist') desc += `, ${h.current}/${h.target}`;
+        else if (h.type === 'timer') { desc += `, ${h.current}/${h.target} min`; actionIcon = '<i class="ph-fill ph-play"></i>'; btnAction = `openFocusTimer(${h.id})`; }
         
-        if (isDone && h.type !== 'timer') {
-            actionIcon = '<i class="ph-bold ph-check"></i>';
-            btnAction = ''; 
-        }
+        if (isDone && h.type !== 'timer') { actionIcon = '<i class="ph-bold ph-check"></i>'; btnAction = ''; }
 
         let subtasksHTML = '';
         if (h.type === 'checklist' && h.subtasks && h.subtasks.length > 0) {
-            subtasksHTML = '<div class="subtasks-container">';
-            h.subtasks.forEach((st, idx) => {
-                subtasksHTML += `
-                    <div class="subtask-item ${st.done ? 'done' : ''}" onclick="toggleSubtask(${h.id}, ${idx})">
-                        <div class="subtask-checkbox">${st.done ? '<i class="ph-bold ph-check"></i>' : ''}</div>
-                        <span>${st.title}</span>
-                    </div>
-                `;
-            });
-            subtasksHTML += '</div>';
+            subtasksHTML = '<div class="subtasks-container">' + h.subtasks.map((st, idx) => `
+                <div class="subtask-item ${st.done ? 'done' : ''}" onclick="toggleSubtask(${h.id}, ${idx})">
+                    <div class="subtask-checkbox">${st.done ? '<i class="ph-bold ph-check"></i>' : ''}</div>
+                    <span>${st.title}</span>
+                </div>
+            `).join('') + '</div>';
         }
 
-        const card = document.createElement('div');
-        card.className = `habit-card card-${h.color}`;
+        const card = document.createElement('div'); card.className = `habit-card card-${h.color}`;
         card.innerHTML = `
             ${streakHTML}
             <div style="display:flex; flex-direction:column; width:100%;">
                 <div class="habit-card-main">
                     <div class="habit-icon">${h.emoji}</div>
                     <div class="habit-info">
-                        <div class="habit-title">${h.title}</div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div class="habit-title">${h.title}</div>
+                            <button onclick="editHabit(${h.id}); event.stopPropagation();" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:2px;"><i class="ph ph-pencil-simple"></i></button>
+                        </div>
                         <div class="habit-desc">${desc}</div>
                     </div>
-                    <button class="habit-action ${isDone ? 'done' : ''}" onclick="${btnAction}">
-                        ${actionIcon}
-                    </button>
+                    <button class="habit-action ${isDone ? 'done' : ''}" onclick="${btnAction}">${actionIcon}</button>
                 </div>
                 ${subtasksHTML}
             </div>
@@ -487,32 +379,12 @@ function renderHabits() {
     });
 }
 
-async function saveData() {
-    await updateUser(currentUsername, { 
-        habits: currentUserData.habits,
-        xp: currentUserData.xp,
-        streak_freezes: currentUserData.streak_freezes,
-        stats: currentUserData.stats,
-        settings: currentUserData.settings,
-        social: currentUserData.social
-    });
-}
+async function saveData() { await updateUser(currentUsername, currentUserData); }
+function updateStreak(h) { h.streak = h.streak < 0 ? 1 : h.streak + 1; }
 
-function updateStreak(h) {
-    if (h.streak < 0) h.streak = 1;
-    else h.streak += 1;
-}
-
-// RPG Logic
 function claimHabitReward(h) {
-    let multiplier = 1.0;
-    if (h.streak >= 30) multiplier = 2.0;
-    else if (h.streak >= 7) multiplier = 1.5;
-    else if (h.streak >= 3) multiplier = 1.2;
-
-    const baseXP = 15;
-    const totalXP = Math.floor(baseXP * multiplier);
-    currentUserData.xp += totalXP;
+    let multiplier = h.streak >= 30 ? 2.0 : (h.streak >= 7 ? 1.5 : (h.streak >= 3 ? 1.2 : 1.0));
+    const totalXP = Math.floor(15 * multiplier); currentUserData.xp += totalXP;
     
     const s = currentUserData.stats;
     if (h.color === 'green') { s.int += 2; s.per += 1; }
@@ -520,285 +392,95 @@ function claimHabitReward(h) {
     else if (h.color === 'orange') { s.str += 2; s.end += 1; }
     else if (h.color === 'blue') { s.int += 1; s.agi += 2; }
     
-    // Save to history
-    const todayStr = getTodayString();
-    h.history[todayStr] = { completed: true, insight: "" };
-    
-    const comboText = multiplier > 1.0 ? ` (Combo x${multiplier}!)` : '';
-    toast(`+${totalXP} XP${comboText} | ${h.title}`);
-    
+    const todayStr = getTodayString(); h.history[todayStr] = { completed: true, insight: "" };
+    toast(`+${totalXP} XP${multiplier > 1.0 ? ` (Combo x${multiplier}!)` : ''} | ${h.title}`);
     setTimeout(() => openInsightModal(h.id), 500);
 }
 
 window.incrementHabit = function(id) {
     const h = currentUserData.habits.find(x => x.id === id);
     if (!h || h.current >= h.target) return;
-    
-    triggerFeedback();
-    h.current += 1;
-    if (h.current === h.target) { 
-        updateStreak(h);
-        claimHabitReward(h);
-    }
-    
-    renderHabits();
-    saveData();
+    triggerFeedback(); h.current += 1;
+    if (h.current === h.target) { updateStreak(h); claimHabitReward(h); }
+    renderHabits(); saveData();
 };
 
 window.toggleSubtask = function(habitId, subtaskIdx) {
     const h = currentUserData.habits.find(x => x.id === habitId);
-    if (!h || h.current >= h.target) return; // already done
-    
-    const st = h.subtasks[subtaskIdx];
-    st.done = !st.done;
-    triggerFeedback();
-    
+    if (!h || h.current >= h.target) return; 
+    h.subtasks[subtaskIdx].done = !h.subtasks[subtaskIdx].done; triggerFeedback();
     h.current = h.subtasks.filter(x => x.done).length;
-    if (h.current >= h.target) {
-        updateStreak(h);
-        claimHabitReward(h);
-    }
-    saveData();
-    renderHabits();
-};
-
-// ========================================
-// FOCUS TIMER (FULLSCREEN)
-// ========================================
-
-window.openFocusTimer = function(id) {
-    const h = currentUserData.habits.find(x => x.id === id);
-    if (!h || h.current >= h.target) {
-        if(h && h.current >= h.target) toast('Habit already completed today!');
-        return;
-    }
-    
-    currentFocusHabit = h;
-    focusTimeLeft = (h.target - h.current) * 60; // seconds
-    
-    document.getElementById('focus-title').textContent = h.title;
-    document.getElementById('focus-overlay').style.display = 'flex';
-    document.getElementById('focus-play-icon').className = 'ph-fill ph-pause';
-    
-    updateFocusDisplay();
-    focusInterval = setInterval(focusTick, 1000);
-};
-
-function focusTick() {
-    if (focusTimeLeft <= 0) {
-        clearInterval(focusInterval);
-        completeFocusSession();
-        return;
-    }
-    focusTimeLeft--;
-    updateFocusDisplay();
-    
-    // Sync progress every minute
-    if (focusTimeLeft % 60 === 0) {
-        currentFocusHabit.current += 1;
-        saveData();
-        renderHabits();
-    }
-}
-
-function updateFocusDisplay() {
-    const m = Math.floor(focusTimeLeft / 60).toString().padStart(2, '0');
-    const s = (focusTimeLeft % 60).toString().padStart(2, '0');
-    document.getElementById('focus-time-display').textContent = `${m}:${s}`;
-    
-    const totalSecs = currentFocusHabit.target * 60;
-    const progress = 1 - (focusTimeLeft / totalSecs);
-    const dashoffset = 283 - (283 * progress);
-    document.getElementById('focus-progress-circle').style.strokeDashoffset = dashoffset;
-}
-
-window.toggleFocusTimer = function() {
-    const icon = document.getElementById('focus-play-icon');
-    if (focusInterval) {
-        clearInterval(focusInterval); focusInterval = null;
-        icon.className = 'ph-fill ph-play';
-    } else {
-        focusInterval = setInterval(focusTick, 1000);
-        icon.className = 'ph-fill ph-pause';
-    }
-};
-
-window.stopFocusTimer = function() {
-    clearInterval(focusInterval);
-    focusInterval = null;
-    document.getElementById('focus-overlay').style.display = 'none';
+    if (h.current >= h.target) { updateStreak(h); claimHabitReward(h); }
     saveData(); renderHabits();
 };
 
-function completeFocusSession() {
-    document.getElementById('focus-overlay').style.display = 'none';
-    currentFocusHabit.current = currentFocusHabit.target;
-    updateStreak(currentFocusHabit);
-    claimHabitReward(currentFocusHabit);
-    saveData(); renderHabits();
-}
-
 // ========================================
-// INSIGHTS MODAL
+// EMOJI PICKER & ADD/EDIT MODAL
 // ========================================
 
-window.openInsightModal = function(habitId) {
-    document.getElementById('insight-habit-id').value = habitId;
-    document.getElementById('insight-text').value = '';
-    document.getElementById('insight-modal').classList.add('active');
-}
-
-window.closeInsightModal = function() {
-    document.getElementById('insight-modal').classList.remove('active');
-}
-
-window.saveInsight = function() {
-    const habitId = parseInt(document.getElementById('insight-habit-id').value);
-    const text = document.getElementById('insight-text').value.trim();
-    
-    if (text !== '') {
-        const h = currentUserData.habits.find(x => x.id === habitId);
-        if (h) {
-            const todayStr = getTodayString();
-            if (!h.history[todayStr]) h.history[todayStr] = { completed: true };
-            h.history[todayStr].insight = text;
-            saveData();
-            toast('Insight saved! 📝');
-        }
-    }
-    closeInsightModal();
-}
-
-// ========================================
-// HEATMAP
-// ========================================
-
-function renderHeatmap() {
-    const container = document.getElementById('heatmap-container');
-    if(!container) return;
-    container.innerHTML = '';
-    
-    const today = new Date();
-    // 60 days
-    for(let i=59; i>=0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-        
-        let totalDone = 0;
-        currentUserData.habits.forEach(h => {
-            if(h.history && h.history[dateStr] && h.history[dateStr].completed) {
-                totalDone++;
-            }
-        });
-        
-        const cell = document.createElement('div');
-        let level = 0;
-        if (totalDone >= 3) level = 3;
-        else if (totalDone === 2) level = 2;
-        else if (totalDone === 1) level = 1;
-        
-        cell.className = `heatmap-cell level-${level}`;
-        cell.title = `${dateStr}: ${totalDone} completed`;
-        container.appendChild(cell);
-    }
-}
-
-// ========================================
-// RPG STATS UI
-// ========================================
-
-const AVATARS = [
-    { level: 1, icon: 'ph-egg', name: 'Novice' },
-    { level: 5, icon: 'ph-bird', name: 'Apprentice' },
-    { level: 10, icon: 'ph-sword', name: 'Warrior' },
-    { level: 20, icon: 'ph-crown', name: 'Master' }
-];
-
-function updateStatsUI() {
-    if(!currentUserData) return;
-    
-    const xp = currentUserData.xp;
-    const lvl = Math.floor(xp / 250) + 1;
-    const curExp = xp % 250;
-    
-    let avatar = AVATARS[0];
-    for(const a of AVATARS) { if(lvl >= a.level) avatar = a; }
-    
-    document.getElementById('profile-avatar-icon').className = `ph ${avatar.icon} doll-base`;
-    document.getElementById('level-display').textContent = lvl;
-    document.getElementById('title-display').textContent = avatar.name;
-    document.getElementById('xp-text').textContent = `${curExp} / 250 XP`;
-    document.getElementById('exp-bar').style.width = `${(curExp / 250) * 100}%`;
-    
-    const s = currentUserData.stats;
-    document.getElementById('stat-str').textContent = s.str;
-    document.getElementById('stat-end').textContent = s.end;
-    document.getElementById('stat-agi').textContent = s.agi;
-    document.getElementById('stat-int').textContent = s.int;
-    document.getElementById('stat-per').textContent = s.per;
-    document.getElementById('stat-freezes').textContent = currentUserData.streak_freezes;
-    
-    // Обновляем шкалу Харизмы
-    if (currentUserData.social) {
-        const socData = currentUserData.social;
-        const reqXP = getRequiredCharismaXP(socData.level);
-        const progressPercent = (socData.xp / reqXP) * 100;
-
-        document.getElementById('charisma-lvl-display').textContent = socData.level;
-        document.getElementById('charisma-xp-display').textContent = `${socData.xp} / ${reqXP} XP`;
-        document.getElementById('charisma-bar').style.width = `${progressPercent}%`;
-    }
-}
-
-// ========================================
-// SETTINGS
-// ========================================
-
-window.saveSettings = async function() {
-    const bed = document.getElementById('setting-bedtime').value;
-    const wake = document.getElementById('setting-wakeup').value;
-    if(bed && wake) {
-        currentUserData.settings.target_bedtime = bed;
-        currentUserData.settings.target_wakeup = wake;
-        await saveData();
-        toast('Schedule Saved!');
-    }
+window.selectEmoji = function(emoji, el) {
+    document.querySelectorAll('.emoji-option').forEach(opt => opt.classList.remove('active'));
+    if (el) el.classList.add('active');
+    document.getElementById('habit-emoji').value = emoji;
 };
 
-window.resetProgress = async function() {
-    if(confirm('Are you sure you want to reset all habits and RPG stats?')) {
-        currentUserData.xp = 0;
-        currentUserData.streak_freezes = 2;
-        currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0 };
-        currentUserData.social = { level: 1, xp: 0, currentQuest: null, lastWeek: null, isCompleted: false };
-        currentUserData.habits = JSON.parse(JSON.stringify(defaultHabits));
-        
-        await saveData();
-        initApp();
-        updateStatsUI();
-        toast('Progress Reset');
-    }
+window.clearEmojiSelection = function() {
+    document.querySelectorAll('.emoji-option').forEach(opt => opt.classList.remove('active'));
 };
-
-// ========================================
-// ADD HABIT MODAL
-// ========================================
 
 window.addHabitModal = function() {
+    editingHabitId = null;
+    document.querySelector('.modal h2').textContent = 'New Habit';
+    document.getElementById('habit-title').value = '';
+    document.getElementById('habit-emoji').value = '';
+    document.getElementById('habit-target').value = '';
+    document.getElementById('habit-subtasks').value = '';
+    
+    clearEmojiSelection();
     document.getElementById('add-habit-modal').classList.add('active');
+    
     document.getElementById('habit-type').onchange = (e) => {
         const tw = document.getElementById('target-wrapper');
         const sw = document.getElementById('subtasks-wrapper');
-        if (e.target.value === 'checkbox') {
-            tw.style.display = 'none';
-            sw.style.display = 'none';
-        } else if (e.target.value === 'checklist') {
-            tw.style.display = 'none';
-            sw.style.display = 'block';
-        } else {
-            tw.style.display = 'block';
-            sw.style.display = 'none';
+        if (e.target.value === 'checkbox') { tw.style.display = 'none'; sw.style.display = 'none'; } 
+        else if (e.target.value === 'checklist') { tw.style.display = 'none'; sw.style.display = 'block'; } 
+        else {
+            tw.style.display = 'block'; sw.style.display = 'none';
+            document.getElementById('habit-target').placeholder = e.target.value === 'timer' ? 'Minutes (e.g., 60)' : 'Amount (e.g., 3)';
+        }
+    };
+    document.getElementById('habit-type').dispatchEvent(new Event('change'));
+};
+
+window.editHabit = function(id) {
+    const h = currentUserData.habits.find(x => x.id === id);
+    if (!h) return;
+    editingHabitId = id;
+
+    document.querySelector('.modal h2').textContent = 'Edit Habit';
+    document.getElementById('habit-title').value = h.title;
+    document.getElementById('habit-emoji').value = h.emoji;
+    document.getElementById('habit-type').value = h.type;
+    document.getElementById('habit-schedule').value = h.schedule.type;
+    document.getElementById('habit-time').value = h.timeOfDay;
+    document.getElementById('habit-color').value = h.color;
+
+    if (h.type === 'checklist' && h.subtasks) {
+        document.getElementById('habit-subtasks').value = h.subtasks.map(s => s.title).join('\n');
+    } else {
+        document.getElementById('habit-target').value = h.target || '';
+    }
+
+    clearEmojiSelection();
+    document.getElementById('add-habit-modal').classList.add('active');
+    
+    document.getElementById('habit-type').onchange = (e) => {
+        const tw = document.getElementById('target-wrapper');
+        const sw = document.getElementById('subtasks-wrapper');
+        if (e.target.value === 'checkbox') { tw.style.display = 'none'; sw.style.display = 'none'; } 
+        else if (e.target.value === 'checklist') { tw.style.display = 'none'; sw.style.display = 'block'; } 
+        else {
+            tw.style.display = 'block'; sw.style.display = 'none';
             document.getElementById('habit-target').placeholder = e.target.value === 'timer' ? 'Minutes (e.g., 60)' : 'Amount (e.g., 3)';
         }
     };
@@ -811,7 +493,6 @@ window.saveNewHabit = function() {
     const type = document.getElementById('habit-type').value;
     const color = document.getElementById('habit-color').value;
     let target = parseInt(document.getElementById('habit-target').value);
-    
     const scheduleType = document.getElementById('habit-schedule').value;
     const timeOfDay = document.getElementById('habit-time').value;
 
@@ -822,35 +503,163 @@ window.saveNewHabit = function() {
     if (type === 'checklist') {
         const stText = document.getElementById('habit-subtasks').value.trim();
         if (!stText) return toast('Please enter checklist items');
-        subtasks = stText.split('
-').map(s => ({ title: s.trim(), done: false })).filter(s => s.title !== '');
+        
+        const oldLines = stText.split('\n').map(s => s.trim()).filter(s => s !== '');
+        if (editingHabitId) {
+            const existingH = currentUserData.habits.find(x => x.id === editingHabitId);
+            subtasks = oldLines.map(line => {
+                const existingSt = existingH.subtasks?.find(s => s.title === line);
+                return { title: line, done: existingSt ? existingSt.done : false };
+            });
+        } else {
+            subtasks = oldLines.map(s => ({ title: s, done: false }));
+        }
         target = subtasks.length;
     }
     if ((type === 'counter' || type === 'timer') && (!target || target <= 0)) return toast('Enter valid target');
     
-    const newH = {
-        id: Date.now(),
-        title, emoji, type, color, target,
-        current: 0, streak: -1, isRunning: false, lastUpdated: getTodayString(),
-        schedule: { type: scheduleType },
-        timeOfDay: timeOfDay,
-        history: {}
-    };
+    if (editingHabitId) {
+        const h = currentUserData.habits.find(x => x.id === editingHabitId);
+        h.title = title; h.emoji = emoji; h.type = type; h.color = color; h.target = target;
+        h.schedule.type = scheduleType; h.timeOfDay = timeOfDay;
+        if (type === 'checklist') {
+            h.subtasks = subtasks;
+            h.current = h.subtasks.filter(s => s.done).length;
+        }
+        toast('Habit updated!');
+    } else {
+        const newH = {
+            id: Date.now(), title, emoji, type, color, target, current: 0, streak: -1, isRunning: false,
+            lastUpdated: getTodayString(), schedule: { type: scheduleType }, timeOfDay: timeOfDay, history: {}
+        };
+        if (type === 'checklist') newH.subtasks = subtasks;
+        currentUserData.habits.push(newH);
+        toast('Habit created!');
+    }
     
-    if (type === 'checklist') newH.subtasks = subtasks;
-    
-    currentUserData.habits.push(newH);
-    saveData();
-    renderHabits();
+    saveData(); renderHabits();
     document.getElementById('add-habit-modal').classList.remove('active');
-    
-    document.getElementById('habit-title').value = '';
-    document.getElementById('habit-emoji').value = '';
-    document.getElementById('habit-subtasks').value = '';
 };
 
-// Auto-login logic
-const savedSession = localStorage.getItem(SESSION_KEY);
-if (savedSession) {
-    document.getElementById('login-username').value = savedSession;
+// ========================================
+// FOCUS TIMER (FULLSCREEN)
+// ========================================
+
+window.openFocusTimer = function(id) {
+    const h = currentUserData.habits.find(x => x.id === id);
+    if (!h || h.current >= h.target) return toast('Habit already completed today!');
+    
+    currentFocusHabit = h; focusTimeLeft = (h.target - h.current) * 60;
+    
+    document.getElementById('focus-title').textContent = h.title;
+    document.getElementById('focus-overlay').style.display = 'flex';
+    document.getElementById('focus-play-icon').className = 'ph-fill ph-pause';
+    
+    updateFocusDisplay(); focusInterval = setInterval(focusTick, 1000);
+};
+
+function focusTick() {
+    if (focusTimeLeft <= 0) { clearInterval(focusInterval); return completeFocusSession(); }
+    focusTimeLeft--; updateFocusDisplay();
+    if (focusTimeLeft % 60 === 0) { currentFocusHabit.current += 1; saveData(); renderHabits(); }
+}
+
+function updateFocusDisplay() {
+    const m = Math.floor(focusTimeLeft / 60).toString().padStart(2, '0');
+    const s = (focusTimeLeft % 60).toString().padStart(2, '0');
+    document.getElementById('focus-time-display').textContent = `${m}:${s}`;
+    
+    const totalSecs = currentFocusHabit.target * 60;
+    const progress = 1 - (focusTimeLeft / totalSecs);
+    document.getElementById('focus-progress-circle').style.strokeDashoffset = 283 - (283 * progress);
+}
+
+window.toggleFocusTimer = function() {
+    const icon = document.getElementById('focus-play-icon');
+    if (focusInterval) { clearInterval(focusInterval); focusInterval = null; icon.className = 'ph-fill ph-play'; } 
+    else { focusInterval = setInterval(focusTick, 1000); icon.className = 'ph-fill ph-pause'; }
+};
+
+window.stopFocusTimer = function() { clearInterval(focusInterval); focusInterval = null; document.getElementById('focus-overlay').style.display = 'none'; saveData(); renderHabits(); };
+function completeFocusSession() { document.getElementById('focus-overlay').style.display = 'none'; currentFocusHabit.current = currentFocusHabit.target; updateStreak(currentFocusHabit); claimHabitReward(currentFocusHabit); saveData(); renderHabits(); }
+
+// ========================================
+// INSIGHTS MODAL
+// ========================================
+
+window.openInsightModal = function(habitId) { document.getElementById('insight-habit-id').value = habitId; document.getElementById('insight-text').value = ''; document.getElementById('insight-modal').classList.add('active'); }
+window.closeInsightModal = function() { document.getElementById('insight-modal').classList.remove('active'); }
+window.saveInsight = function() {
+    const habitId = parseInt(document.getElementById('insight-habit-id').value);
+    const text = document.getElementById('insight-text').value.trim();
+    if (text !== '') {
+        const h = currentUserData.habits.find(x => x.id === habitId);
+        if (h) { const todayStr = getTodayString(); if (!h.history[todayStr]) h.history[todayStr] = { completed: true }; h.history[todayStr].insight = text; saveData(); toast('Insight saved! 📝'); }
+    }
+    closeInsightModal();
+}
+
+// ========================================
+// HEATMAP & STATS
+// ========================================
+function renderHeatmap() {
+    const container = document.getElementById('heatmap-container'); if(!container) return; container.innerHTML = '';
+    const today = new Date();
+    for(let i=59; i>=0; i--) {
+        const d = new Date(today); d.setDate(d.getDate() - i);
+        const dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+        let totalDone = 0; currentUserData.habits.forEach(h => { if(h.history && h.history[dateStr] && h.history[dateStr].completed) totalDone++; });
+        const cell = document.createElement('div');
+        let level = totalDone >= 3 ? 3 : (totalDone === 2 ? 2 : (totalDone === 1 ? 1 : 0));
+        cell.className = `heatmap-cell level-${level}`; cell.title = `${dateStr}: ${totalDone} completed`;
+        container.appendChild(cell);
+    }
+}
+
+const AVATARS = [{ level: 1, icon: 'ph-egg', name: 'Novice' }, { level: 5, icon: 'ph-bird', name: 'Apprentice' }, { level: 10, icon: 'ph-sword', name: 'Warrior' }, { level: 20, icon: 'ph-crown', name: 'Master' }];
+function updateStatsUI() {
+    if(!currentUserData) return;
+    const xp = currentUserData.xp; const lvl = Math.floor(xp / 250) + 1; const curExp = xp % 250;
+    let avatar = AVATARS[0]; for(const a of AVATARS) { if(lvl >= a.level) avatar = a; }
+    
+    document.getElementById('profile-avatar-icon').className = `ph ${avatar.icon} doll-base`; document.getElementById('level-display').textContent = lvl;
+    document.getElementById('title-display').textContent = avatar.name; document.getElementById('xp-text').textContent = `${curExp} / 250 XP`;
+    document.getElementById('exp-bar').style.width = `${(curExp / 250) * 100}%`;
+    
+    const s = currentUserData.stats;
+    ['str','end','agi','int','per'].forEach(st => { document.getElementById(`stat-${st}`).textContent = s[st]; });
+    document.getElementById('stat-freezes').textContent = currentUserData.streak_freezes;
+    
+    if (currentUserData.social) {
+        const socData = currentUserData.social; const reqXP = getRequiredCharismaXP(socData.level);
+        document.getElementById('charisma-lvl-display').textContent = socData.level;
+        document.getElementById('charisma-xp-display').textContent = `${socData.xp} / ${reqXP} XP`;
+        document.getElementById('charisma-bar').style.width = `${(socData.xp / reqXP) * 100}%`;
+    }
+}
+
+// ========================================
+// SETTINGS
+// ========================================
+window.saveSettings = async function() {
+    const bed = document.getElementById('setting-bedtime').value; const wake = document.getElementById('setting-wakeup').value;
+    if(bed && wake) { currentUserData.settings.target_bedtime = bed; currentUserData.settings.target_wakeup = wake; await saveData(); toast('Schedule Saved!'); }
+};
+
+window.resetProgress = async function() {
+    if(confirm('Are you sure you want to reset all habits and RPG stats?')) {
+        currentUserData.xp = 0; currentUserData.streak_freezes = 2;
+        currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0 };
+        currentUserData.social = { level: 1, xp: 0, currentQuest: null, lastCycle: null, isCompleted: false };
+        currentUserData.habits = JSON.parse(JSON.stringify(defaultHabits));
+        await saveData(); initApp(); updateStatsUI(); toast('Progress Reset');
+    }
+};
+
+const savedSession = localStorage.getItem(SESSION_KEY); if (savedSession) document.getElementById('login-username').value = savedSession;
+
+if ('serviceWorker' in navigator) {
+    const swCode = `const CACHE_NAME = 'grit-v1'; self.addEventListener('install', event => { self.skipWaiting(); }); self.addEventListener('fetch', event => { event.respondWith( fetch(event.request).catch(() => caches.match(event.request)) ); });`;
+    navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' })))
+        .catch(err => console.log('SW registration skipped:', err));
 }
