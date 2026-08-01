@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiR3JpdCBUcmFja2VyIFBybyIsInNob3J0X25hbWUiOiJHcml0Iiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwMDAwMDAiLCJ0aGVtZV9jb2xvciI6IiMwMDAwMDAiLCJpY29ucyI6W3sic3JjIjoiaHR0cHM6Ly91cGxvYWQud2lraW1lZGlhLm9yZy93aWtpcGVkaWEvY29tbW9ucy90aHVtYi9lL2UwL0NoZWNrX2dyZWVuX2ljb24uc3ZnLzUxMnB4LUNoZWNrX2dyZWVuX2ljb24uc3ZnLnBuZyIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
     <title>Grit Habits Pro</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -77,7 +77,7 @@
                     <button class="time-btn" data-time="evening" onclick="filterTime('evening')">Evening</button>
                 </div>
 
-                <!-- WEEKLY SOCIAL QUEST CONTAINER -->
+                <!-- 3-DAY SOCIAL QUEST CONTAINER -->
                 <div id="weekly-social-container" style="padding: 0 20px;"></div>
 
                 <div class="content-wrapper" id="habits-list"></div>
@@ -139,9 +139,7 @@
                     <h3>Activity Heatmap</h3>
                     <p class="settings-desc" style="margin-bottom: 10px;">Last 60 Days</p>
                     <div class="heatmap-scroll">
-                        <div class="heatmap-grid" id="heatmap-container">
-                            <!-- Heatmap injected via JS -->
-                        </div>
+                        <div class="heatmap-grid" id="heatmap-container"></div>
                     </div>
                 </div>
             </div>
@@ -201,12 +199,23 @@
         </nav>
     </div>
 
-    <!-- ADD HABIT MODAL -->
+    <!-- ADD/EDIT HABIT MODAL -->
     <div class="modal-overlay" id="add-habit-modal">
         <div class="modal">
             <h2>New Habit</h2>
             <input type="text" id="habit-title" placeholder="Title (e.g., Deep Work)">
-            <input type="text" id="habit-emoji" placeholder="Emoji (e.g., ⏳)" maxlength="2">
+            
+            <label>Icon</label>
+            <div class="emoji-grid">
+                <div class="emoji-option" onclick="selectEmoji('🏃', this)">🏃</div>
+                <div class="emoji-option" onclick="selectEmoji('🏋️', this)">🏋️</div>
+                <div class="emoji-option" onclick="selectEmoji('💧', this)">💧</div>
+                <div class="emoji-option" onclick="selectEmoji('🥗', this)">🥗</div>
+                <div class="emoji-option" onclick="selectEmoji('💪', this)">💪</div>
+                <div class="emoji-option" onclick="selectEmoji('📚', this)">📚</div>
+                <div class="emoji-option" onclick="selectEmoji('👨‍💻', this)">👨‍💻</div>
+                <input type="text" id="habit-emoji" placeholder="Or type..." maxlength="2" oninput="clearEmojiSelection()">
+            </div>
             
             <label>Type</label>
             <select id="habit-type">
@@ -223,7 +232,7 @@
 
             <div id="subtasks-wrapper" style="display:none; margin-bottom:16px;">
                 <label>Checklist Items (one per line)</label>
-                <textarea id="habit-subtasks" rows="4" placeholder="Eggs&#10;Milk&#10;Cottage cheese&#10;Bananas"></textarea>
+                <textarea id="habit-subtasks" rows="4" placeholder="Eggs&#10;Milk&#10;Творог&#10;Bananas"></textarea>
             </div>
 
             <label>Schedule</label>
@@ -250,7 +259,7 @@
 
             <div class="modal-actions">
                 <button class="cancel" onclick="document.getElementById('add-habit-modal').classList.remove('active')">Cancel</button>
-                <button class="submit" onclick="saveNewHabit()">Add</button>
+                <button class="submit" onclick="saveNewHabit()">Save</button>
             </div>
         </div>
     </div>
@@ -288,10 +297,5 @@
     </div>
 
     <script src="script.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-    </script>
 </body>
 </html>
