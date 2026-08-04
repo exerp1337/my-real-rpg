@@ -106,6 +106,28 @@
                     </div>
                     <i class="ph ph-caret-right" style="color:var(--text-muted)"></i>
                 </div>
+
+                <!-- SLEEP CALCULATOR -->
+                <div class="sleep-calc-card" id="sleep-calc-card">
+                    <div class="sleep-calc-header">
+                        <div class="sleep-calc-title-row">
+                            <i class="ph-fill ph-moon sleep-moon-icon"></i>
+                            <div>
+                                <div class="sleep-calc-title">Бодрый сон</div>
+                                <div class="sleep-calc-subtitle">Калькулятор циклов сна</div>
+                            </div>
+                        </div>
+                        <button class="sleep-calc-btn" onclick="calcSleep()">
+                            <i class="ph ph-bed"></i>
+                            Ложусь сейчас
+                        </button>
+                    </div>
+                    <div class="sleep-results" id="sleep-results" style="display:none;">
+                        <div class="sleep-results-label">Поставь будильник на:</div>
+                        <div class="sleep-times" id="sleep-times"></div>
+                    </div>
+                </div>
+
                 <div class="sync-status">Synced with cloud</div>
             </div>
 
@@ -283,6 +305,20 @@
             <div class="modal-actions">
                 <button class="cancel" onclick="document.getElementById('add-habit-modal').classList.remove('active')">Cancel</button>
                 <button class="submit" onclick="saveNewHabit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE HABIT CONFIRM MODAL -->
+    <div class="modal-overlay" id="delete-habit-modal">
+        <div class="modal" style="max-width:300px; text-align:center;">
+            <div style="font-size:40px; margin-bottom:12px;">🗑️</div>
+            <h2 style="margin-bottom:8px;">Удалить задание?</h2>
+            <p class="settings-desc" id="delete-habit-name" style="margin-bottom:24px;">Это действие нельзя отменить.</p>
+            <input type="hidden" id="delete-habit-id">
+            <div class="modal-actions" style="justify-content:center; gap:12px;">
+                <button class="cancel" onclick="document.getElementById('delete-habit-modal').classList.remove('active')" style="flex:1;">Отмена</button>
+                <button class="danger-btn" onclick="confirmDeleteHabit()" style="flex:1; border-radius:12px; padding:12px;">Удалить</button>
             </div>
         </div>
     </div>

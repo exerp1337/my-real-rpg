@@ -50,7 +50,7 @@ body {
 }
 
 /* AUTH UI */
-.auth-container { display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom)); }
+.auth-container { display: flex; justify-content: center; align-items: center; height: 100vh; padding: 20px; }
 .auth-inner { width: 100%; max-width: 340px; }
 .auth-logo { text-align: center; margin-bottom: 40px; }
 .logo-icon { font-size: 64px; color: var(--color-green-accent); margin-bottom: 10px; }
@@ -76,7 +76,7 @@ body {
 .app-container.active { display: flex; }
 
 /* HEADER */
-.app-header { display: flex; justify-content: space-between; align-items: center; padding: max(16px, env(safe-area-inset-top)) 20px 8px; flex-shrink: 0; background-color: var(--bg-header); position: relative; z-index: 10; }
+.app-header { display: flex; justify-content: space-between; align-items: center; padding: max(16px, env(safe-area-inset-top)) 20px 8px; flex-shrink: 0; }
 .header-title { font-size: 18px; font-weight: 600; }
 .header-left, .header-right { display: flex; gap: 12px; }
 .icon-btn { background: var(--bg-btn); color: var(--text-main); border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: 0.2s; }
@@ -98,7 +98,7 @@ body {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch; 
     overscroll-behavior-y: auto; 
-    padding-bottom: calc(100px + env(safe-area-inset-bottom)); 
+    padding-bottom: 120px; 
 }
 .screen.active { display: flex; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -315,7 +315,204 @@ body {
 .gym-set-pr { color: var(--color-orange-accent); font-size: 12px; font-weight: 800; background: rgba(255,159,10,0.1); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--color-orange-accent); margin-left: 10px; text-transform:uppercase;}
 #gym-timer { font-size: 24px; font-family: monospace; font-weight: 700; color: var(--color-orange-accent); }
 
+/* ============================================
+   HABIT CARD — SWIPE TO DELETE
+   ============================================ */
+.habit-card-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    margin-bottom: 0; /* gap handled by content-wrapper */
+}
+
+/* Red delete zone revealed behind card */
+.habit-delete-bg {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 100px;
+    background: rgba(255, 69, 58, 0.18);
+    border: 1px solid rgba(255,69,58,0.35);
+    border-radius: var(--radius-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--color-red);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+.habit-delete-bg i { font-size: 20px; }
+
+/* Habit card itself slides on top */
+.habit-card {
+    position: relative;
+    will-change: transform;
+    touch-action: pan-y;
+    user-select: none;
+    transition: transform 0.25s cubic-bezier(.23,1,.32,1);
+}
+
+/* Swiped state: card shifted, red bg visible */
+.habit-card-wrapper.swiped .habit-card {
+    transform: translateX(-96px);
+}
+.habit-card-wrapper.swiped .habit-delete-bg {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* Removal animation */
+@keyframes habitFadeSlideUp {
+    0%   { opacity: 1; max-height: 120px; transform: scale(1); }
+    40%  { opacity: 0; transform: scale(0.95); max-height: 120px; margin-bottom: 0; }
+    100% { opacity: 0; transform: scale(0.95); max-height: 0; padding: 0; margin: 0; border: none; }
+}
+.habit-card-wrapper.removing {
+    animation: habitFadeSlideUp 0.4s cubic-bezier(.23,1,.32,1) forwards;
+    pointer-events: none;
+}
+
+/* ============================================
+   SLEEP CALCULATOR CARD
+   ============================================ */
+.sleep-calc-card {
+    margin: 0 20px 20px;
+    background: linear-gradient(135deg, #050d18, #0a1625);
+    border: 1px solid var(--color-blue-border);
+    border-radius: var(--radius-card);
+    padding: 18px 20px;
+    box-shadow: 0 0 24px rgba(10, 132, 255, 0.08);
+}
+
+.sleep-calc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.sleep-calc-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sleep-moon-icon {
+    font-size: 28px;
+    color: var(--color-blue-accent);
+    text-shadow: 0 0 12px rgba(10,132,255,0.5);
+}
+
+.sleep-calc-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.sleep-calc-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+
+.sleep-calc-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(10, 132, 255, 0.15);
+    border: 1px solid var(--color-blue-accent);
+    border-radius: 20px;
+    color: var(--color-blue-accent);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: 0.15s;
+    flex-shrink: 0;
+}
+.sleep-calc-btn:active { transform: scale(0.96); opacity: 0.8; }
+.sleep-calc-btn i { font-size: 16px; }
+
+/* Results area */
+.sleep-results {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(10,132,255,0.2);
+    animation: fadeIn 0.3s ease;
+}
+
+.sleep-results-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+}
+
+.sleep-times {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sleep-time-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,132,255,0.06);
+    border: 1px solid rgba(10,132,255,0.15);
+    border-radius: 14px;
+    padding: 12px 16px;
+    transition: 0.15s;
+}
+
+.sleep-time-row.highlight {
+    background: rgba(10,132,255,0.14);
+    border-color: var(--color-blue-accent);
+    box-shadow: 0 0 12px rgba(10,132,255,0.15);
+}
+
+.sleep-time-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    font-family: var(--font-mono, monospace);
+}
+
+.sleep-time-row.highlight .sleep-time-value {
+    color: var(--color-blue-accent);
+    text-shadow: 0 0 10px rgba(10,132,255,0.4);
+}
+
+.sleep-time-meta {
+    text-align: right;
+}
+
+.sleep-time-cycles {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.sleep-time-row.highlight .sleep-time-cycles {
+    color: var(--color-blue-accent);
+}
+
+.sleep-time-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
 /* TOAST */
-.toast-container { position: fixed; top: max(20px, env(safe-area-inset-top)); right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
 .toast { background: #222; border: 1px solid #444; border-radius: 12px; padding: 12px 16px; font-size: 14px; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-left: 4px solid var(--color-green-accent); animation: toastIn 0.3s ease; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
