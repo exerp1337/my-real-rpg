@@ -163,17 +163,32 @@ function initApp() {
     document.getElementById('setting-wakeup').value = currentUserData.settings.target_wakeup;
 }
 
-function toast(msg) {
+async function attemptAutoLogin() {
+    const savedUsername = localStorage.getItem(SESSION_KEY);
+    if (!savedUsername) return;
+    try {
+        const user = await getUser(savedUsername);
+        if (!user) { localStorage.removeItem(SESSION_KEY); return; }
+        currentUsername = savedUsername;
+        currentUserData = normalizeData(user);
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app-container').classList.add('active');
+        initApp();
+    } catch (e) { console.error('Auto-login failed:', e); }
+}
+
+function toast(msg, type) {
     const c = document.getElementById('toast-container');
     const t = document.createElement('div');
-    t.className = 'toast'; t.textContent = msg;
+    t.className = 'toast' + (type === 'error' ? ' toast-error' : '');
+    t.textContent = msg;
     c.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2000);
 }
 
-window.switchTab = function(tab, title) {
+window.switchTab = function(evt, tab, title) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    evt.currentTarget.classList.add('active');
     document.getElementById('main-header-title').textContent = title;
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(`${tab}-screen`).classList.add('active');
@@ -372,19 +387,21 @@ window.selectEmoji = function(emoji, el) {
 
 window.clearEmojiSelection = function() { document.querySelectorAll('.emoji-option').forEach(opt => opt.classList.remove('active')); };
 
+function updateHabitTypeUI(type) {
+    const tw = document.getElementById('target-wrapper'); const sw = document.getElementById('subtasks-wrapper');
+    if (type === 'checkbox') { tw.style.display = 'none'; sw.style.display = 'none'; }
+    else if (type === 'checklist') { tw.style.display = 'none'; sw.style.display = 'block'; }
+    else { tw.style.display = 'block'; sw.style.display = 'none'; document.getElementById('habit-target').placeholder = type === 'timer' ? 'Minutes (e.g., 60)' : 'Amount (e.g., 3)'; }
+}
+
 window.addHabitModal = function() {
     editingHabitId = null;
     document.querySelector('.modal h2').textContent = 'New Habit';
     document.getElementById('habit-title').value = ''; document.getElementById('habit-emoji').value = '';
     document.getElementById('habit-target').value = ''; document.getElementById('habit-subtasks').value = '';
     clearEmojiSelection(); document.getElementById('add-habit-modal').classList.add('active');
-    
-    document.getElementById('habit-type').onchange = (e) => {
-        const tw = document.getElementById('target-wrapper'); const sw = document.getElementById('subtasks-wrapper');
-        if (e.target.value === 'checkbox') { tw.style.display = 'none'; sw.style.display = 'none'; } 
-        else if (e.target.value === 'checklist') { tw.style.display = 'none'; sw.style.display = 'block'; } 
-        else { tw.style.display = 'block'; sw.style.display = 'none'; document.getElementById('habit-target').placeholder = e.target.value === 'timer' ? 'Minutes (e.g., 60)' : 'Amount (e.g., 3)'; }
-    };
+
+    document.getElementById('habit-type').onchange = (e) => updateHabitTypeUI(e.target.value);
     document.getElementById('habit-type').dispatchEvent(new Event('change'));
 };
 
@@ -398,11 +415,8 @@ window.editHabit = function(id) {
     if (h.type === 'checklist' && h.subtasks) { document.getElementById('habit-subtasks').value = h.subtasks.map(s => s.title).join('\n'); } else { document.getElementById('habit-target').value = h.target || ''; }
     
     clearEmojiSelection(); document.getElementById('add-habit-modal').classList.add('active');
-    
-    document.getElementById('habit-type').onchange = (e) => {
-        const tw = document.getElementById('target-wrapper'); const sw = document.getElementById('subtasks-wrapper');
-        if (e.target.value === 'checkbox') { tw.style.display = 'none'; sw.style.display = 'none'; } else if (e.target.value === 'checklist') { tw.style.display = 'none'; sw.style.display = 'block'; } else { tw.style.display = 'block'; sw.style.display = 'none'; document.getElementById('habit-target').placeholder = e.target.value === 'timer' ? 'Minutes (e.g., 60)' : 'Amount (e.g., 3)'; }
-    };
+
+    document.getElementById('habit-type').onchange = (e) => updateHabitTypeUI(e.target.value);
     document.getElementById('habit-type').dispatchEvent(new Event('change'));
 };
 
@@ -540,6 +554,34 @@ function updateStatsUI() {
     const s = currentUserData.stats; ['str','end','agi','int','per'].forEach(st => { document.getElementById(`stat-${st}`).textContent = s[st]; }); document.getElementById('stat-freezes').textContent = currentUserData.streak_freezes;
     if (currentUserData.social) { const socData = currentUserData.social; const reqXP = getRequiredCharismaXP(socData.level); document.getElementById('charisma-lvl-display').textContent = socData.level; document.getElementById('charisma-xp-display').textContent = `${socData.xp} / ${reqXP} XP`; document.getElementById('charisma-bar').style.width = `${(socData.xp / reqXP) * 100}%`; }
 }
+
+window.saveSettings = async function() {
+    const bedtime = document.getElementById('setting-bedtime').value;
+    const wakeup = document.getElementById('setting-wakeup').value;
+    if (!bedtime || !wakeup) return toast('Укажите оба значения времени', 'error');
+    currentUserData.settings.target_bedtime = bedtime;
+    currentUserData.settings.target_wakeup = wakeup;
+    await saveData();
+    toast('⏰ Расписание сохранено');
+};
+
+window.resetProgress = async function() {
+    if (!confirm('Сбросить весь прогресс? Это действие нельзя отменить.')) return;
+    currentUserData.xp = 0;
+    currentUserData.streak_freezes = 2;
+    currentUserData.stats = { str: 0, end: 0, agi: 0, int: 0, cha: 0, per: 0, luck: 0 };
+    currentUserData.habits = JSON.parse(JSON.stringify(defaultHabits));
+    currentUserData.habits.forEach(h => h.lastUpdated = getTodayString());
+    currentUserData.social = { level: 1, xp: 0, currentQuest: null, lastCycle: null, isCompleted: false };
+    currentUserData.gym = {
+        workouts: [],
+        prs: { 'Приседания со штангой': 0, 'Жим лежа': 0, 'Становая тяга': 0 },
+        availableExercises: ['Приседания со штангой', 'Жим лежа', 'Становая тяга']
+    };
+    await saveData();
+    initApp();
+    toast('🔄 Прогресс сброшен');
+};
 
 window.exportData = async function() { if(!currentUserData) return; const dataStr = JSON.stringify(currentUserData, null, 2); const fileName = `grit_backup_${getTodayString()}.json`; const file = new File([dataStr], fileName, { type: "application/json" }); if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: 'Grit Tracker Backup' }); toast('📦 Backup exported!'); return; } catch (err) { } } const url = URL.createObjectURL(file); const a = document.createElement('a'); a.href = url; a.download = fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); toast('📦 Backup exported!'); };
 window.importData = function(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async function(e) { try { const importedData = JSON.parse(e.target.result); if(importedData.habits && importedData.stats) { currentUserData = normalizeData(importedData); await saveData(); initApp(); toast('🚀 Backup restored successfully!'); } else toast('❌ Invalid backup file format.', 'error'); } catch(err) { toast('❌ Error parsing JSON file.', 'error'); } event.target.value = ''; }; reader.readAsText(file); };
